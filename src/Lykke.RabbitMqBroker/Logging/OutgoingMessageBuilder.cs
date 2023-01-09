@@ -21,6 +21,10 @@ namespace Lykke.RabbitMqBroker.Logging
 
         public void SetSerializationFormat(SerializationFormat format)
         {
+            if (_serializationFormat != SerializationFormat.Unknown)
+            {
+                throw new InvalidOperationException($"Cannot set {nameof(format)} twice");
+            }
             _serializationFormat = format;
         }
 
