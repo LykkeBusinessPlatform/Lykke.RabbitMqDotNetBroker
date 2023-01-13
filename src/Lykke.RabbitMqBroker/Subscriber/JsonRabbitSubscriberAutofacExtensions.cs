@@ -20,6 +20,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         /// <param name="rabbitMqConnString">Connection string to RabbitMq.</param>
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="queueName">Queu name.</param>
+        [Obsolete]
         public static IRegistrationBuilder<TSubscriber, ConcreteReflectionActivatorData, SingleRegistrationStyle> RegisterJsonRabbitSubscriber<TSubscriber, TMessage>(
             [NotNull] this ContainerBuilder builder,
             [NotNull] string rabbitMqConnString,

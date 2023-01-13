@@ -41,6 +41,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
                 channel.QueueBind(poisonQueueName, settings.DeadLetterExchangeName, settings.RoutingKey ?? string.Empty);
             }
 
+            channel.ExchangeDeclare(settings.ExchangeName, ExchangeType.Direct, settings.IsDurable, autodelete);
             settings.QueueName = channel.QueueDeclare(queueName, durable: settings.IsDurable, exclusive: false, autoDelete: autodelete, arguments: args).QueueName;
 
 

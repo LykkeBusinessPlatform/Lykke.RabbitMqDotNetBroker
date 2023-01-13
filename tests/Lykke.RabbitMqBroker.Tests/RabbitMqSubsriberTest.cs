@@ -18,16 +18,20 @@ namespace Lykke.RabbitMqBroker.Tests
     [Explicit]
     internal sealed class RabbitMqSubsriberTest : RabbitMqPublisherSubscriberBaseTest
     {
-        private RabbitMqPullingSubscriber<string> _pullingSubscriber;
+        private RabbitMqSubscriber<string> _subscriber;
+        private IAutorecoveringConnection _connection;
 
         [SetUp]
         public void SetUp()
         {
-            _pullingSubscriber = new RabbitMqPullingSubscriber<string>(
-                    new NullLogger<RabbitMqPullingSubscriber<string>>(),
-                    _settings)
+            _connection = _factory.CreateConnection("test") as IAutorecoveringConnection;
+            
+            _subscriber = new RabbitMqSubscriber<string>(
+                    new NullLogger<RabbitMqSubscriber<string>>(),
+                    _settings,
+                    _connection)
                 .UseMiddleware(new ExceptionSwallowMiddleware<string>(new NullLogger<ExceptionSwallowMiddleware<string>>()))
-                .CreateDefaultBinding()
+                .UseDefaultStrategy()
                 .SetMessageDeserializer(new DefaultStringDeserializer());
         }
 
@@ -45,9 +49,9 @@ namespace Lykke.RabbitMqBroker.Tests
                 completeLock.Set();
                 return Task.CompletedTask;
             });
-            _pullingSubscriber.Subscribe(handler);
+            _subscriber.Subscribe(handler);
 
-            _pullingSubscriber.Start();
+            _subscriber.Start();
 
             PublishToQueue(expected);
 
@@ -58,11 +62,12 @@ namespace Lykke.RabbitMqBroker.Tests
         [Test]
         public void ShouldUseDeadLetterQueueOnException()
         {
-            _pullingSubscriber = new RabbitMqPullingSubscriber<string>(
-                    new NullLogger<RabbitMqPullingSubscriber<string>>(),
-                    _settings)
+            _subscriber = new RabbitMqSubscriber<string>(
+                    new NullLogger<RabbitMqSubscriber<string>>(),
+                    _settings,
+                    _connection)
                 .UseMiddleware(new ExceptionSwallowMiddleware<string>(new NullLogger<ExceptionSwallowMiddleware<string>>()))
-                .CreateDefaultBinding()
+                .UseDefaultStrategy()
                 .SetMessageDeserializer(new DefaultStringDeserializer());
 
             const string expected = "GetDefaultHost message";
@@ -76,8 +81,8 @@ namespace Lykke.RabbitMqBroker.Tests
                 completeLock.Set();
                 throw new Exception();
             });
-            _pullingSubscriber.Subscribe(handler);
-            _pullingSubscriber.Start();
+            _subscriber.Subscribe(handler);
+            _subscriber.Start();
 
             completeLock.Wait();
 
@@ -89,7 +94,9 @@ namespace Lykke.RabbitMqBroker.Tests
         [TearDown]
         public void TearDown()
         {
-            _pullingSubscriber.Stop();
+            _subscriber.Stop();
+            _connection.Close();
+            _connection.Dispose();
         }
 
         private void PublishToQueue(string message)

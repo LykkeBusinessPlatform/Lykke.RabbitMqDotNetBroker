@@ -7,29 +7,35 @@ using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.Middleware.ErrorHandling;
 using Microsoft.Extensions.Logging.Abstractions;
+using RabbitMQ.Client;
 
 namespace TestInvoke.SubscribeExample
 {
     public static class HowToSubscribe
     {
-        private static RabbitMqPullingSubscriber<string> _connector;
+        private static RabbitMqSubscriber<string> _subscriber;
 
-        public static void Example(RabbitMqSubscriptionSettings settings)
+        public static void Example(RabbitMqSubscriptionSettings settings, IAutorecoveringConnection connection)
         {
-            _connector =
-                new RabbitMqPullingSubscriber<string>(
-                    new NullLogger<RabbitMqPullingSubscriber<string>>(),
-                    settings)
+            _subscriber =
+                new RabbitMqSubscriber<string>(
+                    new NullLogger<RabbitMqSubscriber<string>>(),
+                    settings,
+                    connection)
                     .UseMiddleware(new ExceptionSwallowMiddleware<string>(new NullLogger<ExceptionSwallowMiddleware<string>>()))
                     .SetMessageDeserializer(new TestMessageDeserializer())
-                    .CreateDefaultBinding()
-                    .Subscribe(HandleMessage)
-                    .Start();
+                    .UseDefaultStrategy()
+                    .Subscribe(HandleMessage);
+        }
+
+        public static void Start()
+        {
+            _subscriber.Start();
         }
 
         public static void Stop()
         {
-            _connector.Stop();
+            _subscriber.Stop();
         }
 
         private static Task HandleMessage(string msg)

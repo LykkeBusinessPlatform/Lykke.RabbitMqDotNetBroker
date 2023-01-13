@@ -50,7 +50,13 @@ namespace Lykke.RabbitMqBroker.Tests
                 RoutingKey = "RoutingKey"
             };
 
-            _factory = new ConnectionFactory {Uri = new Uri(RabbitConnectionString, UriKind.Absolute)};
+            _factory = new ConnectionFactory
+            {
+                Uri = new Uri(RabbitConnectionString, UriKind.Absolute),
+                AutomaticRecoveryEnabled = true,
+                TopologyRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(2)
+            };
 
             EnsureRabbitInstalledAndRun();
         }
@@ -59,9 +65,8 @@ namespace Lykke.RabbitMqBroker.Tests
         {
             try
             {
-                using (var connection = _factory.CreateConnection())
-                {
-                }
+                using var connection = _factory.CreateConnection();
+                using var channel = connection.CreateModel();
             }
             catch (Exception)
             {
