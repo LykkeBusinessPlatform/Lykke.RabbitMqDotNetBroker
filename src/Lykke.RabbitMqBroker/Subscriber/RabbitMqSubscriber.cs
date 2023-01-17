@@ -26,28 +26,25 @@ namespace Lykke.RabbitMqBroker.Subscriber
     public class RabbitMqSubscriber<TTopicModel> : IStartStop
     {
         private readonly RabbitMqSubscriptionSettings _settings;
-        private Func<TTopicModel, Task> _eventHandler;
-        private Func<TTopicModel, CancellationToken, Task> _cancellableEventHandler;
+        private readonly ILogger<RabbitMqSubscriber<TTopicModel>> _logger;
+        private readonly MiddlewareQueue<TTopicModel> _middlewareQueue;
+        private readonly RetryPolicy _retryPolicy;
+        private readonly List<Action<IDictionary<string, object>>> _readHeadersActions = new List<Action<IDictionary<string, object>>>();
+        private readonly IAutorecoveringConnection _connection;
+        
+        private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed;
         private ushort? _prefetchCount;
-        private readonly ILogger<RabbitMqSubscriber<TTopicModel>> _logger;
-        private IMessageDeserializer<TTopicModel> _messageDeserializer;
-        private IMessageReadStrategy _messageReadStrategy;
-        private CancellationTokenSource _cancellationTokenSource;
-        private readonly MiddlewareQueue<TTopicModel> _middlewareQueue;
-
-        private readonly List<Action<IDictionary<string, object>>> _readHeadersActions =
-            new List<Action<IDictionary<string, object>>>();
-        
-        private readonly IAutorecoveringConnection _connection;
         // TODO: introduce domain channel model to make interaction with RabbitMQ safe and reliable with implicit retries
         private IModel _channel;
-        
         private EventingBasicConsumer _consumer;
         private string _consumerTag;
-
-        private readonly RetryPolicy _retryPolicy;
         
+        public IMessageDeserializer<TTopicModel> MessageDeserializer { get; private set; }
+        public IMessageReadStrategy MessageReadStrategy { get; private set; }
+        public Func<TTopicModel, Task> EventHandler { get; private set; }
+        public Func<TTopicModel, CancellationToken, Task> CancellableEventHandler { get; private set; }
+
         public RabbitMqSubscriber(
             [NotNull] ILogger<RabbitMqSubscriber<TTopicModel>> logger,
             [NotNull] RabbitMqSubscriptionSettings settings,
@@ -89,27 +86,27 @@ namespace Lykke.RabbitMqBroker.Subscriber
         public RabbitMqSubscriber<TTopicModel> SetMessageDeserializer(
             IMessageDeserializer<TTopicModel> messageDeserializer)
         {
-            _messageDeserializer = messageDeserializer;
+            MessageDeserializer = messageDeserializer;
             return this;
         }
 
         public RabbitMqSubscriber<TTopicModel> Subscribe(Func<TTopicModel, Task> callback)
         {
-            _eventHandler = callback;
-            _cancellableEventHandler = null;
+            EventHandler = callback;
+            CancellableEventHandler = null;
             return this;
         }
 
         public RabbitMqSubscriber<TTopicModel> Subscribe(Func<TTopicModel, CancellationToken, Task> callback)
         {
-            _cancellableEventHandler = callback;
-            _eventHandler = null;
+            CancellableEventHandler = callback;
+            EventHandler = null;
             return this;
         }
 
         public RabbitMqSubscriber<TTopicModel> SetMessageReadStrategy(IMessageReadStrategy messageReadStrategy)
         {
-            _messageReadStrategy = messageReadStrategy;
+            MessageReadStrategy = messageReadStrategy;
             return this;
         }
 
@@ -156,7 +153,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             
                 try
                 {
-                    var model = _messageDeserializer.Deserialize(args.Body.ToArray());
+                    var model = MessageDeserializer.Deserialize(args.Body.ToArray());
 
                     _middlewareQueue.RunMiddlewaresAsync(
                             args.Body,
@@ -185,10 +182,10 @@ namespace Lykke.RabbitMqBroker.Subscriber
             if (_consumer?.IsRunning ?? false)
                 return this;
             
-            if (_messageDeserializer == null)
+            if (MessageDeserializer == null)
                 throw new InvalidOperationException("Please, specify message deserializer");
 
-            if (_eventHandler == null && _cancellableEventHandler == null)
+            if (EventHandler == null && CancellableEventHandler == null)
                 throw new InvalidOperationException("Please, specify message handler");
 
             if (_cancellationTokenSource == null || _cancellationTokenSource.IsCancellationRequested)
@@ -196,12 +193,12 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _cancellationTokenSource = new CancellationTokenSource();
             }
 
-            if (_messageReadStrategy == null)
+            if (MessageReadStrategy == null)
                 UseDefaultStrategy();
 
-            var actualHandlerMiddleware = _eventHandler != null
-                ? new ActualHandlerMiddleware<TTopicModel>(_eventHandler)
-                : new ActualHandlerMiddleware<TTopicModel>(_cancellableEventHandler);
+            var actualHandlerMiddleware = EventHandler != null
+                ? new ActualHandlerMiddleware<TTopicModel>(EventHandler)
+                : new ActualHandlerMiddleware<TTopicModel>(CancellableEventHandler);
             _middlewareQueue.AddMiddleware(actualHandlerMiddleware);
 
             _channel ??= _retryPolicy.Execute(_connection.CreateModel);
@@ -214,7 +211,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _retryPolicy.Execute(() => _channel.BasicQos(0, _prefetchCount.Value, false));
             }
 
-            var queueName = _retryPolicy.Execute(() => _messageReadStrategy.Configure(_settings, _channel));
+            var queueName = _retryPolicy.Execute(() => MessageReadStrategy.Configure(_settings, _channel));
 
             _consumer.Received += OnReceived;
 
