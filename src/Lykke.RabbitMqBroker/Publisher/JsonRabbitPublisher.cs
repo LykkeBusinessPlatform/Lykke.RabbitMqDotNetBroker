@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Lykke.RabbitMqBroker.Publisher.Serializers;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Publisher
 {
@@ -18,16 +19,19 @@ namespace Lykke.RabbitMqBroker.Publisher
         private readonly ILoggerFactory _loggerFactory;
         private readonly string _connectionString;
         private readonly string _exchangeName;
+        private readonly IAutorecoveringConnection _connection;
         private RabbitMqPublisher<TMessage> _rabbitMqPublisher;
 
         public JsonRabbitPublisher(
             [NotNull] ILoggerFactory loggerFactory,
+            [NotNull] IAutorecoveringConnection connection,
             string connectionString,
             string exchangeName)
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             _exchangeName = exchangeName ?? throw new ArgumentNullException(nameof(exchangeName));
+            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         }
 
         /// <inheritdoc cref="IStartable.Start"/>
@@ -37,7 +41,7 @@ namespace Lykke.RabbitMqBroker.Publisher
                 .ForPublisher(_connectionString, _exchangeName)
                 .MakeDurable();
 
-            _rabbitMqPublisher = new RabbitMqPublisher<TMessage>(_loggerFactory, settings)
+            _rabbitMqPublisher = new RabbitMqPublisher<TMessage>(_loggerFactory, settings, _connection)
                 .SetSerializer(new JsonMessageSerializer<TMessage>())
                 .SetPublishStrategy(new FanoutPublishStrategy(settings))
                 .PublishSynchronously();

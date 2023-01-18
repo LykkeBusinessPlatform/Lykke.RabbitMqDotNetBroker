@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
+using Lykke.RabbitMqBroker.Tests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 
@@ -18,7 +19,7 @@ namespace Lykke.RabbitMqBroker.Tests
         [SetUp]
         public void SetUp()
         {
-            _publisher = new RabbitMqPublisher<string>(new NullLoggerFactory(), _settings);
+            _publisher = new RabbitMqPublisher<string>(new NullLoggerFactory(), _settings, new FakeConnection());
 
             _publisher
                 .SetPublishStrategy(new FanoutPublishStrategy(_settings))

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Publisher.Serializers;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
+using Lykke.RabbitMqBroker.Tests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using NSubstitute;
@@ -22,7 +23,7 @@ namespace Lykke.RabbitMqBroker.Tests
         [SetUp]
         public void SetUp()
         {
-            _publisher = new RabbitMqPublisher<string>(new NullLoggerFactory(), _settings);
+            _publisher = new RabbitMqPublisher<string>(new NullLoggerFactory(), _settings, new FakeConnection());
 
             _publisher
                 .SetPublishStrategy(new FanoutPublishStrategy(_settings))
@@ -54,7 +55,7 @@ namespace Lykke.RabbitMqBroker.Tests
         [Test]
         public void ShouldNotPublishNonSeriazableMessage()
         {
-            var publisher = new RabbitMqPublisher<ComplexType>(new NullLoggerFactory(), _settings);
+            var publisher = new RabbitMqPublisher<ComplexType>(new NullLoggerFactory(), _settings, new FakeConnection());
 
             publisher
                 .SetPublishStrategy(new FanoutPublishStrategy(_settings))

@@ -5,20 +5,21 @@ using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
 using Microsoft.Extensions.Logging.Abstractions;
+using RabbitMQ.Client;
 
 namespace TestInvoke.PublishExample
 {
     public static class HowToPublish
     {
-        public static void Example(RabbitMqSubscriptionSettings settings)
+        public static void Example(RabbitMqSubscriptionSettings settings, IAutorecoveringConnection connection)
         {
-            var connection = new RabbitMqPublisher<string>(new NullLoggerFactory(), settings)
+            var publisher = new RabbitMqPublisher<string>(new NullLoggerFactory(), settings, connection)
                 .SetSerializer(new TestMessageSerializer())
                 .SetPublishStrategy(new FanoutPublishStrategy(settings));
-            connection.Start();
+            publisher.Start();
 
             for (var i = 0; i <= 10; i++)
-                connection.ProduceAsync("message#" + i);
+                publisher.ProduceAsync("message#" + i);
         }
     }
 }

@@ -5,6 +5,7 @@ using System;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Publisher.Serializers;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
+using Lykke.RabbitMqBroker.Tests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NUnit.Framework;
@@ -29,7 +30,7 @@ namespace Lykke.RabbitMqBroker.Tests
                 RoutingKey = "RoutingKey"
             };
 
-            _publisher = new RabbitMqPublisher<string>(new NullLoggerFactory(), settings);
+            _publisher = new RabbitMqPublisher<string>(new NullLoggerFactory(), settings, new FakeConnection());
 
             _publisher
                 .SetPublishStrategy(new FanoutPublishStrategy(settings))

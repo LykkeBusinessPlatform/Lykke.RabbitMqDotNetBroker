@@ -11,8 +11,10 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
+using Polly;
+using Polly.Retry;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace Lykke.RabbitMqBroker.Publisher
 {
@@ -31,6 +33,8 @@ namespace Lykke.RabbitMqBroker.Publisher
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly TelemetryClient _telemetry = new TelemetryClient();
         private readonly string _exchangeQueueName;
+        private readonly IAutorecoveringConnection _connection;
+        private readonly RetryPolicy _retryPolicy;
 
         private Exception _lastPublishException;
         private bool _disposed;
@@ -45,6 +49,7 @@ namespace Lykke.RabbitMqBroker.Publisher
             [NotNull] IPublisherBuffer buffer,
             [NotNull] IRabbitMqPublishStrategy publishStrategy,
             [NotNull] RabbitMqSubscriptionSettings settings,
+            [NotNull] IAutorecoveringConnection connection,
             bool publishSynchronously,
             bool submitTelemetry)
         {
@@ -55,11 +60,38 @@ namespace Lykke.RabbitMqBroker.Publisher
             _publishStrategy = publishStrategy ?? throw new ArgumentNullException(nameof(publishStrategy));
             _submitTelemetry = submitTelemetry;
             _exchangeQueueName = _settings.GetQueueOrExchangeName();
+            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _publishLock = new AutoResetEvent(false);
             _cancellationTokenSource = new CancellationTokenSource();
+            
+            // move to retry policy provider
+            _retryPolicy = Policy
+                .Handle<OperationInterruptedException>()
+                .Or<BrokerUnreachableException>()
+                .WaitAndRetryForever(attempt => TimeSpan.FromSeconds(Math.Min(Math.Pow(2, attempt), 30)),
+                    (exception, retryCount, timeSpan) =>
+                    {
+                        if (exception is OperationInterruptedException operationInterruptedException)
+                        {
+                            _logger.LogWarning(
+                                "The operation was interrupted with reason {ReasonCode}:{ReasonText}. Trying to reconnect for the {RetryCount} time in {Period}",
+                                operationInterruptedException.ShutdownReason.ReplyCode,
+                                operationInterruptedException.ShutdownReason.ReplyText,
+                                retryCount,
+                                timeSpan);
+                        }
+                        
+                        if (exception is BrokerUnreachableException)
+                        {
+                            _logger.LogWarning(
+                                "The broker is unreachable. Trying to reconnect for the {RetryCount} time in {Period}",
+                                retryCount,
+                                timeSpan);
+                        }
+                    });
 
             _thread = new Thread(ConnectionThread)
             {
@@ -147,79 +179,63 @@ namespace Lykke.RabbitMqBroker.Publisher
 
         private void ConnectAndWrite()
         {
-            var factory = new ConnectionFactory
+            using var channel = _retryPolicy.Execute(_connection.CreateModel);
+            
+            _logger.LogInformation($"{Name}: connected to {_connection.Endpoint} ({_exchangeQueueName})");
+            _retryPolicy.Execute(() => _publishStrategy.Configure(channel));
+
+            while (!IsStopped())
             {
-                Uri = new Uri(_settings.ConnectionString, UriKind.Absolute),
-                AutomaticRecoveryEnabled = true,
-                TopologyRecoveryEnabled = true
-            };
-
-            _logger.LogInformation($"{Name}: trying to connect to {factory.Endpoint} ({_exchangeQueueName})");
-
-            var cn = $"[Pub] {PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion} to {_settings.ExchangeName ?? ""}";
-            using (var connection = factory.CreateConnection(cn))
-            using (var channel = connection.CreateModel())
-            {
-                _logger.LogInformation($"{Name}: connected to {factory.Endpoint} ({_exchangeQueueName})");
-                _publishStrategy.Configure(channel);
-
-                while (!IsStopped())
+                RawMessage message;
+                try
                 {
-                    RawMessage message;
+                    message = _buffer.WaitOneAndPeek(_cancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
+                if (message == null)
+                {
+                    continue;
+                }
+
+                if (_submitTelemetry)
+                {
+                    var telemetryOperation = InitTelemetryOperation(message);
                     try
                     {
-                        message = _buffer.WaitOneAndPeek(_cancellationTokenSource.Token);
+                        _retryPolicy.Execute(() => _publishStrategy.Publish(channel, message));
                     }
-                    catch (OperationCanceledException)
+                    catch (Exception e)
                     {
-                        return;
+                        telemetryOperation.Telemetry.Success = false;
+                        _telemetry.TrackException(e);
+                        throw;
                     }
-
-                    if (message == null)
+                    finally
                     {
-                        continue;
+                        _telemetry.StopOperation(telemetryOperation);
                     }
-
-                    if (!connection.IsOpen)
-                    {
-                        throw new RabbitMqBrokerException($"{Name}: connection to {connection.Endpoint} is closed");
-                    }
-
-                    if (_submitTelemetry)
-                    {
-                        var telemetryOperation = InitTelemetryOperation(message);
-                        try
-                        {
-                            _publishStrategy.Publish(channel, message);
-                        }
-                        catch (Exception e)
-                        {
-                            telemetryOperation.Telemetry.Success = false;
-                            _telemetry.TrackException(e);
-                            throw;
-                        }
-                        finally
-                        {
-                            _telemetry.StopOperation(telemetryOperation);
-                        }
-                    }
-                    else
-                    {
-                        _publishStrategy.Publish(channel, message);
-                    }
-
-                    _buffer.Dequeue(_cancellationTokenSource.Token);
-                    
-                    if (_publishSynchronously)
-                        _publishLock.Set();
-
-                    _reconnectionsInARowCount = 0;
                 }
+                else
+                {
+                    _retryPolicy.Execute(() => _publishStrategy.Publish(channel, message));
+                }
+
+                _buffer.Dequeue(_cancellationTokenSource.Token);
+                    
+                if (_publishSynchronously)
+                    _publishLock.Set();
+
+                _reconnectionsInARowCount = 0;
             }
         }
 
         private void ConnectionThread()
         {
+            // todo: remove reconnection logic since IAutorecovering connection is used
             while (!IsStopped())
             {
                 try

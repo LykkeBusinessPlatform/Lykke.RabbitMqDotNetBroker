@@ -12,6 +12,7 @@ using Lykke.RabbitMqBroker.Publisher.DeferredMessages;
 using Lykke.RabbitMqBroker.Publisher.Serializers;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Publisher
 {
@@ -36,6 +37,7 @@ namespace Lykke.RabbitMqBroker.Publisher
         private bool _publishSynchronously;
         private bool _disposed;
         private readonly List<Func<IDictionary<string, object>>> _writeHeadersFunсs = new List<Func<IDictionary<string, object>>>();
+        private readonly IAutorecoveringConnection _connection;
 
         private IRawMessagePublisher _rawPublisher;
         private IPublisherBuffer _bufferOverriding;
@@ -49,11 +51,13 @@ namespace Lykke.RabbitMqBroker.Publisher
         public RabbitMqPublisher(
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] RabbitMqSubscriptionSettings settings,
+            [NotNull] IAutorecoveringConnection connection,
             bool submitTelemetry = true)
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _submitTelemetry = submitTelemetry;
+            _connection = connection;
 
             _log = loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>();
 
@@ -330,6 +334,7 @@ namespace Lykke.RabbitMqBroker.Publisher
                 messagesBuffer,
                 _publishStrategy,
                 _settings,
+                _connection,
                 _publishSynchronously,
                 _submitTelemetry);
 

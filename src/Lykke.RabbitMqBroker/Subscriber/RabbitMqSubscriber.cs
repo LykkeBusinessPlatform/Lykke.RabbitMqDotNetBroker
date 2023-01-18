@@ -55,6 +55,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
             _middlewareQueue = new MiddlewareQueue<TTopicModel>(settings);
 
+            // move to retry policy provider
             _retryPolicy = Policy
                 .Handle<OperationInterruptedException>()
                 .Or<BrokerUnreachableException>()
