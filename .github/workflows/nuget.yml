@@ -1,35 +1,24 @@
-name: Publish Nuget Package
+name: Publish On NuGet
 
 on:
   push:
+    branches:
+      - master
     tags:
-      - "*"
-  release:
-    types: [published]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Enter version number, e.g. 1.2.3'
-        required: true
+      - '*' # Push version tags matching to *, i.e. v1.0.0, 20.15.10 
 
 jobs:
-  build:
+  publish:
+    name: List on NuGet
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Get version from tag or input
-      id: get_version
-      run: echo ::set-output name=version::${{ (github.event_name == 'push' && (github.ref == 'refs/tags/*') || (github.event_name == 'release' && github.action == 'published')) ? env.GITHUB_REF : inputs.version}}
-
-    - name: Get PackageId from csproj
-      id: get_package_id
-      run: echo ::set-output name=package_id::$(grep -oP '(?<=<PackageId>)[^<]+' *.csproj)
-
-    - name: Build and Test
-      run: dotnet build --configuration Release
-
-    - name: Publish Nuget Package
-      run: dotnet nuget push -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json -n ${{steps.get_package_id.outputs.package_id}} -v ${{steps.get_version.outputs.version}}
+      - name: Build
+        run: dotnet build --configuration Release "Lykke.RabbitMqBroker.sln"
+        
+      - name: Create the package
+        run: dotnet pack --configuration Release src/Lykke.RabbitMqBroker/Lykke.RabbitMqBroker.csproj /p:Version=${GITHUB_REF#refs/tags/}
+        
+      - name: Publish the package to GPR
+        run: dotnet nuget push src/Lykke.RabbitMqBroker/bin/Release/*.nupkg -s "https://api.nuget.org/v3/index.json" -k ${{ secrets.NUGET_API_KEY }}
