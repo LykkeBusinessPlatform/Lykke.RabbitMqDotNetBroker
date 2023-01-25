@@ -5,6 +5,10 @@ on:
     tags:
       - "*" # Push version tags matching to *, i.e. v1.0.0, 20.15.10
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Enter version number, e.g. 1.2.3'
+        required: true
 
 jobs:
   build:
@@ -14,13 +18,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Get version from tag
+      - name: Get version from tag or input
         id: get_version
-        run: echo ::set-output name=version::$(echo ${GITHUB_REF#refs/tags/})
-
-      - name: Set version
-        if: steps.get_version.outputs.version == null
-        run: echo "Enter the version (e.g. 1.2.3):" && read version && echo ::set-output name=version::$version
+        run: echo ::set-output name=version::${{ (github.event_name == 'push' && (github.ref == 'refs/tags/*') ) ? env.GITHUB_REF : inputs.version}}
 
       - name: Get PackageId from csproj
         id: get_package_id
