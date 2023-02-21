@@ -52,11 +52,19 @@ namespace LogParser.Services
                     returnedMessageString);
             };
 
-            _publishingChannel.BasicPublish(outgoingMessage.Exchange,
-                outgoingMessage.RoutingKey,
-                true,
-                properties,
-                message);
+            try
+            {
+                _publishingChannel.BasicPublish(outgoingMessage.Exchange,
+                    outgoingMessage.RoutingKey,
+                    true,
+                    properties,
+                    message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error: {e.Message}", e.Message);
+                throw;
+            }
         }
 
         public void Dispose()
