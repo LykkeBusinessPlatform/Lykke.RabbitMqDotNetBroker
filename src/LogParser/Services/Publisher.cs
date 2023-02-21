@@ -1,69 +1,71 @@
+using System;
 using Lykke.RabbitMqBroker.Logging;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace LogParser.Services;
-
-public sealed class Publisher : IDisposable
+namespace LogParser.Services
 {
-    private readonly IConnection _connection;
-    private readonly IModel _publishingChannel;
-    private readonly ILogger<Publisher> _logger;
-
-    public Publisher(string rabbitMqConnectionString, ILogger<Publisher> logger)
+    public sealed class Publisher : IDisposable
     {
-        _logger = logger;
+        private readonly IConnection _connection;
+        private readonly IModel _publishingChannel;
+        private readonly ILogger<Publisher> _logger;
 
-        var factory = new ConnectionFactory
+        public Publisher(string rabbitMqConnectionString, ILogger<Publisher> logger)
         {
-            Uri = new Uri(rabbitMqConnectionString, UriKind.Absolute),
-            AutomaticRecoveryEnabled = true,
-            NetworkRecoveryInterval = TimeSpan.FromSeconds(60)
-        };
+            _logger = logger;
 
-        _connection = factory.CreateConnection();
-
-        _publishingChannel = _connection.CreateModel();
-    }
-
-    public void Publish(OutgoingMessage outgoingMessage)
-    {
-        var properties = _publishingChannel.CreateBasicProperties();
-        properties.Type = outgoingMessage.MessageTypeName;
-        properties.Headers = outgoingMessage.Headers;
-
-        var message = Convert.FromBase64String(outgoingMessage.Message);
-
-        _publishingChannel.BasicReturn += (sender, args) =>
-        {
-            // not sure if we can use published message body here
-            string? returnedMessage = null;
-            if (args.Body.Length > 0)
+            var factory = new ConnectionFactory
             {
-                returnedMessage = Convert.ToBase64String(args.Body.ToArray());
-            }
+                Uri = new Uri(rabbitMqConnectionString, UriKind.Absolute),
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(60)
+            };
 
-            var returnedMessageString = returnedMessage ?? "empty";
-            _logger.LogError(
-                "Message was not published. Reason: {ReplyText}, code: {ReplyCode}, body in base64: {Message)}",
-                args.ReplyText,
-                args.ReplyCode,
-                returnedMessageString);
-        };
+            _connection = factory.CreateConnection();
 
-        _publishingChannel.BasicPublish(outgoingMessage.Exchange,
-            outgoingMessage.RoutingKey,
-            true,
-            properties,
-            message);
-    }
+            _publishingChannel = _connection.CreateModel();
+        }
 
-    public void Dispose()
-    {
-        _publishingChannel?.Close();
-        _publishingChannel?.Dispose();
+        public void Publish(OutgoingMessage outgoingMessage)
+        {
+            var properties = _publishingChannel.CreateBasicProperties();
+            properties.Type = outgoingMessage.MessageTypeName;
+            properties.Headers = outgoingMessage.Headers;
 
-        _connection?.Close();
-        _connection?.Dispose();
+            var message = Convert.FromBase64String(outgoingMessage.Message);
+
+            _publishingChannel.BasicReturn += (sender, args) =>
+            {
+                // not sure if we can use published message body here
+                string? returnedMessage = null;
+                if (args.Body.Length > 0)
+                {
+                    returnedMessage = Convert.ToBase64String(args.Body.ToArray());
+                }
+
+                var returnedMessageString = returnedMessage ?? "empty";
+                _logger.LogError(
+                    "Message was not published. Reason: {ReplyText}, code: {ReplyCode}, body in base64: {Message)}",
+                    args.ReplyText,
+                    args.ReplyCode,
+                    returnedMessageString);
+            };
+
+            _publishingChannel.BasicPublish(outgoingMessage.Exchange,
+                outgoingMessage.RoutingKey,
+                true,
+                properties,
+                message);
+        }
+
+        public void Dispose()
+        {
+            _publishingChannel?.Close();
+            _publishingChannel?.Dispose();
+
+            _connection?.Close();
+            _connection?.Dispose();
+        }
     }
 }
