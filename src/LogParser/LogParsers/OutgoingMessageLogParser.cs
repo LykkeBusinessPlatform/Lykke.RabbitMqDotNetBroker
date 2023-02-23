@@ -10,7 +10,8 @@ namespace LogParser.LogParsers
     {
         public IEnumerable<OutgoingMessage> Parse(string log)
         {
-            var regex = Create(OutgoingMessage.MessageStart, OutgoingMessage.MessageEnd);
+            var regex = Create(Regex.Escape(OutgoingMessage.MessageStart), 
+                Regex.Escape(OutgoingMessage.MessageEnd));
             return regex.Matches(log)
                 .Select(x => ExtractJson(x.Value))
                 .Select(JsonConvert.DeserializeObject<OutgoingMessage>)
