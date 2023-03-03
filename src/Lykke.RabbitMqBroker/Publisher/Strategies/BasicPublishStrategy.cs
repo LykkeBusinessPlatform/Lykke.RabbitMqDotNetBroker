@@ -16,23 +16,38 @@ namespace Lykke.RabbitMqBroker.Publisher.Strategies
 
         public virtual void Configure(IModel channel)
         {
+            channel.BasicReturn += (sender, args) =>
+            {
+                throw new RabbitMqBrokerException($"Message was not published to exchange {Settings.ExchangeName}, routing key {args.RoutingKey}, reason: {args.ReplyText}");
+            };
+            
+            channel.ModelShutdown += (sender, args) =>
+            {
+                throw new RabbitMqBrokerException($"Model was shutdown, code: {args.ReplyCode}, reason: {args.ReplyText}");
+            };
+            
             channel.ExchangeDeclare(exchange: Settings.ExchangeName, type: ExchangeType, durable: Settings.IsDurable);
         }
 
         public virtual void Publish(IModel channel, RawMessage message)
         {
-            IBasicProperties basicProperties = null;
+            var basicProperties = channel.CreateBasicProperties();
             if (message.Headers != null)
             {
-                basicProperties = channel.CreateBasicProperties();
                 basicProperties.Headers = message.Headers;
+            }
+
+            if (Settings.IsDurable)
+            {
+                basicProperties.DeliveryMode = 2;
             }
 
             channel.BasicPublish(
                 exchange: Settings.ExchangeName,
                 routingKey: GetRoutingKey(message),
                 basicProperties: basicProperties,
-                body: message.Body);
+                body: message.Body,
+                mandatory: true);
         }
 
         protected virtual string GetRoutingKey(RawMessage message)
