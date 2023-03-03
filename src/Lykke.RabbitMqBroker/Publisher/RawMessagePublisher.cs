@@ -147,7 +147,12 @@ namespace Lykke.RabbitMqBroker.Publisher
 
         private void ConnectAndWrite()
         {
-            var factory = new ConnectionFactory {Uri = new Uri(_settings.ConnectionString, UriKind.Absolute)};
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(_settings.ConnectionString, UriKind.Absolute),
+                AutomaticRecoveryEnabled = true,
+                TopologyRecoveryEnabled = true
+            };
 
             _logger.LogInformation($"{Name}: trying to connect to {factory.Endpoint} ({_exchangeQueueName})");
 

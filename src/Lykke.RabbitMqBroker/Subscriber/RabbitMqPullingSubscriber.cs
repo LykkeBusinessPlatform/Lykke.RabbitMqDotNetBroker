@@ -171,7 +171,12 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         private void ConnectAndRead(RabbitMqSubscriptionSettings settings)
         {
-            var factory = new ConnectionFactory {Uri = new Uri(settings.ConnectionString, UriKind.Absolute)};
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(settings.ConnectionString, UriKind.Absolute),
+                AutomaticRecoveryEnabled = true,
+                TopologyRecoveryEnabled = true
+            };
             _logger.LogInformation($"{settings.GetSubscriberName()}: Trying to connect to {factory.Endpoint} ({_exchangeQueueName})");
 
             var cn = $"[Sub] {PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion} to {_exchangeQueueName}";
