@@ -3,10 +3,20 @@ using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Tests.PublisherStrategies
 {
+    /// <summary>
+    /// Creates a stub for IBasicProperties.
+    /// Delivery mode is set to 1 by default (non-persistent).
+    /// </summary>
     public class DumbBasicProperties : IBasicProperties
     {
         public ushort ProtocolClassId { get; }
         public string ProtocolClassName { get; }
+
+        public DumbBasicProperties()
+        {
+            DeliveryMode = 1;
+        }
+        
         public void ClearAppId()
         {
             throw new System.NotImplementedException();

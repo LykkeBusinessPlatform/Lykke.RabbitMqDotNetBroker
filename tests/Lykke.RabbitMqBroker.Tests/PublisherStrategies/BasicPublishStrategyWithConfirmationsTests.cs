@@ -85,8 +85,8 @@ namespace Lykke.RabbitMqBroker.Tests.PublisherStrategies
                     routingKey,
                     true,
                     It.Is<IBasicProperties>(props => 
-                        props.Headers.ContainsKey(header) 
-                        && props.Headers[header].ToString() == headerValue),
+                        props.Headers.ContainsKey(header) && 
+                        props.Headers[header].ToString() == headerValue),
                     body), 
                 Times.Once());
         }

@@ -68,13 +68,42 @@ namespace Lykke.RabbitMqBroker.Tests.PublisherStrategies
             strategy.Publish(channel.Object, message);
             
             // extension methods cannot be verified with moq, so we check the underlying method 
-            channel.Verify(model => model.BasicPublish(It.IsAny<string>(), 
+            channel.Verify(model => model.BasicPublish(It.IsAny<string>(),
                     routingKey,
                     true,
-                    It.Is<IBasicProperties>(props => 
-                        props.Headers.ContainsKey(header) 
-                        && props.Headers[header].ToString() == headerValue),
-                    body), 
+                    It.Is<IBasicProperties>(props =>
+                        props.Headers.ContainsKey(header) &&
+                        props.Headers[header].ToString() == headerValue),
+                    body),
+                Times.Once());
+        }
+
+        [TestCaseSource(nameof(TestCasesWithDeliveryMode))]
+        public void Publish_DeliveryMode_Set_Persisted_When_Settings_Has_DurableOption(
+            Func<RabbitMqSubscriptionSettings, IRabbitMqPublishStrategy> ctor,
+            bool isDurable,
+            byte expectedDeliveryMode)
+        {
+            var settings = RabbitMqSubscriptionSettings.ForPublisher("connectionString", "endpoint");
+            settings.IsDurable = isDurable;
+
+            var strategy = ctor(settings);
+            var channel = new Mock<IModel>();
+            channel.Setup(x => x.CreateBasicProperties()).Returns(new DumbBasicProperties());
+
+            var body = Encoding.UTF8.GetBytes("body");
+
+            var message = new RawMessage(body, "routing-key", null);
+
+            strategy.Publish(channel.Object, message);
+
+            // extension methods cannot be verified with moq, so we check the underlying method 
+            channel.Verify(model => model.BasicPublish(It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    true,
+                    It.Is<IBasicProperties>(props =>
+                        props.DeliveryMode == expectedDeliveryMode),
+                    body),
                 Times.Once());
         }
 
@@ -116,6 +145,34 @@ namespace Lykke.RabbitMqBroker.Tests.PublisherStrategies
             new object[]
             {
                 (RabbitMqSubscriptionSettings settings) => new TopicPublishStrategy(settings), "topic-route",
+            }
+        };
+
+        private static object[] TestCasesWithDeliveryMode =
+        {
+            new object[]
+            {
+                (RabbitMqSubscriptionSettings settings) => new DirectPublishStrategy(settings), true, (byte)2
+            },
+            new object[]
+            {
+                (RabbitMqSubscriptionSettings settings) => new DirectPublishStrategy(settings), false, (byte)1
+            },
+            new object[]
+            {
+                (RabbitMqSubscriptionSettings settings) => new FanoutPublishStrategy(settings), true, (byte)2
+            },
+            new object[]
+            {
+                (RabbitMqSubscriptionSettings settings) => new FanoutPublishStrategy(settings), false, (byte)1
+            },
+            new object[]
+            {
+                (RabbitMqSubscriptionSettings settings) => new TopicPublishStrategy(settings), true, (byte)2
+            },
+            new object[]
+            {
+                (RabbitMqSubscriptionSettings settings) => new TopicPublishStrategy(settings), false, (byte)1
             }
         };
 
