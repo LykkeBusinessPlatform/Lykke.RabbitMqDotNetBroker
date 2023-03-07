@@ -116,7 +116,7 @@ namespace Lykke.RabbitMqBroker.Restored
         /// </summary>
         public override void OnCancel(params string[] consumerTags)
         {
-            base.OnCancel();
+            base.OnCancel(consumerTags);
             Queue.Close();
         }
     }

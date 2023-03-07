@@ -83,10 +83,10 @@ namespace Lykke.RabbitMqBroker.Tests.PublisherStrategies
             // extension methods cannot be verified with moq, so we check the underlying method 
             channel.Verify(model => model.BasicPublish(It.IsAny<string>(), 
                     routingKey,
-                    false,
+                    true,
                     It.Is<IBasicProperties>(props => 
-                        props.Headers.ContainsKey(header) 
-                        && props.Headers[header].ToString() == headerValue),
+                        props.Headers.ContainsKey(header) && 
+                        props.Headers[header].ToString() == headerValue),
                     body), 
                 Times.Once());
         }

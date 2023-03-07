@@ -16,6 +16,11 @@ namespace Lykke.RabbitMqBroker.Publisher.Strategies
         {
             base.Configure(channel);
             channel.ConfirmSelect();
+
+            channel.BasicNacks += (sender, args) =>
+            {
+                throw new RabbitMqBrokerException($"Message {args.DeliveryTag} was not acknowledged");
+            };
         }
 
         public override void Publish(IModel channel, RawMessage message)
