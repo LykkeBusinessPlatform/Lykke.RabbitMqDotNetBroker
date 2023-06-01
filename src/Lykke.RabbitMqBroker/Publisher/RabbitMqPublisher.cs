@@ -394,19 +394,19 @@ namespace Lykke.RabbitMqBroker.Publisher
         {
             if (_disableQueuePersistence)
             {
-                return new InMemoryBuffer();
+                return CreateBuffer();
             }
 
             var items = _queueRepository.LoadAsync(_settings.ExchangeName).Result;
 
             if (items == null || !items.Any())
             {
-                return new InMemoryBuffer();
+                return CreateBuffer();
             }
 
             ThrowIfStarted();
 
-            var buffer = new InMemoryBuffer();
+            var buffer = CreateBuffer();
 
             foreach (var item in items)
             {
@@ -440,6 +440,22 @@ namespace Lykke.RabbitMqBroker.Publisher
 
 
         #region Private stuff
+
+        private IPublisherBuffer CreateBuffer()
+        {
+            IPublisherBuffer buffer = _settings.BufferType switch 
+            {
+                PublisherBufferTypes.Default => new InMemoryBuffer(),
+                PublisherBufferTypes.LockFree => new LockFreeBuffer(),
+                PublisherBufferTypes.Experimental => new ExperimentalBuffer(),
+                _ => throw new ArgumentOutOfRangeException($"Unknown buffer type: [{_settings.BufferType}]")
+            };
+
+            _log.LogInformation("Rabbit MQ publisher [{Name}] uses [{BufferType}] buffer type", Name,
+                _settings.BufferType);
+
+            return buffer;
+        }
         
         private IDictionary<string, object> GetMessageHeaders()
         {

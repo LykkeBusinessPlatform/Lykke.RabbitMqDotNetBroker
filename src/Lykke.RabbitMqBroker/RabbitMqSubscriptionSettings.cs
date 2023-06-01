@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 namespace Lykke.RabbitMqBroker
 {
     // TODO: Hide setters, when next breaking changes release will be required
+    // the name is confusing, it's not only for subscriptions, but for publishers too
     [PublicAPI]
     public sealed class RabbitMqSubscriptionSettings
     {
@@ -33,6 +34,8 @@ namespace Lykke.RabbitMqBroker
         /// unless the value is provided explicitly. Check <see cref="UsePublisherConfirmation"/>. 
         /// </summary>
         public TimeSpan? PublisherConfirmationTimeout { get; set; }
+
+        public string BufferType { get; set; } = PublisherBufferTypes.Default;
 
         public RabbitMqSubscriptionSettings()
         {
@@ -205,6 +208,21 @@ namespace Lykke.RabbitMqBroker
         public RabbitMqSubscriptionSettings UseRoutingKey(string routingKey)
         {
             RoutingKey = routingKey ?? string.Empty;
+
+            return this;
+        }
+
+        public RabbitMqSubscriptionSettings UseBufferType(string bufferType)
+        {
+            if (string.IsNullOrWhiteSpace(bufferType))
+                throw new ArgumentException("Buffer type can't be empty", nameof(bufferType));
+
+            if (!PublisherBufferTypes.IsValid(bufferType))
+                throw new ArgumentException(
+                    $"Buffer type '{bufferType}' is not valid. Allowed values: {string.Join(", ", PublisherBufferTypes.All)}",
+                    nameof(bufferType));
+            
+            BufferType = bufferType;
 
             return this;
         }
