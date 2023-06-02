@@ -69,6 +69,12 @@ namespace Lykke.RabbitMqBroker.Publisher
             _currentItem.TryDequeue(out _);
         }
 
+        /// <summary>
+        /// Peeks the item from the buffer. Being used in multi-threaded environment, it is possible that the same
+        /// item will be peeked by multiple threads.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public RawMessage WaitOneAndPeek(CancellationToken cancellationToken)
         {
             if (_currentItem.Count == 0)
