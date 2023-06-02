@@ -31,15 +31,11 @@ namespace Lykke.RabbitMqBroker.Publisher.Strategies
 
         public virtual void Publish(IModel channel, RawMessage message)
         {
-            var basicProperties = channel.CreateBasicProperties();
+            IBasicProperties basicProperties = null;
             if (message.Headers != null)
             {
+                basicProperties = channel.CreateBasicProperties();
                 basicProperties.Headers = message.Headers;
-            }
-
-            if (Settings.IsDurable)
-            {
-                basicProperties.DeliveryMode = 2;
             }
 
             channel.BasicPublish(
