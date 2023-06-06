@@ -155,7 +155,7 @@ namespace Lykke.RabbitMqBroker.Tests
             public RawMessage WaitOneAndPeek(CancellationToken cancellationToken)
             {
                 Gate.Wait( cancellationToken);
-                return _buffer.WaitOneAndPeek( cancellationToken);
+                return _buffer.WaitOneAndPeek(cancellationToken);
             }
         }
     }

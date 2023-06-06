@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
@@ -15,7 +16,7 @@ namespace Lykke.RabbitMqBroker.Publisher
         /// <summary>
         /// Serialied message
         /// </summary>
-        public byte[] Body { get; }
+        public ReadOnlyMemory<byte> Body { get; }
 
         /// <summary>
         /// Message routing key
