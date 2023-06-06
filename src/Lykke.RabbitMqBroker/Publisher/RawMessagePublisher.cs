@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
+using Lykke.RabbitMqBroker.Logging;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -76,11 +77,27 @@ namespace Lykke.RabbitMqBroker.Publisher
                 throw new InvalidOperationException($"{Name}: publisher is not run, can't produce the message");
             }
 
+            // measure time for enqueue
+            var bufferTimer = System.Diagnostics.Stopwatch.StartNew();
             _buffer.Enqueue(message, _cancellationTokenSource.Token);
+            bufferTimer.Stop();
+            if (bufferTimer.ElapsedMilliseconds > 1000)  
+            {
+                var formattedTime = FormattingUtils.FormatMilliseconds(bufferTimer.ElapsedMilliseconds);
+                _logger.LogInformation("RawMessagePublisher.Produce: message enqueued in significant {Time}", formattedTime);
+            }
 
             if (_publishSynchronously)
             {
+                var lockTimer = System.Diagnostics.Stopwatch.StartNew();
                 _publishLock.WaitOne();
+                lockTimer.Stop();
+                if (lockTimer.ElapsedMilliseconds > 1000)  
+                {
+                    var formattedTime = FormattingUtils.FormatMilliseconds(lockTimer.ElapsedMilliseconds);
+                    _logger.LogInformation("RawMessagePublisher.Produce: message published in significant {Time}", formattedTime);
+                }
+
                 if (_lastPublishException != null)
                 {
                     var tmp = _lastPublishException;
@@ -168,7 +185,14 @@ namespace Lykke.RabbitMqBroker.Publisher
                     RawMessage message;
                     try
                     {
+                        var peekTimer = System.Diagnostics.Stopwatch.StartNew();
                         message = _buffer.WaitOneAndPeek(_cancellationTokenSource.Token);
+                        peekTimer.Stop();
+                        if (peekTimer.ElapsedMilliseconds > 1000)  
+                        {
+                            var formattedTime = FormattingUtils.FormatMilliseconds(peekTimer.ElapsedMilliseconds);
+                            _logger.LogInformation("RawMessagePublisher.ConnectAndWrite: message peeked in significant {Time}", formattedTime);
+                        }
                     }
                     catch (OperationCanceledException)
                     {
@@ -190,7 +214,14 @@ namespace Lykke.RabbitMqBroker.Publisher
                         var telemetryOperation = InitTelemetryOperation(message);
                         try
                         {
+                            var publishTimer = System.Diagnostics.Stopwatch.StartNew();
                             _publishStrategy.Publish(channel, message);
+                            publishTimer.Stop();
+                            if (publishTimer.ElapsedMilliseconds > 1000)  
+                            {
+                                var formattedTime = FormattingUtils.FormatMilliseconds(publishTimer.ElapsedMilliseconds);
+                                _logger.LogInformation("RawMessagePublisher.ConnectAndWrite: message published in significant {Time}", formattedTime);
+                            }
                         }
                         catch (Exception e)
                         {
@@ -205,7 +236,14 @@ namespace Lykke.RabbitMqBroker.Publisher
                     }
                     else
                     {
+                        var publishTimer = System.Diagnostics.Stopwatch.StartNew();
                         _publishStrategy.Publish(channel, message);
+                        publishTimer.Stop();
+                        if (publishTimer.ElapsedMilliseconds > 1000)  
+                        {
+                            var formattedTime = FormattingUtils.FormatMilliseconds(publishTimer.ElapsedMilliseconds);
+                            _logger.LogInformation("RawMessagePublisher.ConnectAndWrite: message published (2) in significant {Time}", formattedTime);
+                        }
                     }
 
                     _buffer.Dequeue(_cancellationTokenSource.Token);
