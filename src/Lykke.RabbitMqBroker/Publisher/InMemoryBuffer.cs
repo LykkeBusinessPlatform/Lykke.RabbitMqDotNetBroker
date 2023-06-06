@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace Lykke.RabbitMqBroker.Publisher
 {
@@ -15,7 +14,7 @@ namespace Lykke.RabbitMqBroker.Publisher
         private readonly ConcurrentQueue<RawMessage> _items;
         private readonly AutoResetEvent _publishLock;
         private bool _disposed;
-        
+
         public InMemoryBuffer()
         {
             _publishLock = new AutoResetEvent(false);
@@ -60,8 +59,8 @@ namespace Lykke.RabbitMqBroker.Publisher
         private void Dispose(bool disposing)
         {
             if (_disposed || !disposing)
-                return; 
-            
+                return;
+
             _publishLock?.Dispose();
             
             _disposed = true;
