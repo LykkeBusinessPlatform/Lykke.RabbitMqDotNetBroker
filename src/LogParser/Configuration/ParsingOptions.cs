@@ -1,7 +1,6 @@
-namespace LogParser.Configuration
+namespace LogParser.Configuration;
+
+public class ParsingOptions
 {
-    public class ParsingOptions
-    {
-        public string LogDirectory { get; set; } = "./logs";
-    }
+    public string LogDirectory { get; set; } = "./logs";
 }
