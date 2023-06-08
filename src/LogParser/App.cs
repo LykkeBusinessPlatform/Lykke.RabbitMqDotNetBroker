@@ -76,7 +76,7 @@ namespace LogParser
             {
                 _logger.LogInformation("Starting to parse {File}", file);
 
-                yield return _logParser.Parse(File.ReadAllText(file));
+                yield return _logParser.Parse(file);
 
                 _logger.LogInformation("File {File} processed", file);
             }
