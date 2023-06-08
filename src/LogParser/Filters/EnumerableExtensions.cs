@@ -7,14 +7,14 @@ namespace LogParser.Filters
 {
     public static class EnumerableExtensions
     {
-        public static IEnumerable<OutgoingMessage> FromUtcDate(this IEnumerable<OutgoingMessage> source, DateTime? from)
+        public static IEnumerable<OutgoingMessage> FromDate(this IEnumerable<OutgoingMessage> source, DateTime? from)
         {
             if (!from.HasValue) return source;
 
             return source.Where(x => x.Timestamp.ToUniversalTime() >= from.Value);
         }
 
-        public static IEnumerable<OutgoingMessage> ToUtcDate(this IEnumerable<OutgoingMessage> source, DateTime? to)
+        public static IEnumerable<OutgoingMessage> ToDate(this IEnumerable<OutgoingMessage> source, DateTime? to)
         {
             if (!to.HasValue) return source;
 

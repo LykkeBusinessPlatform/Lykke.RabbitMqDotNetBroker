@@ -42,8 +42,8 @@ namespace LogParser
             var sortedAndFiltered = outgoingMessages
                 .SelectMany(x => x)
                 .OrderBy(x => x.Timestamp)
-                .FromUtcDate(_configuration.From)
-                .ToUtcDate(_configuration.To)
+                .FromDate(_configuration.From)
+                .ToDate(_configuration.To)
                 .ExcludeMessageTypes(_configuration.ExcludedMessageTypes)
                 .ToList();
 
