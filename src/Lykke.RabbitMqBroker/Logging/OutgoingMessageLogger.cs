@@ -10,16 +10,11 @@ namespace Lykke.RabbitMqBroker.Logging
         private readonly List<string> _filteredMessageTypes;
         private readonly ILogger _logger;
 
-        /// <summary>
-        /// Creates a logger that logs outgoing messages.
-        /// NOVA_FILTERED_MESSAGE_TYPES env variable can be used to control which types are ignored
-        /// </summary>
-        /// <param name="logger"></param>
         public OutgoingMessageLogger(ILogger logger)
         {
             _logger = logger;
 
-            var ignoredTypesStr = Environment.GetEnvironmentVariable("NOVA_FILTERED_MESSAGE_TYPES");
+            var ignoredTypesStr = Environment.GetEnvironmentVariable("FILTERED_MESSAGE_TYPES");
             _filteredMessageTypes = ignoredTypesStr?.Split(',').ToList()
                                    ?? new List<string>();
         }
