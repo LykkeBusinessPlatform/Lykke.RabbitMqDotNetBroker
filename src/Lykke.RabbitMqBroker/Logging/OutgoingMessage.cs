@@ -7,13 +7,10 @@ namespace Lykke.RabbitMqBroker.Logging
 {
     public class OutgoingMessage
     {
-        public const string MessageStart = "(||";
-        public const string MessageEnd = "||)";
-
         public string MessageTypeFullName { get; set; }
-
+        
         public string MessageTypeName { get; set; }
-
+        
         public SerializationFormat Format { get; set; }
 
         public string Message { get; set; }
@@ -29,9 +26,9 @@ namespace Lykke.RabbitMqBroker.Logging
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendLine(MessageStart);
+            sb.AppendLine("(||");
             sb.AppendLine(JsonConvert.SerializeObject(this, Formatting.Indented));
-            sb.AppendLine(MessageEnd);
+            sb.AppendLine("||)");
 
             return sb.ToString();
         }
