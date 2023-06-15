@@ -5,16 +5,18 @@ namespace Lykke.RabbitMqBroker.Logging
 {
     internal sealed class OutgoingMessageBuilder
     {
-        private readonly RabbitMqSubscriptionSettings _settings;
+        private readonly string _exchangeName;
+        private readonly string _routingKey;
         private SerializationFormat _serializationFormat;
 
-        public OutgoingMessageBuilder(RabbitMqSubscriptionSettings settings, SerializationFormat serializationFormat)
+        public OutgoingMessageBuilder(string exchangeName, string routingKey, SerializationFormat serializationFormat)
         {
-            _settings = settings;
+            _exchangeName = exchangeName;
+            _routingKey = routingKey;
             _serializationFormat = serializationFormat;
         }
 
-        public OutgoingMessageBuilder(RabbitMqSubscriptionSettings settings) : this(settings, 
+        public OutgoingMessageBuilder(string exchangeName, string routingKey) : this(exchangeName, routingKey, 
             SerializationFormat.Unknown)
         {
         }
@@ -36,8 +38,8 @@ namespace Lykke.RabbitMqBroker.Logging
             {
                 MessageTypeName = type.Name,
                 MessageTypeFullName = type.FullName,
-                Exchange = _settings.ExchangeName,
-                RoutingKey = _settings.RoutingKey,
+                Exchange = _exchangeName,
+                RoutingKey = _routingKey,
                 Format = _serializationFormat,
                 Headers = headers == null
                     ? new Dictionary<string, object>()
