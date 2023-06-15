@@ -59,12 +59,13 @@ namespace Lykke.RabbitMqBroker.Publisher
 
             _log = loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>();
             
-            var ignoredMessageTypes = Environment.GetEnvironmentVariable("NOVA_FILTERED_MESSAGE_TYPES")?.Split(',');
-            _outgoingMessagePersister = new OutgoingMessagePersister(
-                _settings.ExchangeName,
-                _settings.RoutingKey,
-                ignoredMessageTypes,
-                loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>());
+            _outgoingMessagePersister = EnvironmentVariables.DisableOutgoingMessagePersistence
+                ? new NullOutgoingMessagePersister()
+                : (IOutgoingMessagePersister) new OutgoingMessagePersister(
+                    _settings.ExchangeName,
+                    _settings.RoutingKey,
+                    EnvironmentVariables.IgnoredMessageTypes,
+                    loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>());
         }
 
         #region Configurator
