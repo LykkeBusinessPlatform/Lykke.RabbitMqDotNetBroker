@@ -9,7 +9,7 @@ namespace Lykke.RabbitMqBroker.Logging
     /// <summary>
     /// Composite class that builds and logs outgoing messages.
     /// </summary>
-    internal sealed class OutgoingMessagePersister
+    internal sealed class OutgoingMessagePersister : IOutgoingMessagePersister
     {
         private readonly OutgoingMessageBuilder _builder;
         private readonly OutgoingMessageLogger _logger;
