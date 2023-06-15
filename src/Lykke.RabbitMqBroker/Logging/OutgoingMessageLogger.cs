@@ -19,7 +19,7 @@ namespace Lykke.RabbitMqBroker.Logging
         public OutgoingMessageLogger(IEnumerable<string> ignoredMessageTypes, ILogger logger)
         {
             _ignoredMessageTypes = ignoredMessageTypes?.Distinct().ToHashSet() ?? new HashSet<string>();
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>

@@ -58,14 +58,12 @@ namespace Lykke.RabbitMqBroker.Publisher
             _submitTelemetry = submitTelemetry;
 
             _log = loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>();
-            
-            _outgoingMessagePersister = EnvironmentVariables.DisableOutgoingMessagePersistence
-                ? new NullOutgoingMessagePersister()
-                : (IOutgoingMessagePersister) new OutgoingMessagePersister(
-                    _settings.ExchangeName,
-                    _settings.RoutingKey,
-                    EnvironmentVariables.IgnoredMessageTypes,
-                    loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>());
+
+            _outgoingMessagePersister = OutgoingMessagePersistanceProvider.Get()
+                .SetExchangeName(_settings.ExchangeName)
+                .SetRoutingKey(_settings.RoutingKey)
+                .SetIgnoredMessageTypes(EnvironmentVariables.IgnoredMessageTypes)
+                .SetSystemLogger(loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>());
         }
 
         #region Configurator
@@ -250,7 +248,6 @@ namespace Lykke.RabbitMqBroker.Publisher
 
             var body = _serializer.Serialize(message);
             var headers = GetMessageHeaders();
-            
             _outgoingMessagePersister.Persist<TMessageModel>(body, headers);
 
             return _deferredMessagesManager.DeferAsync(new RawMessage(body, routingKey, headers), deliverAt);
