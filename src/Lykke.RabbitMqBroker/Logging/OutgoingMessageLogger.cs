@@ -5,39 +5,30 @@ using Microsoft.Extensions.Logging;
 
 namespace Lykke.RabbitMqBroker.Logging
 {
-    public class OutgoingMessageLogger
+    internal sealed class OutgoingMessageLogger
     {
-        private readonly HashSet<string> _filteredMessageTypes;
+        private readonly HashSet<string> _ignoredMessageTypes;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Creates a logger that logs outgoing messages.
-        /// NOVA_FILTERED_MESSAGE_TYPES env variable can be used to control which types are ignored
         /// </summary>
+        /// <param name="ignoredMessageTypes">Types of outgoing messages that should not be logged</param>
         /// <param name="logger"></param>
-        public OutgoingMessageLogger(ILogger logger)
+        /// <exception cref="NullReferenceException"></exception>
+        public OutgoingMessageLogger(IEnumerable<string> ignoredMessageTypes, ILogger logger)
         {
+            _ignoredMessageTypes = ignoredMessageTypes?.Distinct().ToHashSet() ?? new HashSet<string>();
             _logger = logger;
-
-            var ignoredTypesStr = Environment.GetEnvironmentVariable("NOVA_FILTERED_MESSAGE_TYPES");
-            _filteredMessageTypes = ignoredTypesStr?.Split(',').Distinct().ToHashSet() ?? new HashSet<string>();
         }
 
         /// <summary>
+        /// Logs outgoing message in a specific format.
         /// </summary>
-        /// <param name="filteredMessageTypes">Types of outgoing messages that should not be logged</param>
-        /// <param name="logger"></param>
-        /// <exception cref="NullReferenceException"></exception>
-        public OutgoingMessageLogger(List<string> filteredMessageTypes, ILogger logger)
-        {
-            _filteredMessageTypes = filteredMessageTypes.Distinct().ToHashSet() ?? 
-                throw new ArgumentNullException(nameof(filteredMessageTypes));
-            _logger = logger;
-        }
-
+        /// <param name="message"></param>
         public void Log(OutgoingMessage message)
         {
-            if (_filteredMessageTypes.Contains(message.MessageTypeName))
+            if (_ignoredMessageTypes.Contains(message.MessageTypeName))
                 return;
 
             _logger.LogInformation(message.ToString());

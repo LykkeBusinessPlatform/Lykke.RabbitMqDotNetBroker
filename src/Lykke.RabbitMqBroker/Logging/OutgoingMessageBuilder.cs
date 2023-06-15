@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Lykke.RabbitMqBroker.Logging
 {
-    public class OutgoingMessageBuilder
+    internal sealed class OutgoingMessageBuilder
     {
         private readonly RabbitMqSubscriptionSettings _settings;
         private SerializationFormat _serializationFormat;
@@ -14,7 +14,7 @@ namespace Lykke.RabbitMqBroker.Logging
             _serializationFormat = serializationFormat;
         }
 
-        public OutgoingMessageBuilder(RabbitMqSubscriptionSettings settings) : this(settings,
+        public OutgoingMessageBuilder(RabbitMqSubscriptionSettings settings) : this(settings, 
             SerializationFormat.Unknown)
         {
         }

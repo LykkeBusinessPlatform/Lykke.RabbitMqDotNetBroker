@@ -58,8 +58,9 @@ namespace Lykke.RabbitMqBroker.Publisher
             _log = loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>();
 
             _outgoingMessageBuilder = new OutgoingMessageBuilder(_settings);
+            var ignoredMessageTypes = Environment.GetEnvironmentVariable("NOVA_FILTERED_MESSAGE_TYPES")?.Split(',');
             _outgoingMessageLogger =
-                new OutgoingMessageLogger(loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>());
+                new OutgoingMessageLogger(ignoredMessageTypes?.Distinct(), loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>());
         }
 
         #region Configurator
