@@ -7,7 +7,7 @@ namespace Lykke.RabbitMqBroker.Logging
 {
     public class OutgoingMessageLogger
     {
-        private readonly List<string> _filteredMessageTypes;
+        private readonly HashSet<string> _filteredMessageTypes;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -20,8 +20,7 @@ namespace Lykke.RabbitMqBroker.Logging
             _logger = logger;
 
             var ignoredTypesStr = Environment.GetEnvironmentVariable("NOVA_FILTERED_MESSAGE_TYPES");
-            _filteredMessageTypes = ignoredTypesStr?.Split(',').ToList()
-                                   ?? new List<string>();
+            _filteredMessageTypes = ignoredTypesStr?.Split(',').Distinct().ToHashSet() ?? new HashSet<string>();
         }
 
         /// <summary>
@@ -31,14 +30,15 @@ namespace Lykke.RabbitMqBroker.Logging
         /// <exception cref="NullReferenceException"></exception>
         public OutgoingMessageLogger(List<string> filteredMessageTypes, ILogger logger)
         {
-            _filteredMessageTypes = filteredMessageTypes ?? throw new NullReferenceException(nameof(filteredMessageTypes));
+            _filteredMessageTypes = filteredMessageTypes.Distinct().ToHashSet() ?? 
+                throw new ArgumentNullException(nameof(filteredMessageTypes));
             _logger = logger;
         }
 
         public void Log(OutgoingMessage message)
         {
-            var typeName = message.MessageTypeName;
-            if(_filteredMessageTypes.Contains(typeName)) return;
+            if (_filteredMessageTypes.Contains(message.MessageTypeName))
+                return;
 
             _logger.LogInformation(message.ToString());
         }
