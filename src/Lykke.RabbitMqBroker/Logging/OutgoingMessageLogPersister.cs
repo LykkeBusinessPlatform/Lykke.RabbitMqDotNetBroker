@@ -13,41 +13,62 @@ namespace Lykke.RabbitMqBroker.Logging
     /// </summary>
     internal sealed class OutgoingMessageLogPersister : IOutgoingMessagePersister
     {
+        private sealed record Configuration
+        {
+            public string ExchangeName { get; init; }
+            public string RoutingKey { get; init; }
+            public IEnumerable<string> IgnoredMessageTypes { get; init; }
+            public SerializationFormat SerializationFormat { get; init; }
+        }
+            
         [CanBeNull] private OutgoingMessageBuilder _builder;
         [CanBeNull] private OutgoingMessageLogger _logger;
-        
-        [CanBeNull] private string _exchangeName;
-        [CanBeNull] private string _routingKey;
-        [CanBeNull] private IEnumerable<string> _ignoredMessageTypes;
         [CanBeNull] private ILogger _systemLogger;
-        [CanBeNull] private SerializationFormat? _serializationFormat;
+
+        private Configuration _configuration;
+        
+        private const SerializationFormat DefaultSerializationFormat = SerializationFormat.Unknown;
+
+        public OutgoingMessageLogPersister()
+        {
+            _configuration = new Configuration
+            {
+                ExchangeName = null,
+                RoutingKey = null,
+                IgnoredMessageTypes = null,
+                SerializationFormat = DefaultSerializationFormat
+            };
+        }
 
         public IOutgoingMessagePersister SetExchangeName(string exchangeName)
         {
-            if (_exchangeName != null)
+            if (_configuration.ExchangeName != null)
                 throw new InvalidOperationException("Exchange name can't be changed after it was set.");
             
-            _exchangeName = exchangeName;
+            _configuration = _configuration with { ExchangeName = exchangeName };
 
             return this;
         }
 
         public IOutgoingMessagePersister SetRoutingKey(string routingKey)
         {
-            if (_routingKey != null)
+            if (_configuration.RoutingKey != null)
                 throw new InvalidOperationException("Routing key can't be changed after it was set.");
             
-            _routingKey = routingKey;
+            _configuration = _configuration with { RoutingKey = routingKey };
             
             return this;
         }
 
         public IOutgoingMessagePersister SetIgnoredMessageTypes(IEnumerable<string> ignoredMessageTypes)
         {
-            if (_ignoredMessageTypes != null)
+            if (_configuration.IgnoredMessageTypes != null)
                 throw new InvalidOperationException("Ignored message types can't be changed after it was set.");
             
-            _ignoredMessageTypes = ignoredMessageTypes ?? throw new ArgumentNullException(nameof(ignoredMessageTypes));
+            if (ignoredMessageTypes == null)
+                throw new ArgumentNullException(nameof(ignoredMessageTypes));
+            
+            _configuration = _configuration with { IgnoredMessageTypes = ignoredMessageTypes };
             
             return this;
         }
@@ -64,19 +85,19 @@ namespace Lykke.RabbitMqBroker.Logging
 
         IOutgoingMessagePersister IOutgoingMessagePersister.SetSerializationFormat(SerializationFormat format)
         {
-            if (_serializationFormat != null)
+            if (_configuration.SerializationFormat != DefaultSerializationFormat)
                 throw new InvalidOperationException("Serialization format can't be changed after it was set.");
-
-            _serializationFormat = format;
             
+            _configuration = _configuration with { SerializationFormat = format };
+
             return this;
         }
 
         public void Persist<TMessageModel>(byte[] messageBody, IDictionary<string, object> headers)
         {
-            _builder ??= new OutgoingMessageBuilder(_exchangeName, _routingKey,
-                _serializationFormat ?? SerializationFormat.Messagepack);
-            _logger ??= new OutgoingMessageLogger(_ignoredMessageTypes, _systemLogger);
+            _builder ??= new OutgoingMessageBuilder(_configuration.ExchangeName, _configuration.RoutingKey,
+                _configuration.SerializationFormat);
+            _logger ??= new OutgoingMessageLogger(_configuration.IgnoredMessageTypes, _systemLogger);
             
             var message = _builder.Create<TMessageModel>(messageBody, headers);
             _logger.Log(message);
