@@ -470,13 +470,10 @@ namespace Lykke.RabbitMqBroker.Publisher
             {
                 foreach (var keyValuePair in keyValuePairs)
                 {
-                    if (result.ContainsKey(keyValuePair.Key))
+                    var added = result.TryAdd(keyValuePair.Key, keyValuePair.Value);
+                    if (!added)
                     {
                         _log.LogError($"Header with key '{keyValuePair.Key}' already exists. Discarded value is '${keyValuePair.Value}'. Please, use unique headers only.");
-                    }
-                    else
-                    {
-                        result.Add(keyValuePair.Key, keyValuePair.Value);
                     }
                 }
             }
