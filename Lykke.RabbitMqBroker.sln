@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.RabbitMqBroker.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.RabbitMqBroker", "src\Lykke.RabbitMqBroker\Lykke.RabbitMqBroker.csproj", "{064E44E7-1F1D-41C7-AA2B-21D9A528B30C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogParser", "src\LogParser\LogParser.csproj", "{573D97AA-1325-4CD9-BF47-951292C5C2E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{064E44E7-1F1D-41C7-AA2B-21D9A528B30C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{064E44E7-1F1D-41C7-AA2B-21D9A528B30C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{064E44E7-1F1D-41C7-AA2B-21D9A528B30C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{573D97AA-1325-4CD9-BF47-951292C5C2E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{573D97AA-1325-4CD9-BF47-951292C5C2E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{573D97AA-1325-4CD9-BF47-951292C5C2E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{573D97AA-1325-4CD9-BF47-951292C5C2E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,6 +47,7 @@ Global
 		{2D0D1D77-A5B8-4F2B-B526-D3B8EE7048AC} = {CC53CCE3-238A-43B8-B1C1-49068E4CFF87}
 		{FC96342D-3EA6-44D2-A62C-06019661FC54} = {7DA224A2-9CA2-44A8-9D8C-53C8BCF2580A}
 		{064E44E7-1F1D-41C7-AA2B-21D9A528B30C} = {CC53CCE3-238A-43B8-B1C1-49068E4CFF87}
+		{573D97AA-1325-4CD9-BF47-951292C5C2E8} = {CC53CCE3-238A-43B8-B1C1-49068E4CFF87}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {050A064F-4C1E-4C94-88FF-5DD3BD0AAABA}
