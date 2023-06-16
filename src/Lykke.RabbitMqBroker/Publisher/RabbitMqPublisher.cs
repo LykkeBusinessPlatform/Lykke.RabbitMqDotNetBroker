@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Lykke.RabbitMqBroker.Logging;
 using Lykke.RabbitMqBroker.Publisher.DeferredMessages;
 using Lykke.RabbitMqBroker.Publisher.Serializers;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
@@ -34,10 +35,14 @@ namespace Lykke.RabbitMqBroker.Publisher
         private bool _disableQueuePersistence;
         private bool _publishSynchronously;
         private bool _disposed;
-        private readonly List<Func<IDictionary<string, object>>> _writeHeadersFunсs = new List<Func<IDictionary<string, object>>>();
+
+        private readonly List<Func<IDictionary<string, object>>> _writeHeadersFunсs =
+            new List<Func<IDictionary<string, object>>>();
 
         private IRawMessagePublisher _rawPublisher;
         private IPublisherBuffer _bufferOverriding;
+        
+        private readonly IOutgoingMessagePersister _outgoingMessagePersister;
 
         public string Name => _settings.GetPublisherName();
 
@@ -53,6 +58,12 @@ namespace Lykke.RabbitMqBroker.Publisher
             _submitTelemetry = submitTelemetry;
 
             _log = loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>();
+
+            _outgoingMessagePersister = OutgoingMessagePersistanceProvider.Get()
+                .SetExchangeName(_settings.ExchangeName)
+                .SetRoutingKey(_settings.RoutingKey)
+                .SetIgnoredMessageTypes(EnvironmentVariables.IgnoredMessageTypes)
+                .SetSystemLogger(loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>());
         }
 
         #region Configurator
@@ -155,6 +166,7 @@ namespace Lykke.RabbitMqBroker.Publisher
             ThrowIfStarted();
 
             _serializer = serializer;
+            _outgoingMessagePersister.SetSerializationFormat(_serializer.SerializationFormat);
             return this;
         }
 
@@ -235,8 +247,10 @@ namespace Lykke.RabbitMqBroker.Publisher
             }
 
             var body = _serializer.Serialize(message);
+            var headers = GetMessageHeaders();
+            _outgoingMessagePersister.Persist<TMessageModel>(body, headers);
 
-            return _deferredMessagesManager.DeferAsync(new RawMessage(body, routingKey, GetMessageHeaders()), deliverAt);
+            return _deferredMessagesManager.DeferAsync(new RawMessage(body, routingKey, headers), deliverAt);
         }
 
         /// <summary>
@@ -257,8 +271,10 @@ namespace Lykke.RabbitMqBroker.Publisher
             }
 
             var body = _serializer.Serialize(message);
+            var headers = GetMessageHeaders();
+            _outgoingMessagePersister.Persist<TMessageModel>(body, headers);
 
-            _rawPublisher.Produce(new RawMessage(body, routingKey, GetMessageHeaders()));
+            _rawPublisher.Produce(new RawMessage(body, routingKey, headers));
 
             return Task.CompletedTask;
         }
@@ -455,13 +471,10 @@ namespace Lykke.RabbitMqBroker.Publisher
             {
                 foreach (var keyValuePair in keyValuePairs)
                 {
-                    if (result.ContainsKey(keyValuePair.Key))
+                    var added = result.TryAdd(keyValuePair.Key, keyValuePair.Value);
+                    if (!added)
                     {
                         _log.LogError($"Header with key '{keyValuePair.Key}' already exists. Discarded value is '${keyValuePair.Value}'. Please, use unique headers only.");
-                    }
-                    else
-                    {
-                        result.Add(keyValuePair.Key, keyValuePair.Value);
                     }
                 }
             }
