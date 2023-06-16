@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Lykke.RabbitMqBroker
 {
@@ -19,18 +18,8 @@ namespace Lykke.RabbitMqBroker
         /// </summary>
         public static IEnumerable<string> IgnoredMessageTypes
         {
-            get
-            {
-                if (_ignoredMessageTypes == null)
-                {
-                    var ignoredMessageTypes = Environment.GetEnvironmentVariable("NOVA_FILTERED_MESSAGE_TYPES");
-                    _ignoredMessageTypes = string.IsNullOrWhiteSpace(ignoredMessageTypes)
-                        ? Array.Empty<string>()
-                        : ignoredMessageTypes.Split(',').Distinct();
-                }
-                
-                return _ignoredMessageTypes;
-            }
+            get => _ignoredMessageTypes ??= 
+                ParseList(GetEnvironmentVariable("NOVA_FILTERED_MESSAGE_TYPES"));
         }
         
         /// <summary>
@@ -40,19 +29,35 @@ namespace Lykke.RabbitMqBroker
         /// </summary>
         public static bool DisableOutgoingMessagePersistence
         {
-            get
-            {
-                if (_disableOutgoingMessagePersistence.HasValue)
-                    return _disableOutgoingMessagePersistence.Value;
-                
-                var disableOutgoingMessagePersistence = 
-                    Environment.GetEnvironmentVariable("NOVA_DISABLE_OUTGOING_MESSAGE_PERSISTENCE")?.Trim('"');
-                
-                _disableOutgoingMessagePersistence =
-                    bool.TryParse(disableOutgoingMessagePersistence, out var result) && result;
-                
-                return _disableOutgoingMessagePersistence.Value;
-            }
+            get => _disableOutgoingMessagePersistence ??=
+                ParseBool(GetEnvironmentVariable("NOVA_DISABLE_OUTGOING_MESSAGE_PERSISTENCE"));
         }
+
+        /// <summary>
+        /// Parses boolean value from string. Defaults to false if parsing fails.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        internal static bool ParseBool(string value, bool defaultValue = false) =>
+            bool.TryParse(value, out var result) ? result : defaultValue;
+
+        /// <summary>
+        /// Parses comma-separated list of strings from string. Defaults to empty list if parsing fails.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static IEnumerable<string> ParseList(string value) =>
+            string.IsNullOrWhiteSpace(value)
+                ? Array.Empty<string>()
+                : value.Split(',');
+
+        /// <summary>
+        /// Reads environment variable and trims double quotes if any.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        internal static string GetEnvironmentVariable(string name) =>
+            Environment.GetEnvironmentVariable(name)?.Trim('"');
     }
 }
