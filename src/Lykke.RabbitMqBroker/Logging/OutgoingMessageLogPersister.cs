@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
@@ -17,12 +18,11 @@ namespace Lykke.RabbitMqBroker.Logging
         {
             public string ExchangeName { get; init; }
             public string RoutingKey { get; init; }
-            public IEnumerable<string> IgnoredMessageTypes { get; init; }
+            public HashSet<string> IgnoredMessageTypes { get; init; }
             public SerializationFormat SerializationFormat { get; init; }
         }
             
         [CanBeNull] private OutgoingMessageBuilder _builder;
-        [CanBeNull] private OutgoingMessageLogger _logger;
         [CanBeNull] private ILogger _systemLogger;
 
         private Configuration _configuration;
@@ -68,7 +68,7 @@ namespace Lykke.RabbitMqBroker.Logging
             if (ignoredMessageTypes == null)
                 throw new ArgumentNullException(nameof(ignoredMessageTypes));
             
-            _configuration = _configuration with { IgnoredMessageTypes = ignoredMessageTypes };
+            _configuration = _configuration with { IgnoredMessageTypes = ignoredMessageTypes.ToHashSet() };
             
             return this;
         }
@@ -95,12 +95,17 @@ namespace Lykke.RabbitMqBroker.Logging
 
         public void Persist<TMessageModel>(byte[] messageBody, IDictionary<string, object> headers)
         {
+            if (_systemLogger == null)
+                throw new InvalidOperationException("System logger is not set.");
+            
+            if (_configuration.IgnoredMessageTypes.Contains(typeof(TMessageModel).Name))
+                return;
+            
             _builder ??= new OutgoingMessageBuilder(_configuration.ExchangeName, _configuration.RoutingKey,
                 _configuration.SerializationFormat);
-            _logger ??= new OutgoingMessageLogger(_configuration.IgnoredMessageTypes, _systemLogger);
-            
+
             var message = _builder.Create<TMessageModel>(messageBody, headers);
-            _logger.Log(message);
+            _systemLogger.LogInformation(message.ToString());
         }
     }
 }
