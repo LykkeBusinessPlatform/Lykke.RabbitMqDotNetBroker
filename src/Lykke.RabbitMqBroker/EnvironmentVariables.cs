@@ -46,7 +46,8 @@ namespace Lykke.RabbitMqBroker
                     return _disableOutgoingMessagePersistence.Value;
                 
                 var disableOutgoingMessagePersistence = 
-                    Environment.GetEnvironmentVariable("NOVA_DISABLE_OUTGOING_MESSAGE_PERSISTENCE");
+                    Environment.GetEnvironmentVariable("NOVA_DISABLE_OUTGOING_MESSAGE_PERSISTENCE")?.Trim('"');
+                
                 _disableOutgoingMessagePersistence =
                     bool.TryParse(disableOutgoingMessagePersistence, out var result) && result;
                 
