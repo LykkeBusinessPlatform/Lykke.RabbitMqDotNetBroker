@@ -64,13 +64,6 @@ namespace Lykke.RabbitMqBroker.Publisher
                 .SetRoutingKey(_settings.RoutingKey)
                 .SetIgnoredMessageTypes(EnvironmentVariables.IgnoredMessageTypes)
                 .SetSystemLogger(loggerFactory.CreateLogger<RabbitMqPublisher<TMessageModel>>());
-
-            _log.LogInformation("Diag: Publisher={0}, NOVA_DISABLE_OUTGOING_MESSAGE_PERSISTANCE={1}",
-                this.Name, EnvironmentVariables.DisableOutgoingMessagePersistence);
-            _log.LogInformation("Diag: get env var directly={0}",
-                EnvironmentVariables.GetEnvironmentVariable("NOVA_DISABLE_OUTGOING_MESSAGE_PERSISTANCE"));
-            _log.LogInformation("Diag: parse env var directly={0}",
-                EnvironmentVariables.ParseBool(EnvironmentVariables.GetEnvironmentVariable("NOVA_DISABLE_OUTGOING_MESSAGE_PERSISTANCE")));
         }
 
         #region Configurator
