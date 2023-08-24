@@ -1,4 +1,4 @@
-## [[tbd]] (2023-08-22)
+## 11.9.4 (2023-08-22)
 
 ### Added
 - LT-4955: Add new publishing strategy 'PropertiesWithMessageTypeTopicPublishStrategy'
