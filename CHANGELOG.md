@@ -1,4 +1,4 @@
-## [[tbd]] (2023-09-19)
+## 11.10.0 (2023-09-19)
 
 ### Added
 - LT-4989: Add new `QueueingBasicConsumerNoLock` to avoid custom lock when processing incoming messages
