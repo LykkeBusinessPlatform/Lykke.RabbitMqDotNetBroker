@@ -191,7 +191,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
                 var queueName = _messageReadStrategy.Configure(settings, channel);
                 
-                var consumer = new QueueingBasicConsumerNoLock(channel);
+                var consumer = new EventingBasicConsumerNoLock(channel);
                 var tag = channel.BasicConsume(queueName, false, consumer);
 
                 while (!IsStopped())
