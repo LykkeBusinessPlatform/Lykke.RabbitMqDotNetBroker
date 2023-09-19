@@ -1,3 +1,8 @@
+## [[tbd]] (2023-09-19)
+
+### Added
+- LT-4990: Add new `EventingBasicConsumerNoLock` to avoid broker pulling
+
 ## 11.10.0 (2023-09-19)
 
 ### Added
