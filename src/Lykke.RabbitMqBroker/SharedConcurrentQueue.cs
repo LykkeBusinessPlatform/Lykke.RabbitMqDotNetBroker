@@ -9,7 +9,7 @@ namespace Lykke.RabbitMqBroker
     public class SharedConcurrentQueue<T>
     {
         private bool _isOpen = true;
-        private ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
+        private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
         
         public void Enqueue(T item)
         {
@@ -35,7 +35,5 @@ namespace Lykke.RabbitMqBroker
                 throw new EndOfStreamException("SharedConcurrentQueue closed");
             }
         }
-        
-        
     }
 }
