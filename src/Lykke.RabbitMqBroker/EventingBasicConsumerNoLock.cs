@@ -11,8 +11,13 @@ namespace Lykke.RabbitMqBroker
     {
         public SharedConcurrentQueue<BasicDeliverEventArgs> Queue { get; private set; }
         
-        private EventingBasicConsumerNoLock(IModel model) : base(model)
+        private EventingBasicConsumerNoLock() : base(null)
         {
+        }
+        
+        public EventingBasicConsumerNoLock(IModel model) : this(model, new SharedConcurrentQueue<BasicDeliverEventArgs>())
+        {
+            
         }
         
         public EventingBasicConsumerNoLock(IModel model, SharedConcurrentQueue<BasicDeliverEventArgs> queue) : base(model)
