@@ -47,11 +47,5 @@ namespace Lykke.RabbitMqBroker
             
             Queue.Enqueue(eventArgs);
         }
-
-        public override void OnCancel(params string[] consumerTags)
-        {
-            base.OnCancel(consumerTags);
-            Queue.Close();
-        }
     }
 }

@@ -24,12 +24,6 @@ namespace Lykke.RabbitMqBroker
         {
             Queue = queue;
             Received += OnReceived;
-            Unregistered += OnUnregistered;
-        }
-
-        private void OnUnregistered(object sender, ConsumerEventArgs e)
-        {
-            Queue.Close();
         }
 
         private void OnReceived(object sender, BasicDeliverEventArgs e)
