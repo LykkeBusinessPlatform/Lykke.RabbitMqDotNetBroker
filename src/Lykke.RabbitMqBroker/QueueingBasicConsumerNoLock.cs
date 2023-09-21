@@ -2,6 +2,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -14,17 +15,17 @@ namespace Lykke.RabbitMqBroker
             
         }
 
-        public QueueingBasicConsumerNoLock(IModel model) : this(model, new SharedConcurrentQueue<BasicDeliverEventArgs>())
+        public QueueingBasicConsumerNoLock(IModel model) : this(model, new ConcurrentQueue<BasicDeliverEventArgs>())
         {
             
         }
 
-        public QueueingBasicConsumerNoLock(IModel model, SharedConcurrentQueue<BasicDeliverEventArgs> queue) : base(model)
+        public QueueingBasicConsumerNoLock(IModel model, ConcurrentQueue<BasicDeliverEventArgs> queue) : base(model)
         {
             Queue = queue;
         }
         
-        public SharedConcurrentQueue<BasicDeliverEventArgs> Queue { get; private set; }
+        public ConcurrentQueue<BasicDeliverEventArgs> Queue { get; private set; }
 
         public override void HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
