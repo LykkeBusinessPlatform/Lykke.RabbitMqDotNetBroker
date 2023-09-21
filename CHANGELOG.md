@@ -1,4 +1,4 @@
-## [[tbd]] (2023-09-21)
+## 11.11.1 (2023-09-21)
 
 ### Fixed
 - LT-4990: Discard `EventingBasicConsumerNoLock` and use `EventingBasicConsumer` instead
