@@ -6,6 +6,7 @@ using Lykke.RabbitMqBroker.Subscriber.Deserializers;
 using Lykke.RabbitMqBroker.Subscriber.Middleware.ErrorHandling;
 using Lykke.RabbitMqBroker.Subscriber.Middleware.Telemetry;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber
 {
@@ -20,31 +21,36 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly ILoggerFactory _loggerFactory;
         private readonly ushort _prefetchCount;
         private readonly bool _sendTelemetry;
+        private readonly IAutorecoveringConnection _connection;
 
-        private RabbitMqPullingSubscriber<TMessage> _pullingSubscriber;
+        private RabbitMqSubscriber<TMessage> _subscriber;
 
         protected JsonRabbitSubscriber(
             RabbitMqSubscriptionSettings settings,
-            ILoggerFactory logFactory)
+            ILoggerFactory logFactory,
+            IAutorecoveringConnection connection)
             : this(
                 settings,
                 true,
                 100,
                 false,
-                logFactory)
+                logFactory,
+                connection)
         {
         }
 
         protected JsonRabbitSubscriber(
             RabbitMqSubscriptionSettings settings,
             bool isDurable,
-            ILoggerFactory logFactory)
+            ILoggerFactory logFactory,
+            IAutorecoveringConnection connection)
             : this(
                 settings,
                 isDurable,
                 100,
                 false,
-                logFactory)
+                logFactory,
+                connection)
         {
         }
 
@@ -52,13 +58,15 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             bool isDurable,
             ushort prefetchCount,
-            ILoggerFactory logFactory)
+            ILoggerFactory logFactory,
+            IAutorecoveringConnection connection)
             : this(
                 settings,
                 isDurable,
                 prefetchCount,
                 false,
-                logFactory)
+                logFactory,
+                connection)
         {
         }
 
@@ -67,7 +75,8 @@ namespace Lykke.RabbitMqBroker.Subscriber
             bool isDurable,
             ushort prefetchCount,
             bool sendTelemetry,
-            ILoggerFactory logFactory)
+            ILoggerFactory logFactory,
+            IAutorecoveringConnection connection)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             if (isDurable)
@@ -75,14 +84,16 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _prefetchCount = prefetchCount;
             _loggerFactory = logFactory ?? throw new ArgumentNullException(nameof(logFactory));
             _sendTelemetry = sendTelemetry;
+            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         }
 
         /// <inheritdoc cref="IStartable.Start"/>
         public void Start()
         {
-            _pullingSubscriber = new RabbitMqPullingSubscriber<TMessage>(
-                    _loggerFactory.CreateLogger<RabbitMqPullingSubscriber<TMessage>>(),
-                    _settings)
+            _subscriber = new RabbitMqSubscriber<TMessage>(
+                    _loggerFactory.CreateLogger<RabbitMqSubscriber<TMessage>>(),
+                    _settings,
+                    _connection)
                 .UseMiddleware(
                     new DeadQueueMiddleware<TMessage>(_loggerFactory.CreateLogger<DeadQueueMiddleware<TMessage>>()))
                 .UseMiddleware(
@@ -92,21 +103,21 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 .SetMessageDeserializer(new JsonMessageDeserializer<TMessage>())
                 .SetPrefetchCount(_prefetchCount)
                 .Subscribe(ProcessMessageAsync)
-                .CreateDefaultBinding();
+                .UseDefaultStrategy();
             if (_sendTelemetry)
-                _pullingSubscriber = _pullingSubscriber.UseMiddleware(new TelemetryMiddleware<TMessage>());
-            _pullingSubscriber.Start();
+                _subscriber = _subscriber.UseMiddleware(new TelemetryMiddleware<TMessage>());
+            _subscriber.Start();
         }
 
         /// <inheritdoc cref="IStartStop.Stop"/>
         public void Stop()
         {
-            var subscriber = _pullingSubscriber;
+            var subscriber = _subscriber;
 
-            if (_pullingSubscriber == null)
+            if (_subscriber == null)
                 return;
 
-            _pullingSubscriber = null;
+            _subscriber = null;
 
             subscriber.Stop();
             subscriber.Dispose();
