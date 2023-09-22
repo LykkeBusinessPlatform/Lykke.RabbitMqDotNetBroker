@@ -1,4 +1,4 @@
-## [[tbd]] (2023-09-22)
+## 11.12.0 (2023-09-22)
 
 ### Added
 - LT-5001: Add `RabbitMqSlimPublisher`
