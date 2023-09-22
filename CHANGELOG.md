@@ -1,3 +1,8 @@
+## [[tbd]] (2023-09-22)
+
+### Removed
+- LT-5001: Remove `RabbitMqSlimPublisher`
+
 ## 11.12.0 (2023-09-22)
 
 ### Added
