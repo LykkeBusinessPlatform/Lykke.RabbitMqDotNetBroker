@@ -18,22 +18,21 @@ namespace Lykke.RabbitMqBroker.Subscriber
 {
     /// <summary>
     /// Generic rabbitMq subscriber
+    /// Not thread-safe
     /// </summary>
     [PublicAPI]
-    public class RabbitMqSubscriber<TTopicModel> : IStartStop
+    public sealed class RabbitMqSubscriber<TTopicModel> : IStartStop
     {
         private readonly RabbitMqSubscriptionSettings _settings;
         private readonly ILogger<RabbitMqSubscriber<TTopicModel>> _logger;
         private readonly MiddlewareQueue<TTopicModel> _middlewareQueue;
-        private readonly List<Action<IDictionary<string, object>>> _readHeadersActions =
-            new List<Action<IDictionary<string, object>>>();
+        private readonly List<Action<IDictionary<string, object>>> _readHeadersActions = new();
         private readonly IAutorecoveringConnection _connection;
 
         private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed;
         private ushort? _prefetchCount;
         
-        // TODO: introduce domain channel model to make interaction with RabbitMQ safe and reliable with implicit retries
         private IModel _channel;
         private EventingBasicConsumer _consumer;
         private string _consumerTag;
@@ -85,16 +84,19 @@ namespace Lykke.RabbitMqBroker.Subscriber
         
         public RabbitMqSubscriber<TTopicModel> UseDefaultStrategy()
         {
-            SetMessageReadStrategy(new MessageReadWithTemporaryQueueStrategy());
+            SetMessageReadStrategy(GetDefaultStrategy());
             return this;
         }
 
         public RabbitMqSubscriber<TTopicModel> UseMiddleware(IEventMiddleware<TTopicModel> middleware)
         {
-            if (_consumer?.IsRunning ?? false)
+            if (middleware == null)
+                throw new ArgumentNullException(nameof(middleware));
+
+            if (_consumer is { IsRunning: true }) 
                 throw new InvalidOperationException("New middleware can't be added after subscriber Start");
 
-            _middlewareQueue.AddMiddleware(middleware ?? throw new ArgumentNullException());
+            _middlewareQueue.AddMiddleware(middleware);
             return this;
         }
 
@@ -112,7 +114,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
             }
             return this;
         }
-
 
         #endregion
 
@@ -150,41 +151,28 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public RabbitMqSubscriber<TTopicModel> Start()
         {
-            if (_consumer?.IsRunning ?? false)
+            if (_consumer is { IsRunning: true })
                 return this;
-            
-            if (MessageDeserializer == null)
-                throw new InvalidOperationException("Please, specify message deserializer");
 
-            if (EventHandler == null && CancellableEventHandler == null)
-                throw new InvalidOperationException("Please, specify message handler");
+            CheckStartPreConditionsOrThrow();
 
             if (_cancellationTokenSource == null || _cancellationTokenSource.IsCancellationRequested)
             {
                 _cancellationTokenSource = new CancellationTokenSource();
             }
 
-            if (MessageReadStrategy == null)
-                UseDefaultStrategy();
+            MessageReadStrategy ??= GetDefaultStrategy();
 
             var actualHandlerMiddleware = EventHandler != null
                 ? new ActualHandlerMiddleware<TTopicModel>(EventHandler)
                 : new ActualHandlerMiddleware<TTopicModel>(CancellableEventHandler);
             _middlewareQueue.AddMiddleware(actualHandlerMiddleware);
 
-            _channel ??= _connection.CreateModel();
+            _channel = GetOrCreateChannel();
 
-            _consumer = new EventingBasicConsumer(_channel);
-            
-            // TODO: move to read strategy
-            if (_prefetchCount.HasValue)
-            {
-                _channel.BasicQos(0, _prefetchCount.Value, false);
-            }
+            _consumer = GetOrCreateConsumer(_channel);
             
             var queueName = MessageReadStrategy.Configure(_settings, _channel);
-            
-            _consumer.Received += OnReceived;
 
             _consumerTag = _channel.BasicConsume(queueName, false, _consumer);
 
@@ -217,6 +205,45 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _channel = null;
 
             _disposed = true;
+        }
+        
+        private void CheckStartPreConditionsOrThrow()
+        {
+            if (MessageDeserializer == null)
+                throw new InvalidOperationException("Please, specify message deserializer");
+
+            if (EventHandler == null && CancellableEventHandler == null)
+                throw new InvalidOperationException("Please, specify message handler");
+        }
+        
+        private IModel GetOrCreateChannel()
+        {
+            if (_channel != null)
+                return _channel;
+
+            _channel = _connection.CreateModel();
+            
+            if (_prefetchCount.HasValue)
+                _channel.BasicQos(0, _prefetchCount.Value, false);
+
+            return _channel;
+        }
+
+        private EventingBasicConsumer GetOrCreateConsumer(IModel channel)
+        {
+            if (_consumer != null)
+                return _consumer;
+            
+            _consumer = new EventingBasicConsumer(channel);
+            
+            _consumer.Received += OnReceived;
+            
+            return _consumer;
+        }
+        
+        private static IMessageReadStrategy GetDefaultStrategy()
+        {
+            return new MessageReadWithTemporaryQueueStrategy();
         }
     }
 }
