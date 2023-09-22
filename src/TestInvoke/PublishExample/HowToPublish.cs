@@ -12,13 +12,13 @@ namespace TestInvoke.PublishExample
     {
         public static void Example(RabbitMqSubscriptionSettings settings)
         {
-            var publisher = new RabbitMqPublisher<string>(new NullLoggerFactory(), settings)
+            var connection = new RabbitMqPublisher<string>(new NullLoggerFactory(), settings)
                 .SetSerializer(new TestMessageSerializer())
                 .SetPublishStrategy(new FanoutPublishStrategy(settings));
-            publisher.Start();
+            connection.Start();
 
             for (var i = 0; i <= 10; i++)
-                publisher.ProduceAsync("message#" + i);
+                connection.ProduceAsync("message#" + i);
         }
     }
 }
