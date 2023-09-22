@@ -1,4 +1,4 @@
-## [[tbd]] (2023-09-22)
+## 11.12.1 (2023-09-22)
 
 ### Removed
 - LT-5001: Remove `RabbitMqSlimPublisher`
