@@ -1,4 +1,4 @@
-## [[tbd]] (2023-09-22)
+## 11.12.2 (2023-09-22)
 
 ### Changed
 - LT-4990: `EventingBasicConsumer` as a baseline for subscribers
