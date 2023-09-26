@@ -46,7 +46,7 @@ namespace LogParser
                 .ToUtcDate(_configuration.To);
 
             var sortedAndFiltered = (_configuration.IncludedMessageTypes.Count > 0
-                    ? sorted.IncludeMessageTypes(_configuration.ExcludedMessageTypes)
+                    ? sorted.IncludeMessageTypes(_configuration.IncludedMessageTypes)
                     : sorted.ExcludeMessageTypes(_configuration.ExcludedMessageTypes))
                 .ToList();
 
