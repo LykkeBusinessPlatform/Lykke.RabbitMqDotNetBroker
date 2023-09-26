@@ -1,4 +1,5 @@
 using System;
+using LogParser.Configuration;
 using Lykke.RabbitMqBroker.Logging;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -10,20 +11,24 @@ namespace LogParser.Services
         private readonly IConnection _connection;
         private readonly IModel _publishingChannel;
         private readonly ILogger<Publisher> _logger;
+        private readonly Configuration.Configuration _configuration;
 
-        public Publisher(string rabbitMqConnectionString, ILogger<Publisher> logger)
+        public Publisher(ILogger<Publisher> logger, Configuration.Configuration configuration)
         {
             _logger = logger;
 
+            _configuration = configuration;
             var factory = new ConnectionFactory
             {
-                Uri = new Uri(rabbitMqConnectionString, UriKind.Absolute),
+                HostName = _configuration.RabbitConfig.HostName,
+                Port = Convert.ToInt32(_configuration.RabbitConfig.Port),
+                UserName = configuration.RabbitConfig.UserName,
+                Password = configuration.RabbitConfig.Password,
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(60)
             };
 
             _connection = factory.CreateConnection();
-
             _publishingChannel = _connection.CreateModel();
         }
 

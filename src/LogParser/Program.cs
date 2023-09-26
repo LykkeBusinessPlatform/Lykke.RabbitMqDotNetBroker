@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using LogParser.Configuration;
+using LogParser.LogParsers;
 using LogParser.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,18 +26,21 @@ namespace LogParser
 
                     services.AddSingleton<Configuration.Configuration>();
 
+                    services.AddSingleton<JsonRecordParser>();
+
                     services.Configure<ParsingOptions>(
                         context.Configuration.GetSection(nameof(ParsingOptions)));
                     services.Configure<FilterOptions>(
                         context.Configuration.GetSection(nameof(FilterOptions)));
+                    services.Configure<RabbitConfig>(
+                        context.Configuration.GetSection(nameof(RabbitConfig)));
+                    services.Configure<InputConfig>(
+                        context.Configuration.GetSection(nameof(InputConfig)));
 
                     // rabbitmq connection
                     var rcs = context.Configuration.GetConnectionString("rabbitmq");
 
-                    services.AddSingleton(provider =>
-                        ActivatorUtilities.CreateInstance<Publisher>(provider,
-                            rcs,
-                            provider.GetRequiredService<ILogger<Publisher>>()));
+                    services.AddSingleton<Publisher>();
                 });
 
             var host = hostBuilder.Build();

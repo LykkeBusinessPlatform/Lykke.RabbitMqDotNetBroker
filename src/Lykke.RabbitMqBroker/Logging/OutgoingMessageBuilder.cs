@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Lykke.RabbitMqBroker.Logging
 {
-    internal sealed class OutgoingMessageBuilder
+    public sealed class OutgoingMessageBuilder
     {
         private readonly string _exchangeName;
         private readonly string _routingKey;

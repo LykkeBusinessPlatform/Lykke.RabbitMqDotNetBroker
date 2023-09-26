@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Common;
+using Common.PasswordTools;
 using LogParser.Filters;
 using LogParser.LogParsers;
 using LogParser.Services;
@@ -16,16 +17,18 @@ namespace LogParser
         private readonly Configuration.Configuration _configuration;
         private readonly Publisher _publisher;
         private readonly ILogger<App> _logger;
-
         private readonly OutgoingMessageLogParser _logParser = new OutgoingMessageLogParser();
+        private readonly JsonRecordParser _jsonRecordParser;
 
         public App(Configuration.Configuration configuration,
             Publisher publisher,
-            ILogger<App> logger)
+            ILogger<App> logger,
+            JsonRecordParser jsonRecordParser)
         {
             _configuration = configuration;
             _publisher = publisher;
             _logger = logger;
+            _jsonRecordParser = jsonRecordParser;
         }
 
         public void Execute()
@@ -34,22 +37,13 @@ namespace LogParser
 
             _logger.LogInformation("Current configuration: {Configuration}", _configuration.ToJson());
 
-            var logsPath = _configuration.LogDirectory;
-            var files = GetFiles(logsPath);
+            var jsonContent = File.ReadAllText(_configuration.InputConfig.FilePath);
 
-            var outgoingMessages = Parse(files);
+            var messages = _jsonRecordParser.ParseAll(jsonContent);
 
-            var sortedAndFiltered = outgoingMessages
-                .SelectMany(x => x)
-                .OrderBy(x => x.Timestamp)
-                .FromUtcDate(_configuration.From)
-                .ToUtcDate(_configuration.To)
-                .ExcludeMessageTypes(_configuration.ExcludedMessageTypes)
-                .ToList();
+           LogStats(messages);
 
-            LogStats(sortedAndFiltered);
-
-            Publish(sortedAndFiltered);
+           Publish(messages);
 
             _logger.LogInformation("Messages published");
         }
