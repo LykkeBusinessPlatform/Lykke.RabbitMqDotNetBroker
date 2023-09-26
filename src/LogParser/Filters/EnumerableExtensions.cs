@@ -28,5 +28,13 @@ namespace LogParser.Filters
 
             return source.Where(x => !messageTypes.Contains(x.MessageTypeName));
         }
+        
+        public static IEnumerable<OutgoingMessage> IncludeMessageTypes(this IEnumerable<OutgoingMessage> source,
+            List<string> messageTypes)
+        {
+            if (messageTypes.Count == 0) return source;
+
+            return source.Where(x => messageTypes.Contains(x.MessageTypeName));
+        }
     }
 }

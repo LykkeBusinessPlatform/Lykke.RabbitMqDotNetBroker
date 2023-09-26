@@ -21,6 +21,11 @@ namespace LogParser.Configuration
         public DateTime? To => _filterOptions.To?.ToUniversalTime();
 
         public List<string> ExcludedMessageTypes => _filterOptions.ExcludedMessageTypes;
+        
+        /// <summary>
+        /// If set, ExcludedMessageTypes is ignored. Only types specified here will be sent
+        /// </summary>
+        public List<string> IncludedMessageTypes => _filterOptions.IncludedMessageTypes;
 
         public string LogDirectory => _parsingOptions.Value.LogDirectory;
     }

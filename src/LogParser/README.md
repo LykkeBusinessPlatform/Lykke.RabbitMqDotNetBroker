@@ -32,6 +32,11 @@ To configure the app, add *appsettings.json* file to the working directory.
 *FilterOptions* - determines which events will be send
 From, To - filter events by date
 ExcludedMessageTypes - filter event by message type name
+IncludedMessageTypes - filter event by message type name
+
+Only one message type filter can be active. IncludedMessageTypes takes precedence over ExcludedMessageTypes.
+E.g. if IncludedMessageTypes has any values configured, ExcludedMessageTypes will be ignored completely.
+
 
 *ParsingOptions* - determines parser settings
 LogDirectory - path to log files
