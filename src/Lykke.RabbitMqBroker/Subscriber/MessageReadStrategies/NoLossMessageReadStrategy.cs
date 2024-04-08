@@ -10,10 +10,22 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
     /// </summary>
     public sealed class NoLossMessageReadStrategy : TemplatedMessageReadStrategy
     {
-        public NoLossMessageReadStrategy(string routingKey = "") : base(routingKey)
+        private static class Const
         {
-            Durable = true;
-            AutoDelete = false;
+            public const bool Durable = true;
+            public const bool AutoDelete = false;
+        }
+        
+        public NoLossMessageReadStrategy() : base()
+        {
+            Durable = Const.Durable;
+            AutoDelete = Const.AutoDelete;
+        }
+        
+        public NoLossMessageReadStrategy(string routingKey) : base(routingKey)
+        {
+            Durable = Const.Durable;
+            AutoDelete = Const.AutoDelete;
         }
     }
 }
