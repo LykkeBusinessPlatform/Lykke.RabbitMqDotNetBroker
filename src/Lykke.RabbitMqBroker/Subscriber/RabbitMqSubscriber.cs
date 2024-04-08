@@ -139,7 +139,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, _settings.GetSubscriberName());
+                _logger.LogError(ex, _settings.GetSubscriberDisplayName());
                 acceptor.Reject();
             }
         }

@@ -18,17 +18,10 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
 
         public string Configure(RabbitMqSubscriptionSettings settings, IModel channel)
         {
-            // If specified queue name is empty generate random name
-            var queueName = String.IsNullOrEmpty(settings.QueueName)
-                ? settings.ExchangeName + "." + Guid.NewGuid().ToString()
-                : settings.QueueName;
-
-            // For random name set autodelete
-            //var autodelete = String.IsNullOrEmpty(settings.QueueName) ? true : false;
-
-            // autodelete is always reverse from isdurable
+            var queueName = settings.GetQueueName();
             var autodelete = !settings.IsDurable;
             IDictionary<string, object> args = null;
+            
             if (!string.IsNullOrEmpty(settings.DeadLetterExchangeName))
             {
                 var poisonQueueName = $"{queueName}-poison";
