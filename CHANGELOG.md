@@ -1,4 +1,4 @@
-## [[tbd]] (2024-04-10)
+## 12.1.0 (2024-04-10)
 
 ### Changed
 - LT-5418: Extend subscriber template parameters with `ILoggerFactory` 
