@@ -1,4 +1,4 @@
-## [[tbd]] (2024-04-10)
+## 12.2.0 (2024-04-10)
 
 ### Changed
 - LT-5418: Replace subscriber parameter `ILoggerFactory` with `IServiceProvider` to make custom registration flexible
