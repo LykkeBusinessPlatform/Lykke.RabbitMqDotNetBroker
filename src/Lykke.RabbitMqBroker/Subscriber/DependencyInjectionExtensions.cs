@@ -15,7 +15,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             IAutorecoveringConnection connection,
             Func<T, Task> handler = null,
-            Action<RabbitMqSubscriber<T>> configure = null)
+            Action<RabbitMqSubscriber<T>, ILoggerFactory> configure = null)
         {
             services.AddSingleton(p =>
             {
@@ -35,7 +35,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             IAutorecoveringConnection connection,
             Func<T, Task> handler = null,
-            Action<RabbitMqSubscriber<T>> configure = null)
+            Action<RabbitMqSubscriber<T>, ILoggerFactory> configure = null)
         {
             services.AddSingleton(p =>
             {
@@ -55,7 +55,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             IAutorecoveringConnection connection,
             Func<T, Task> handler = null,
-            Action<RabbitMqSubscriber<T>> configure = null)
+            Action<RabbitMqSubscriber<T>, ILoggerFactory> configure = null)
         {
             services.AddSingleton(p =>
             {
@@ -75,7 +75,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             IAutorecoveringConnection connection,
             Func<T, Task> handler = null,
-            Action<RabbitMqSubscriber<T>> configure = null)
+            Action<RabbitMqSubscriber<T>, ILoggerFactory> configure = null)
         {
             services.AddSingleton(p =>
             {
