@@ -4,7 +4,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber
@@ -15,14 +14,13 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             IAutorecoveringConnection connection,
             Func<T, Task> handler = null,
-            Action<RabbitMqSubscriber<T>, ILoggerFactory> configure = null)
+            Action<RabbitMqSubscriber<T>, IServiceProvider> configure = null)
         {
             services.AddSingleton(p =>
             {
-                var loggerFactory = p.GetRequiredService<ILoggerFactory>();
                 var subscriber = RabbitMqSubscriber<T>
                     .Json
-                    .CreateNoLossSubscriber(loggerFactory, settings, connection, configure);
+                    .CreateNoLossSubscriber(p, settings, connection, configure);
                 
                 if (handler != null)
                     subscriber.Subscribe(handler);
@@ -35,14 +33,13 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             IAutorecoveringConnection connection,
             Func<T, Task> handler = null,
-            Action<RabbitMqSubscriber<T>, ILoggerFactory> configure = null)
+            Action<RabbitMqSubscriber<T>, IServiceProvider> configure = null)
         {
             services.AddSingleton(p =>
             {
-                var loggerFactory = p.GetRequiredService<ILoggerFactory>();
                 var subscriber = RabbitMqSubscriber<T>
                     .Json
-                    .CreateLossAcceptableSubscriber(loggerFactory, settings, connection, configure);
+                    .CreateLossAcceptableSubscriber(p, settings, connection, configure);
                 
                 if (handler != null)
                     subscriber.Subscribe(handler);
@@ -55,14 +52,13 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             IAutorecoveringConnection connection,
             Func<T, Task> handler = null,
-            Action<RabbitMqSubscriber<T>, ILoggerFactory> configure = null)
+            Action<RabbitMqSubscriber<T>, IServiceProvider> configure = null)
         {
             services.AddSingleton(p =>
             {
-                var loggerFactory = p.GetRequiredService<ILoggerFactory>();
                 var subscriber = RabbitMqSubscriber<T>
                     .MessagePack
-                    .CreateNoLossSubscriber(loggerFactory, settings, connection, configure);
+                    .CreateNoLossSubscriber(p, settings, connection, configure);
                 
                 if (handler != null)
                     subscriber.Subscribe(handler);
@@ -75,14 +71,13 @@ namespace Lykke.RabbitMqBroker.Subscriber
             RabbitMqSubscriptionSettings settings,
             IAutorecoveringConnection connection,
             Func<T, Task> handler = null,
-            Action<RabbitMqSubscriber<T>, ILoggerFactory> configure = null)
+            Action<RabbitMqSubscriber<T>, IServiceProvider> configure = null)
         {
             services.AddSingleton(p =>
             {
-                var loggerFactory = p.GetRequiredService<ILoggerFactory>();
                 var subscriber = RabbitMqSubscriber<T>
                     .MessagePack
-                    .CreateLossAcceptableSubscriber(loggerFactory, settings, connection, configure);
+                    .CreateLossAcceptableSubscriber(p, settings, connection, configure);
                     
                 if (handler != null)
                     subscriber.Subscribe(handler);
