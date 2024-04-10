@@ -49,7 +49,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 ILoggerFactory loggerFactory, 
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>> configure = null)
+                Action<RabbitMqSubscriber<TTopicModel>, ILoggerFactory> configure = null)
             {
                 return Create<NoLossMessageReadStrategy>(loggerFactory, settings, connection, configure);
             }
@@ -58,7 +58,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 ILoggerFactory loggerFactory, 
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>> configure = null)
+                Action<RabbitMqSubscriber<TTopicModel>, ILoggerFactory> configure = null)
             {
                 return Create<LossAcceptableMessageReadStrategy>(loggerFactory, settings, connection, configure);
             }
@@ -67,11 +67,12 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 ILoggerFactory loggerFactory,
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>> configure = null) where TStrategy : IMessageReadStrategy, new()
+                Action<RabbitMqSubscriber<TTopicModel>, ILoggerFactory> configure = null)
+                where TStrategy : IMessageReadStrategy, new()
             {
                 var logger = loggerFactory.CreateLogger<RabbitMqSubscriber<TTopicModel>>();
                 var middlewareLogger = loggerFactory.CreateLogger<ExceptionSwallowMiddleware<TTopicModel>>();
-            
+
                 var subscriber = new RabbitMqSubscriber<TTopicModel>(
                         logger,
                         settings,
@@ -80,7 +81,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                     .SetMessageReadStrategy(new TStrategy())
                     .UseMiddleware(new ExceptionSwallowMiddleware<TTopicModel>(middlewareLogger));
 
-                configure?.Invoke(subscriber);
+                configure?.Invoke(subscriber, loggerFactory);
 
                 return subscriber;
             }
@@ -92,7 +93,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 ILoggerFactory loggerFactory, 
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>> configure = null)
+                Action<RabbitMqSubscriber<TTopicModel>, ILoggerFactory> configure = null)
             {
                 return Create<NoLossMessageReadStrategy>(loggerFactory, settings, connection, configure);
             }
@@ -101,7 +102,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 ILoggerFactory loggerFactory, 
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>> configure = null)
+                Action<RabbitMqSubscriber<TTopicModel>, ILoggerFactory> configure = null)
             {
                 return Create<LossAcceptableMessageReadStrategy>(loggerFactory, settings, connection, configure);
             }
@@ -110,7 +111,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 ILoggerFactory loggerFactory,
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>> configure = null) where TStrategy : IMessageReadStrategy, new()
+                Action<RabbitMqSubscriber<TTopicModel>, ILoggerFactory> configure = null) where TStrategy : IMessageReadStrategy, new()
             {
                 var logger = loggerFactory.CreateLogger<RabbitMqSubscriber<TTopicModel>>();
                 var middlewareLogger = loggerFactory.CreateLogger<ExceptionSwallowMiddleware<TTopicModel>>();
@@ -123,7 +124,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                     .SetMessageReadStrategy(new TStrategy())
                     .UseMiddleware(new ExceptionSwallowMiddleware<TTopicModel>(middlewareLogger));
 
-                configure?.Invoke(subscriber);
+                configure?.Invoke(subscriber, loggerFactory);
 
                 return subscriber;
             }
