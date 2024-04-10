@@ -44,7 +44,7 @@ namespace Lykke.RabbitMqBroker.Publisher
         
         private readonly IOutgoingMessagePersister _outgoingMessagePersister;
 
-        public string Name => _settings.GetPublisherName();
+        public string Name => _settings.GetPublisherDisplayName();
 
         public int BufferedMessagesCount => _rawPublisher?.BufferedMessagesCount ?? 0;
 

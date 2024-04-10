@@ -55,7 +55,7 @@ namespace Lykke.RabbitMqBroker.Publisher
             _publishSynchronously = publishSynchronously;
             _publishStrategy = publishStrategy ?? throw new ArgumentNullException(nameof(publishStrategy));
             _submitTelemetry = submitTelemetry;
-            _exchangeQueueName = _settings.GetQueueOrExchangeName();
+            _exchangeQueueName = _settings.GetQueueOrExchangeDisplayName();
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -274,7 +274,7 @@ namespace Lykke.RabbitMqBroker.Publisher
 
                         if (_reconnectionsInARowCount > _settings.ReconnectionsCountToAlarm)
                         {
-                            _logger.LogError(e, $"{Name} ({_settings.GetPublisherName()})");
+                            _logger.LogError(e, $"{Name} ({_settings.GetPublisherDisplayName()})");
 
                             _reconnectionsInARowCount = 0;
                         }
@@ -291,7 +291,7 @@ namespace Lykke.RabbitMqBroker.Publisher
                 }
             }
 
-            _logger.LogInformation($"{Name} ({_settings.GetPublisherName()}): is stopped");
+            _logger.LogInformation($"{Name} ({_settings.GetPublisherDisplayName()}): is stopped");
         }
 
         private IOperationHolder<DependencyTelemetry> InitTelemetryOperation(RawMessage message)

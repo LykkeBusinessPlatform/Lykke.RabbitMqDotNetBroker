@@ -9,6 +9,14 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
     [PublicAPI]
     public interface IMessageReadStrategy
     {
+        /// <summary>
+        /// Configures the channel for the message reading
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="channel"></param>
+        /// <returns>
+        /// The name of the queue that was created
+        /// </returns>
         string Configure(RabbitMqSubscriptionSettings settings, IModel channel);
     }
 }

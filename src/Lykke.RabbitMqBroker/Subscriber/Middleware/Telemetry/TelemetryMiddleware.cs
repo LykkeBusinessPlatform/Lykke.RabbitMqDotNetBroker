@@ -18,7 +18,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware.Telemetry
         public Task ProcessAsync(IEventContext<T> context)
         {
             if (_queueName == null)
-                _queueName = context.Settings.GetQueueOrExchangeName();
+                _queueName = context.Settings.GetQueueOrExchangeDisplayName();
 
             var telemetryOperation = InitTelemetryOperation(_queueName, context.Body.Length);
             try

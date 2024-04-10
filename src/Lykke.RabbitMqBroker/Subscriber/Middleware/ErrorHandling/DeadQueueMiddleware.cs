@@ -23,7 +23,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware.ErrorHandling
             {
                 _logger.LogError(
                     ex,
-                    $"Failed to handle the message. Sending it to poison queue {context.Settings.GetSubscriberName()} {context.Settings.QueueName}-poison.");
+                    $"Failed to handle the message. Sending it to poison queue {context.Settings.GetSubscriberDisplayName()} {context.Settings.QueueName}-poison.");
                 context.MessageAcceptor.Reject();
             }
         }
