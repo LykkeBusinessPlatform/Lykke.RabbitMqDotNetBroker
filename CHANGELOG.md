@@ -1,4 +1,4 @@
-## [[tbd]] (2024-04-10)
+## 12.0.0 (2024-04-10)
 
 ### Added
 - LT-5418: New templates to create fast no loss and loss accepting subscribers 
