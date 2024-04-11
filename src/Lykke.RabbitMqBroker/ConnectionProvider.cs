@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -20,7 +18,7 @@ namespace Lykke.RabbitMqBroker
     /// </summary>
     public sealed class ConnectionProvider : IConnectionProvider
     {
-        private readonly ConcurrentDictionary<string, IAutorecoveringConnection> _sharedConnections = new();
+        private readonly ConcurrentDictionary<ConnectionStringHash, IAutorecoveringConnection> _sharedConnections = new();
         private readonly ConcurrentBag<IAutorecoveringConnection> _exclusiveConnections = new();
         private readonly IAutorecoveringConnectionFactory _connectionFactory;
         private readonly ILogger<ConnectionProvider> _logger;
@@ -33,7 +31,7 @@ namespace Lykke.RabbitMqBroker
 
         public IAutorecoveringConnection GetOrCreateShared(string connectionString)
         {
-            var hash = GetConnectionStringHash(connectionString);
+            var hash = new ConnectionStringHash(connectionString);
             return _sharedConnections.GetOrAdd(hash, _ => CreateConnection(connectionString, "SharedConnection"));
         }
 
@@ -123,17 +121,6 @@ namespace Lykke.RabbitMqBroker
         private void OnConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs e)
         {
             _logger?.LogError(e.Exception, "RabbitMq connection recovery error");
-        }
-        
-        private static string GetConnectionStringHash(string connectionString)
-        {
-            if (string.IsNullOrWhiteSpace(connectionString))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(connectionString));
-            
-            var bytesToHash = Encoding.UTF8.GetBytes(connectionString);
-            var hash = MD5.HashData(bytesToHash);
-            var stringHash = Convert.ToBase64String(hash);
-            return stringHash;
         }
     }
 }
