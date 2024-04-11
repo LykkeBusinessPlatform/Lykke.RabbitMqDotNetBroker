@@ -1,3 +1,8 @@
+## [[tbd]] (2024-04-11)
+
+### Changed
+- LT-5418: Add handy methods to register subscribers with shared connection
+
 ## 12.3.0 (2024-04-11)
 
 ### Changed
