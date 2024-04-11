@@ -40,6 +40,36 @@ namespace Lykke.RabbitMqBroker
         }
         
         /// <summary>
+        /// Adds a JSON subscriber to the service collection with no loss guarantee.
+        /// Uses shared connection.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="settings"></param>
+        /// <param name="handler"></param>
+        /// <param name="configure"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void AddJsonNoLossSubscriber<T>(this IServiceCollection services,
+            RabbitMqSubscriptionSettings settings,
+            Func<T, Task> handler = null,
+            Action<RabbitMqSubscriber<T>, IServiceProvider> configure = null)
+        {
+            services.AddSingleton(p =>
+            {
+                var connectionProvider = p.GetRequiredService<IConnectionProvider>();
+                var connection = connectionProvider.GetOrCreateShared(settings.ConnectionString);
+                
+                var subscriber = RabbitMqSubscriber<T>
+                    .Json
+                    .CreateNoLossSubscriber(p, settings, connection, configure);
+                
+                if (handler != null)
+                    subscriber.Subscribe(handler);
+                
+                return subscriber;
+            });
+        }
+        
+        /// <summary>
         /// Adds a JSON subscriber to the service collection with loss acceptable guarantee.
         /// </summary>
         /// <param name="services"></param>
@@ -56,6 +86,36 @@ namespace Lykke.RabbitMqBroker
         {
             services.AddSingleton(p =>
             {
+                var subscriber = RabbitMqSubscriber<T>
+                    .Json
+                    .CreateLossAcceptableSubscriber(p, settings, connection, configure);
+                
+                if (handler != null)
+                    subscriber.Subscribe(handler);
+                
+                return subscriber;
+            });
+        }
+        
+        /// <summary>
+        /// Adds a JSON subscriber to the service collection with loss acceptable guarantee.
+        /// Uses shared connection.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="settings"></param>
+        /// <param name="handler"></param>
+        /// <param name="configure"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void AddJsonLossAcceptableSubscriber<T>(this IServiceCollection services,
+            RabbitMqSubscriptionSettings settings,
+            Func<T, Task> handler = null,
+            Action<RabbitMqSubscriber<T>, IServiceProvider> configure = null)
+        {
+            services.AddSingleton(p =>
+            {
+                var connectionProvider = p.GetRequiredService<IConnectionProvider>();
+                var connection = connectionProvider.GetOrCreateShared(settings.ConnectionString);
+                
                 var subscriber = RabbitMqSubscriber<T>
                     .Json
                     .CreateLossAcceptableSubscriber(p, settings, connection, configure);
@@ -96,6 +156,36 @@ namespace Lykke.RabbitMqBroker
         }
         
         /// <summary>
+        /// Adds a MessagePack subscriber to the service collection with no loss guarantee.
+        /// Uses shared connection.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="settings"></param>
+        /// <param name="handler"></param>
+        /// <param name="configure"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void AddMessagePackNoLossSubscriber<T>(this IServiceCollection services,
+            RabbitMqSubscriptionSettings settings,
+            Func<T, Task> handler = null,
+            Action<RabbitMqSubscriber<T>, IServiceProvider> configure = null)
+        {
+            services.AddSingleton(p =>
+            {
+                var connectionProvider = p.GetRequiredService<IConnectionProvider>();
+                var connection = connectionProvider.GetOrCreateShared(settings.ConnectionString);
+                
+                var subscriber = RabbitMqSubscriber<T>
+                    .MessagePack
+                    .CreateNoLossSubscriber(p, settings, connection, configure);
+                
+                if (handler != null)
+                    subscriber.Subscribe(handler);
+                
+                return subscriber;
+            });
+        }
+        
+        /// <summary>
         /// Adds a MessagePack subscriber to the service collection with loss acceptable guarantee.
         /// </summary>
         /// <param name="services"></param>
@@ -112,6 +202,36 @@ namespace Lykke.RabbitMqBroker
         {
             services.AddSingleton(p =>
             {
+                var subscriber = RabbitMqSubscriber<T>
+                    .MessagePack
+                    .CreateLossAcceptableSubscriber(p, settings, connection, configure);
+                    
+                if (handler != null)
+                    subscriber.Subscribe(handler);
+                
+                return subscriber;
+            });
+        }
+        
+        /// <summary>
+        /// Adds a MessagePack subscriber to the service collection with loss acceptable guarantee.
+        /// Uses shared connection.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="settings"></param>
+        /// <param name="handler"></param>
+        /// <param name="configure"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void AddMessagePackLossAcceptableSubscriber<T>(this IServiceCollection services,
+            RabbitMqSubscriptionSettings settings,
+            Func<T, Task> handler = null,
+            Action<RabbitMqSubscriber<T>, IServiceProvider> configure = null)
+        {
+            services.AddSingleton(p =>
+            {
+                var connectionProvider = p.GetRequiredService<IConnectionProvider>();
+                var connection = connectionProvider.GetOrCreateShared(settings.ConnectionString);
+                
                 var subscriber = RabbitMqSubscriber<T>
                     .MessagePack
                     .CreateLossAcceptableSubscriber(p, settings, connection, configure);
