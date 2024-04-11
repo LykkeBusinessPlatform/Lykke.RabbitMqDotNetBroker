@@ -1,3 +1,8 @@
+## [[tbd]] (2024-04-11)
+
+### Changed
+- LT-5418: Add connection provider to share connections between subscribers
+
 ## 12.2.0 (2024-04-10)
 
 ### Changed
