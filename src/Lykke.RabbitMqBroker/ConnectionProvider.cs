@@ -32,14 +32,14 @@ namespace Lykke.RabbitMqBroker
         public IAutorecoveringConnection GetOrCreateShared(string connectionString)
         {
             var hash = new ConnectionStringHash(connectionString);
-            return _sharedConnections.GetOrAdd(hash, _ => CreateConnection(connectionString, "SharedConnection"));
+            var displayName = new SharedConnectionAssemblyBasedDisplayName();
+            return _sharedConnections.GetOrAdd(hash, _ => CreateConnection(connectionString, displayName));
         }
 
         public IAutorecoveringConnection GetExclusive(string connectionString, string name = null)
         {
-            name ??= "ExclusiveConnection";
-            
-            var connection = CreateConnection(connectionString, name);
+            var displayName = new ExclusiveConnectionAssemblyBasedDisplayName(name);
+            var connection = CreateConnection(connectionString, displayName);
             _exclusiveConnections.Add(connection);
             return connection;
         }
@@ -59,9 +59,9 @@ namespace Lykke.RabbitMqBroker
             }
         }
         
-        private IAutorecoveringConnection CreateConnection(string connectionString, string name)
+        private IAutorecoveringConnection CreateConnection(string connectionString, string displayName)
         {
-            var connection = _connectionFactory.Create(connectionString, name);
+            var connection = _connectionFactory.Create(connectionString, displayName);
             AttachConnectionEventHandlers(connection);
             return connection;
         }

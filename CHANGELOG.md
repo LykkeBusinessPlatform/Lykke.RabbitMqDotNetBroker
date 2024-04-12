@@ -1,3 +1,8 @@
+## [[tbd]] (2024-04-15)
+
+### Changed
+- LT-5418: Add connection auto naming to be visible in RabbitMQ dashboard
+
 ## 12.4.0 (2024-04-11)
 
 ### Changed

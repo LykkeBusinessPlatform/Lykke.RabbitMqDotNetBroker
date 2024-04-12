@@ -11,7 +11,7 @@ namespace Lykke.RabbitMqBroker
     /// </summary>
     public sealed class AutorecoveringConnectionFactory : IAutorecoveringConnectionFactory
     {
-        public IAutorecoveringConnection Create(string connectionString, string name)
+        public IAutorecoveringConnection Create(string connectionString, string displayName)
         {
             var factory = new ConnectionFactory
             {
@@ -20,7 +20,7 @@ namespace Lykke.RabbitMqBroker
                 TopologyRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(60),
                 ContinuationTimeout = TimeSpan.FromSeconds(30),
-                ClientProvidedName = name
+                ClientProvidedName = displayName
             };
 
             return factory.CreateConnection() as IAutorecoveringConnection;
