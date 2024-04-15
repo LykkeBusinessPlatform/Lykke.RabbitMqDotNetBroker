@@ -10,6 +10,6 @@ namespace Lykke.RabbitMqBroker
     /// </summary>
     public interface IAutorecoveringConnectionFactory
     {
-        public IAutorecoveringConnection Create(string connectionString, string name);
+        public IAutorecoveringConnection Create(string connectionString, string displayName);
     }
 }

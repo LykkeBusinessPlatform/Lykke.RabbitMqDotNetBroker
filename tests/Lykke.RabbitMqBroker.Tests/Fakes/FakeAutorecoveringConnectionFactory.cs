@@ -7,7 +7,7 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
 {
     internal class FakeAutorecoveringConnectionFactory : IAutorecoveringConnectionFactory
     {
-        public IAutorecoveringConnection Create(string connectionString, string name)
+        public IAutorecoveringConnection Create(string connectionString, string displayName)
         {
             return new FakeConnection();
         }
