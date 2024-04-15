@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>12.4.0</Version>
+    <Version>12.5.0</Version>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
