@@ -29,7 +29,7 @@ namespace TestInvoke
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(2)
             }.CreateConnection() as IAutorecoveringConnection;
 
-            HowToSubscribe.Example(rabbitMqSettings, connection);
+            HowToSubscribe.CustomSubscriber(rabbitMqSettings, connection);
             HowToSubscribe.Start();
 
             Console.WriteLine("Working... Press Enter to stop");

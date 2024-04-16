@@ -10,8 +10,6 @@ using JetBrains.Annotations;
 using Lykke.RabbitMqBroker.Subscriber.Deserializers;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 using Lykke.RabbitMqBroker.Subscriber.Middleware;
-using Lykke.RabbitMqBroker.Subscriber.Middleware.ErrorHandling;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -19,11 +17,11 @@ using RabbitMQ.Client.Events;
 namespace Lykke.RabbitMqBroker.Subscriber
 {
     /// <summary>
-    /// Generic rabbitMq subscriber
+    /// Generic Rabbit MQ subscriber
     /// Not thread-safe
     /// </summary>
     [PublicAPI]
-    public sealed class RabbitMqSubscriber<TTopicModel> : IStartStop
+    public sealed partial class RabbitMqSubscriber<TTopicModel> : IStartStop
     {
         private readonly RabbitMqSubscriptionSettings _settings;
         private readonly ILogger<RabbitMqSubscriber<TTopicModel>> _logger;
@@ -43,95 +41,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
         public IMessageReadStrategy MessageReadStrategy { get; private set; }
         public Func<TTopicModel, Task> EventHandler { get; private set; }
         public Func<TTopicModel, CancellationToken, Task> CancellableEventHandler { get; private set; }
-
-        public static class MessagePack
-        {
-            public static RabbitMqSubscriber<TTopicModel> CreateNoLossSubscriber(
-                IServiceProvider serviceProvider, 
-                RabbitMqSubscriptionSettings settings,
-                IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
-            {
-                return Create<NoLossMessageReadStrategy>(serviceProvider, settings, connection, configure);
-            }
-
-            public static RabbitMqSubscriber<TTopicModel> CreateLossAcceptableSubscriber(
-                IServiceProvider serviceProvider, 
-                RabbitMqSubscriptionSettings settings,
-                IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
-            {
-                return Create<LossAcceptableMessageReadStrategy>(serviceProvider, settings, connection, configure);
-            }
-
-            private static RabbitMqSubscriber<TTopicModel> Create<TStrategy>(
-                IServiceProvider serviceProvider,
-                RabbitMqSubscriptionSettings settings,
-                IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
-                where TStrategy : IMessageReadStrategy, new()
-            {
-                var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<RabbitMqSubscriber<TTopicModel>>();
-                var middlewareLogger = loggerFactory.CreateLogger<ExceptionSwallowMiddleware<TTopicModel>>();
-
-                var subscriber = new RabbitMqSubscriber<TTopicModel>(
-                        logger,
-                        settings,
-                        connection)
-                    .SetMessageDeserializer(new MessagePackMessageDeserializer<TTopicModel>())
-                    .SetMessageReadStrategy(new TStrategy())
-                    .UseMiddleware(new ExceptionSwallowMiddleware<TTopicModel>(middlewareLogger));
-
-                configure?.Invoke(subscriber, serviceProvider);
-
-                return subscriber;
-            }
-        }
-        
-        public static class Json
-        {
-            public static RabbitMqSubscriber<TTopicModel> CreateNoLossSubscriber(
-                IServiceProvider serviceProvider, 
-                RabbitMqSubscriptionSettings settings,
-                IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
-            {
-                return Create<NoLossMessageReadStrategy>(serviceProvider, settings, connection, configure);
-            }
-
-            public static RabbitMqSubscriber<TTopicModel> CreateLossAcceptableSubscriber(
-                IServiceProvider serviceProvider, 
-                RabbitMqSubscriptionSettings settings,
-                IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
-            {
-                return Create<LossAcceptableMessageReadStrategy>(serviceProvider, settings, connection, configure);
-            }
-            
-            private static RabbitMqSubscriber<TTopicModel> Create<TStrategy>(
-                IServiceProvider serviceProvider,
-                RabbitMqSubscriptionSettings settings,
-                IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null) where TStrategy : IMessageReadStrategy, new()
-            {
-                var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<RabbitMqSubscriber<TTopicModel>>();
-                var middlewareLogger = loggerFactory.CreateLogger<ExceptionSwallowMiddleware<TTopicModel>>();
-            
-                var subscriber = new RabbitMqSubscriber<TTopicModel>(
-                        logger,
-                        settings,
-                        connection)
-                    .SetMessageDeserializer(new JsonMessageDeserializer<TTopicModel>())
-                    .SetMessageReadStrategy(new TStrategy())
-                    .UseMiddleware(new ExceptionSwallowMiddleware<TTopicModel>(middlewareLogger));
-
-                configure?.Invoke(subscriber, serviceProvider);
-
-                return subscriber;
-            }
-        }
 
         public RabbitMqSubscriber(
             [NotNull] ILogger<RabbitMqSubscriber<TTopicModel>> logger,
