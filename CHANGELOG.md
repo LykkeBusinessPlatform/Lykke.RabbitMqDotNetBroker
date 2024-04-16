@@ -1,4 +1,4 @@
-## [[tbd]] (2024-04-16)
+## 12.6.0 (2024-04-16)
 
 ### Added
 - LT-5418: Extend API to create subscribers
