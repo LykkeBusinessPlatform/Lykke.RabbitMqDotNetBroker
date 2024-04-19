@@ -1,0 +1,148 @@
+// Copyright (c) Lykke Corp.
+// Licensed under the MIT License. See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Autofac;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using RabbitMQ.Client;
+
+namespace Lykke.RabbitMqBroker.Subscriber
+{
+    /// <summary>
+    /// Listener is a concept that wraps subscriber or multiple subscriber instances,
+    /// takes care of creating, starting and disposing subscriber instances with
+    /// provided options. It injects message handler(-s) and runs them.
+    /// Being registered in DI container as <see cref="IStartable"/>, 
+    /// it is started automatically when the application starts. 
+    /// Autofac is responsible for disposing the listener when the application stops.
+    ///
+    /// Requires Autofac to be used at least as service provider factory.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    [PublicAPI]
+    public sealed class RabbitMqListener<T> : IStartable, IDisposable
+        where T : class
+    {
+        private readonly IConnectionProvider _connectionProvider;
+        private readonly RabbitMqSubscriptionSettings _subscriptionSettings;
+        private readonly RabbitMqListenerOptions<T> _options;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
+        private readonly IEnumerable<IMessageHandler<T>> _handlers;
+
+        private RabbitMqSubscriber<T> _subscriber;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="RabbitMqListener{T}"/>
+        /// </summary>
+        /// <param name="connectionProvider">Rabbit MQ connection provider</param>
+        /// <param name="subscriptionSettings">Subscription configuration</param>
+        /// <param name="optionsAccessor">Subscription template configuration</param>
+        /// <param name="configureSubscriber">Low-level subscriber configuration callback</param>
+        /// <param name="handlers">Message handlers</param>
+        /// <param name="loggerFactory"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public RabbitMqListener(
+            IConnectionProvider connectionProvider,
+            RabbitMqSubscriptionSettings subscriptionSettings,
+            IOptions<RabbitMqListenerOptions<T>> optionsAccessor,
+            Action<RabbitMqSubscriber<T>> configureSubscriber,
+            IEnumerable<IMessageHandler<T>> handlers,
+            ILoggerFactory loggerFactory)
+        {
+            _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
+            _subscriptionSettings = subscriptionSettings ?? throw new ArgumentNullException(nameof(subscriptionSettings));
+            _options = optionsAccessor?.Value ?? RabbitMqListenerOptions<T>.Default;
+            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            _configureSubscriber = configureSubscriber;
+            _handlers = handlers;
+
+            ThrowIfOptionsNotSupportedYet();
+        }
+
+        private void ThrowIfOptionsNotSupportedYet()
+        {
+            if (_options.ConsumerCount > 1)
+                throw new NotSupportedException("ConsumerCount > 1 is not supported yet");
+            
+            if (_options.ReadCorrelationId)
+                throw new NotSupportedException("ReadCorrelationId is not supported yet");
+        }
+
+        public void Start()
+        {
+            if (_subscriber != null)
+                throw new InvalidOperationException("The listener is already started");
+
+            var connection = CreateConnection();
+            _subscriber = CreateSubscriber(connection)
+                .Subscribe(Handle)
+                .Start();
+        }
+
+        private IAutorecoveringConnection CreateConnection()
+        {
+            return _options.ShareConnection switch
+            {
+                true => _connectionProvider.GetOrCreateShared(_subscriptionSettings.ConnectionString),
+                false => _connectionProvider.GetExclusive(_subscriptionSettings.ConnectionString)
+            };
+        }
+
+        private RabbitMqSubscriber<T> CreateSubscriber(IAutorecoveringConnection connection)
+        {
+            return _options.SerializationFormat switch
+            {
+                SerializationFormat.Json => _options.SubscriptionTemplate switch
+                {
+                    SubscriptionTemplate.NoLoss => RabbitMqSubscriber<T>
+                        .Json
+                        .CreateNoLossSubscriber(_subscriptionSettings, connection, _loggerFactory, _configureSubscriber),
+                    SubscriptionTemplate.LossAcceptable => RabbitMqSubscriber<T>
+                        .Json
+                        .CreateLossAcceptableSubscriber(_subscriptionSettings, connection, _loggerFactory, _configureSubscriber),
+                    _ => throw new InvalidOperationException(
+                        $"Unsupported subscription template: {_options.SubscriptionTemplate}")
+                },
+                SerializationFormat.Messagepack => _options.SubscriptionTemplate switch
+                {
+                    SubscriptionTemplate.NoLoss => RabbitMqSubscriber<T>
+                        .MessagePack
+                        .CreateNoLossSubscriber(_subscriptionSettings, connection, _loggerFactory, _configureSubscriber),
+                    SubscriptionTemplate.LossAcceptable => RabbitMqSubscriber<T>
+                        .MessagePack
+                        .CreateLossAcceptableSubscriber(_subscriptionSettings, connection, _loggerFactory, _configureSubscriber),
+                    _ => throw new InvalidOperationException(
+                        $"Unsupported subscription template: {_options.SubscriptionTemplate}")
+                },
+                _ => throw new InvalidOperationException(
+                    $"Unsupported serialization format: {_options.SerializationFormat}")
+            };
+        }
+
+        private async Task Handle(T message)
+        {
+            foreach (var handler in _handlers)
+            {
+                await handler.Handle(message);
+            }
+        }
+
+        void IDisposable.Dispose()
+        {
+            Stop();
+        }
+
+        public void Stop()
+        {
+            if (_subscriber == null) return;
+            
+            _subscriber.Dispose();
+            _subscriber = null;
+        }
+    }
+}

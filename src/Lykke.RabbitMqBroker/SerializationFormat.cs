@@ -1,4 +1,4 @@
-﻿namespace Lykke.RabbitMqBroker.Logging
+﻿namespace Lykke.RabbitMqBroker
 {
     public enum SerializationFormat
     {
