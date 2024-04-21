@@ -9,7 +9,8 @@ namespace Lykke.RabbitMqBroker.Subscriber
         public SerializationFormat SerializationFormat { get; set; } = SerializationFormat.Json;
         public SubscriptionTemplate SubscriptionTemplate { get; set; } = SubscriptionTemplate.NoLoss;
         public byte ConsumerCount { get; set; } = 1;
-        public static RabbitMqListenerOptions<T> Default => new();
         public bool ReadCorrelationId { get; set; } = false;
+        
+        public static RabbitMqListenerOptions<T> Default => new();
     }
 }
