@@ -31,9 +31,9 @@ namespace Lykke.RabbitMqBroker
         /// <see cref="IMessageHandler{TModel}"/> interface.
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="subscriptionSettings"></param>
-        /// <param name="setupListenerOptions"></param>
-        /// <param name="configureSubscriber"></param>
+        /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
+        /// <param name="setupListenerOptions">Options which are more business specific than technical</param>
+        /// <param name="configureSubscriber">Low-level subscriber configuration callback</param>
         /// <typeparam name="TModel"></typeparam>
         /// <typeparam name="THandler"></typeparam>
         /// <returns></returns>
