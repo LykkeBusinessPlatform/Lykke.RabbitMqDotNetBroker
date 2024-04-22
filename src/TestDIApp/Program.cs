@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TestDIApp;
 using TestDIApp.Handlers;
 using TestDIApp.Messages;
 
@@ -21,6 +22,7 @@ await builder
     {
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
         services.AddRabbitMqConnectionProvider();
+        services.AddSingleton<RandomPrefetchCountGenerator>();
         
         // Add Mars messages listener
         var marsSubscriptionSettings = ctx
@@ -69,8 +71,8 @@ await builder
         services.AddRabbitMqListener<MercuryMessage, MercuryMessageHandler>(
             mercurySubscriptionSettings,
             _ => { },
-            s => 
-                s.SetPrefetchCount(100)
+            (s, p) => 
+                s.SetPrefetchCount(p.GetService<RandomPrefetchCountGenerator>()?.Generate() ?? 1)
                     //.UseMiddleware()
                     //.SetReadHeadersAction())
                     // ...
