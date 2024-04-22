@@ -1,4 +1,4 @@
-## [[tbd]] (2024-04-22)
+## 13.1.0 (2024-04-22)
 
 ### Added
 - LT-5418: Listener now supports multiple subscribers
