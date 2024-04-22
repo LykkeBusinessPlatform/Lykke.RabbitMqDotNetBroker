@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using JetBrains.Annotations;
@@ -124,12 +125,10 @@ namespace Lykke.RabbitMqBroker.Subscriber
             };
         }
 
-        private async Task Handle(T message)
+        private Task Handle(T message)
         {
-            foreach (var handler in _handlers)
-            {
-                await handler.Handle(message);
-            }
+            var allTasks = _handlers.Select(h => h.Handle(message));
+            return Task.WhenAll(allTasks);
         }
 
         void IDisposable.Dispose()
