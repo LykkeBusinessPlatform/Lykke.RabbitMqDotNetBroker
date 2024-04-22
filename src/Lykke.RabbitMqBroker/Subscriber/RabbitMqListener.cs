@@ -35,7 +35,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
 
-        private RabbitMqSubscriber<T> _subscriber;
+        private List<RabbitMqSubscriber<T>> _subscribers = new ();
 
         /// <summary>
         /// Creates a new instance of <see cref="RabbitMqListener{T}"/>
@@ -67,22 +67,24 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         private void ThrowIfOptionsNotSupportedYet()
         {
-            if (_options.ConsumerCount > 1)
-                throw new NotSupportedException("ConsumerCount > 1 is not supported yet");
-            
             if (_options.ReadCorrelationId)
                 throw new NotSupportedException("ReadCorrelationId is not supported yet");
         }
 
         public void Start()
         {
-            if (_subscriber != null)
+            if (_subscribers.Any())
                 throw new InvalidOperationException("The listener is already started");
 
-            var connection = CreateConnection();
-            _subscriber = CreateSubscriber(connection)
-                .Subscribe(Handle)
-                .Start();
+            for (var i = 0; i < _options.ConsumerCount; i++)
+            {
+                var connection = CreateConnection();
+                var subscriber = CreateSubscriber(connection)
+                    .Subscribe(Handle)
+                    .Start();
+
+                _subscribers.Add(subscriber);
+            }
         }
 
         private IAutorecoveringConnection CreateConnection()
@@ -138,10 +140,13 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public void Stop()
         {
-            if (_subscriber == null) return;
+            if (!_subscribers.Any()) return;
             
-            _subscriber.Dispose();
-            _subscriber = null;
+            for (var i = _subscribers.Count - 1; i >= 0; i--)
+            {
+                _subscribers[i].Dispose();
+                _subscribers.RemoveAt(i);
+            }
         }
     }
 }
