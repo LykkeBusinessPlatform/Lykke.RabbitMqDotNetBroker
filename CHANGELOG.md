@@ -1,4 +1,4 @@
-## [[tbd]] (2024-04-22)
+## 13.2.0 (2024-04-22)
 
 ### Changed
 - LT-5418: Extend listener registration API with service provider
