@@ -75,6 +75,21 @@ await builder
                     //.SetReadHeadersAction())
                     // ...
                     );
+        
+        // Multiple subscribers example
+        var plutoSubscriptionSettings = ctx
+            .Configuration
+            .GetSection("PlutoSubscription")
+            .Get<RabbitMqSubscriptionSettings>();
+        services.AddRabbitMqListener<PlutoMessage, PlutoMessageHandler>(
+            plutoSubscriptionSettings,
+            opt =>
+            {
+                opt.SerializationFormat = SerializationFormat.Json;
+                opt.ShareConnection = true;
+                opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
+                opt.ConsumerCount = 5;
+            });
 
     })
     .RunConsoleAsync();
