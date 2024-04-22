@@ -1,3 +1,8 @@
+## [[tbd]] (2024-04-22)
+
+### Added
+- LT-5418: Listener concept introduced
+
 ## 12.6.0 (2024-04-16)
 
 ### Added
