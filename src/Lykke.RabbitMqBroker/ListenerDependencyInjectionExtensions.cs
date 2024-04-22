@@ -41,7 +41,7 @@ namespace Lykke.RabbitMqBroker
             this IServiceCollection services,
             RabbitMqSubscriptionSettings subscriptionSettings,
             Action<RabbitMqListenerOptions<TModel>> setupListenerOptions,
-            Action<RabbitMqSubscriber<TModel>> configureSubscriber = null) 
+            Action<RabbitMqSubscriber<TModel>, IServiceProvider> configureSubscriber = null) 
             where TModel : class
             where THandler : class, IMessageHandler<TModel>
         {
@@ -51,7 +51,7 @@ namespace Lykke.RabbitMqBroker
                 p.GetRequiredService<IConnectionProvider>(),
                 subscriptionSettings,
                 p.GetRequiredService<IOptions<RabbitMqListenerOptions<TModel>>>(),
-                configureSubscriber,
+                s => configureSubscriber?.Invoke(s, p),
                 p.GetRequiredService<IEnumerable<IMessageHandler<TModel>>>(),
                 p.GetRequiredService<ILoggerFactory>()));
 
