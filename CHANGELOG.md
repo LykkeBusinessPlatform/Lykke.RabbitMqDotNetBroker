@@ -1,3 +1,8 @@
+## [[tbd]] (2024-05-23)
+
+### Changed
+- LT-5418: Add Autofac extensions for listener registration
+
 ## 13.2.0 (2024-04-22)
 
 ### Changed
