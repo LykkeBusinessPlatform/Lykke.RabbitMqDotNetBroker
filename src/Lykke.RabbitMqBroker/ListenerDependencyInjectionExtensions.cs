@@ -78,6 +78,9 @@ namespace Lykke.RabbitMqBroker
         /// Can be registered once for each message type. If required, handling
         /// can be extended by registering more handlers implementing
         /// <see cref="IMessageHandler{TModel}"/> interface.
+        ///
+        /// Prerequisite: This method depends on "Options" feature so that take
+        /// care on registering it with services.AddOptions() before calling this method.
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
