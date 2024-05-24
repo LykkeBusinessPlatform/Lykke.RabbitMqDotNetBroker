@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Autofac;
 using Lykke.RabbitMqBroker.Subscriber;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
@@ -260,6 +261,21 @@ namespace Lykke.RabbitMqBroker
         {
             services.AddSingleton<IAutorecoveringConnectionFactory, AutorecoveringConnectionFactory>();
             services.AddSingleton<IConnectionProvider, ConnectionProvider>();
+        }
+        
+        /// <summary>
+        /// Adds a connection provider to the container
+        /// Available as <see cref="IConnectionProvider"/>.
+        /// </summary>
+        /// <param name="builder"></param>
+        public static void AddRabbitMqConnectionProvider(this ContainerBuilder builder)
+        {
+            builder.RegisterType<AutorecoveringConnectionFactory>()
+                .As<IAutorecoveringConnectionFactory>()
+                .SingleInstance();
+            builder.RegisterType<ConnectionProvider>()
+                .As<IConnectionProvider>()
+                .SingleInstance();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Autofac.Extensions.DependencyInjection;
+﻿using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
 using Microsoft.Extensions.Configuration;
@@ -95,3 +96,48 @@ await builder
 
     })
     .RunConsoleAsync();
+
+
+/*
+// Using Autofac extensions 
+await builder
+    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+    .ConfigureAppConfiguration((_, configurationBuilder) =>
+    {
+        configurationBuilder.AddEnvironmentVariables();
+        configurationBuilder.AddJsonFile("appsettings.json");
+    })
+    .ConfigureContainer<ContainerBuilder>((ctx, builder) =>
+    {
+        builder.AddRabbitMqConnectionProvider();
+        builder.RegisterType<RandomPrefetchCountGenerator>();
+
+        // Add Mars messages listener
+        var marsSubscriptionSettings = ctx
+            .Configuration
+            .GetSection("MarsSubscription")
+            .Get<RabbitMqSubscriptionSettings>();
+        builder.AddRabbitMqListener<MarsMessage, MarsMessageHandler>(
+            marsSubscriptionSettings,
+            opt =>
+            {
+                opt.SerializationFormat = SerializationFormat.Json;
+                opt.ShareConnection = true;
+                opt.SubscriptionTemplate = SubscriptionTemplate.NoLoss;
+            });
+
+        // Add Jupiter messages listener
+        var jupiterSubscriptionSettings = ctx
+            .Configuration
+            .GetSection("JupiterSubscription")
+            .Get<RabbitMqSubscriptionSettings>();
+        builder.AddRabbitMqListener<JupiterMessage, JupiterMessageHandler>(
+            jupiterSubscriptionSettings,
+            opt =>
+            {
+                opt.SerializationFormat = SerializationFormat.Json;
+                opt.ShareConnection = true;
+                opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
+            });
+    }).RunConsoleAsync();
+*/
