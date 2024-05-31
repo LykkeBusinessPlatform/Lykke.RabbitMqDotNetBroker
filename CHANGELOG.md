@@ -1,3 +1,8 @@
+## [[tbd]] (2024-05-31)
+
+### Changed
+- LT-5418: Register connection provider if not registered yet
+
 ## 13.3.0 (2024-05-23)
 
 ### Changed
