@@ -2,14 +2,12 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using JetBrains.Annotations;
 
 namespace Lykke.RabbitMqBroker
 {
     internal static class RabbitMqSettingsExtension
     {
-        private const string DeadLetterExchangeHeader = "x-dead-letter-exchange";
+        private const string PoisonQueueSuffix = "poison"; 
         
         internal static string GetPublisherDisplayName(this RabbitMqSubscriptionSettings settings)
         {
@@ -45,31 +43,27 @@ namespace Lykke.RabbitMqBroker
         /// <returns></returns>
         internal static string GetPoisonQueueName(this RabbitMqSubscriptionSettings settings)
         {
-            return $"{settings.GetQueueName()}-poison";
+            return settings.GetQueueName().GetPoisonQueueName();
         }
-        
+
         /// <summary>
-        /// Create arguments to be used when declaring the queue.
+        /// Gets the poison queue name for the regular queue.
         /// </summary>
-        /// <param name="settings"></param>
+        /// <param name="regularQueueName"></param>
         /// <returns></returns>
-        [CanBeNull]
-        internal static IDictionary<string, object> CreateArguments(this RabbitMqSubscriptionSettings settings)
+        internal static string GetPoisonQueueName(this string regularQueueName)
         {
-            if (string.IsNullOrEmpty(settings.DeadLetterExchangeName))
+            if (string.IsNullOrEmpty(regularQueueName))
             {
-                return null;
+                throw new ArgumentNullException(nameof(regularQueueName));
             }
             
-            return new Dictionary<string, object>
+            if (regularQueueName.EndsWith(PoisonQueueSuffix))
             {
-                { DeadLetterExchangeHeader, settings.DeadLetterExchangeName }
-            };
-        }
-        
-        internal static bool ShouldConfigureDeadLetter(this RabbitMqSubscriptionSettings settings)
-        {
-            return !string.IsNullOrEmpty(settings.DeadLetterExchangeName);
+                return regularQueueName;
+            }
+            
+            return $"{regularQueueName}-{PoisonQueueSuffix}";
         }
     }
 }

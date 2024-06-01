@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Lykke Corp.
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using RabbitMQ.Client;
 
@@ -25,7 +24,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
             if (!string.IsNullOrEmpty(settings.DeadLetterExchangeName))
             {
                 var poisonQueueName = settings.GetPoisonQueueName();
-                args = settings.CreateArguments();
+                args = new QueueDeclarationArgumentsBuilder().WithDeadLetterExchange(settings.DeadLetterExchangeName).Build();
                 channel.ExchangeDeclare(settings.DeadLetterExchangeName, "direct", durable: true);
                 channel.QueueDeclare(poisonQueueName, durable: settings.IsDurable, exclusive: false, autoDelete: false);
                 channel.QueueBind(poisonQueueName, settings.DeadLetterExchangeName, settings.RoutingKey ?? string.Empty);

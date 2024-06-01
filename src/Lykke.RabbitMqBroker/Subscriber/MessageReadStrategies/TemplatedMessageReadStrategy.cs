@@ -7,6 +7,8 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 {
+    private const string StrategyDefaultDeadLetterExchangeType = "direct";
+    
     private readonly string _routingKey;
         
     protected bool Durable { get; init; }
@@ -19,26 +21,57 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 
     public string Configure(RabbitMqSubscriptionSettings settings, IModel channel)
     {
-        if (settings.ShouldConfigureDeadLetter())
-            ConfigureDeadLetter(settings, channel);
-            
-        var queueName = settings.GetQueueName();
-        var args = settings.CreateArguments();
-        channel.QueueDeclare(queueName, durable: Durable, exclusive: false, autoDelete: AutoDelete, arguments: args);
-
-        var effectiveRoutingKey = string.IsNullOrWhiteSpace(_routingKey)
-            ? settings.RoutingKey ?? string.Empty
-            : _routingKey;
-        channel.QueueBind(queueName, settings.ExchangeName, effectiveRoutingKey);
-
-        return queueName;
+        var queueConfigurationResult = QueueConfigurator.Configure(
+            channel, 
+            CreateQueueConfigurationOptions(settings));
+        
+        return queueConfigurationResult.QueueName;
     }
-
-    private void ConfigureDeadLetter(RabbitMqSubscriptionSettings settings, IModel channel)
+    
+    private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)
     {
-        var queueName = settings.GetPoisonQueueName();
-        channel.ExchangeDeclare(settings.DeadLetterExchangeName, "direct", durable: true);
-        channel.QueueDeclare(queueName, durable: Durable, exclusive: false, autoDelete: AutoDelete);
-        channel.QueueBind(queueName, settings.DeadLetterExchangeName, settings.RoutingKey ?? string.Empty);
+        var durabilityFromStrategy = Durable;
+        var autoDeleteFromStrategy = AutoDelete;
+        var routingKeyFromStrategy = _routingKey;
+        
+        var effectiveRoutingKey = string.IsNullOrWhiteSpace(routingKeyFromStrategy)
+            ? settings.RoutingKey ?? string.Empty
+            : routingKeyFromStrategy;
+
+        return new QueueConfigurationOptions
+        {
+            QueueName = settings.GetQueueName(),
+            ExchangeName = settings.ExchangeName,
+            DeadLetterExchangeName = settings.DeadLetterExchangeName,
+            DeadLetterExchangeType = StrategyDefaultDeadLetterExchangeType,
+            Durable = durabilityFromStrategy,
+            AutoDelete = autoDeleteFromStrategy,
+            RoutingKey = effectiveRoutingKey
+        };
     }
+
+    // public string Configure(RabbitMqSubscriptionSettings settings, IModel channel)
+    // {
+    //     if (settings.ShouldConfigureDeadLetter())
+    //         ConfigureDeadLetter(settings, channel);
+    //         
+    //     var queueName = settings.GetQueueName();
+    //     var args = settings.CreateArguments();
+    //     channel.QueueDeclare(queueName, durable: Durable, exclusive: false, autoDelete: AutoDelete, arguments: args);
+    //
+    //     var effectiveRoutingKey = string.IsNullOrWhiteSpace(_routingKey)
+    //         ? settings.RoutingKey ?? string.Empty
+    //         : _routingKey;
+    //     channel.QueueBind(queueName, settings.ExchangeName, effectiveRoutingKey);
+    //
+    //     return queueName;
+    // }
+    //
+    // private void ConfigureDeadLetter(RabbitMqSubscriptionSettings settings, IModel channel)
+    // {
+    //     var queueName = settings.GetPoisonQueueName();
+    //     channel.ExchangeDeclare(settings.DeadLetterExchangeName, "direct", durable: true);
+    //     channel.QueueDeclare(queueName, durable: Durable, exclusive: false, autoDelete: AutoDelete);
+    //     channel.QueueBind(queueName, settings.DeadLetterExchangeName, settings.RoutingKey ?? string.Empty);
+    // }
 }
