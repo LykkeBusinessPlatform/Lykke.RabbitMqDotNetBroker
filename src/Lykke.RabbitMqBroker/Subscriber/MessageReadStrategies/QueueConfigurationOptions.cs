@@ -10,5 +10,5 @@ internal sealed class QueueConfigurationOptions
     public bool AutoDelete { get; init; }
     public string RoutingKey { get; init; }
     
-    public bool ShouldConfigureDeadLettering() => !string.IsNullOrEmpty(DeadLetterExchangeName);
+    public bool ShouldConfigureDeadLettering() => !string.IsNullOrWhiteSpace(DeadLetterExchangeName);
 }
