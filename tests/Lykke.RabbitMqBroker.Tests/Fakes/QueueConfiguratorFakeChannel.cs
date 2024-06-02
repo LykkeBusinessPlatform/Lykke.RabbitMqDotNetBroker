@@ -10,6 +10,7 @@ public class QueueConfiguratorFakeChannel : IModel
     private readonly HashSet<string> _declaredQueues = new();
     private readonly HashSet<string> _declaredExchanges = new();
     private readonly HashSet<string> _boundQueues = new();
+    private readonly Dictionary<string, IDictionary<string, object>> _declaredQueuesArguments = new();
     
     public void Dispose()
     {
@@ -174,12 +175,14 @@ public class QueueConfiguratorFakeChannel : IModel
     public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
         _declaredQueues.Add(queue);
+        _declaredQueuesArguments.Add(queue, arguments);
         return new QueueDeclareOk(queue, 0, 0);
     }
 
     public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
         _declaredQueues.Add(queue);
+        _declaredQueuesArguments.Add(queue, arguments);
     }
 
     public QueueDeclareOk QueueDeclarePassive(string queue)
@@ -276,4 +279,5 @@ public class QueueConfiguratorFakeChannel : IModel
     public IReadOnlyCollection<string> DeclaredQueues => _declaredQueues;
     public IReadOnlyCollection<string> DeclaredExchanges => _declaredExchanges;
     public IReadOnlyCollection<string> BoundQueues => _boundQueues;
+    public IReadOnlyDictionary<string, IDictionary<string, object>> DeclaredQueuesArguments => _declaredQueuesArguments;
 }
