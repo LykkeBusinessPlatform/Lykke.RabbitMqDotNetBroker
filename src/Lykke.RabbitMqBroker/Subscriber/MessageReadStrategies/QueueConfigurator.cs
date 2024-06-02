@@ -4,12 +4,15 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 internal static class QueueConfigurator
 {
-    public static QueueConfigurationResult Configure(IModel channel, QueueConfigurationOptions options)
+    public static QueueConfigurationResult Configure(
+        IModel channel,
+        QueueConfigurationOptions options)
     {
         var argumentsBuilder = new QueueDeclarationArgumentsBuilder();
         if (options.ShouldConfigureDeadLettering())
         {
-            var deadLetteringConfigurationResult = ConfigureDeadLettering(channel,
+            var deadLetteringConfigurationResult = ConfigureDeadLettering(
+                channel,
                 DeadLetteringConfigurationOptions.FromQueueConfigurationOptions(options));
             argumentsBuilder.WithDeadLetterExchange(deadLetteringConfigurationResult.ExchangeName);
         }
@@ -30,8 +33,8 @@ internal static class QueueConfigurator
     }
 
     private static DeadLetteringConfigurationResult ConfigureDeadLettering(
-    IModel channel,
-    DeadLetteringConfigurationOptions options)
+        IModel channel,
+        DeadLetteringConfigurationOptions options)
     {
         channel.ExchangeDeclare(
             exchange: options.ExchangeName,
