@@ -1,4 +1,4 @@
-## [[tbd]] (2024-05-31)
+## 13.4.0 (2024-05-31)
 
 ### Fixed
 - LT-5418: Add dead letter queue configuration to subscriber template
