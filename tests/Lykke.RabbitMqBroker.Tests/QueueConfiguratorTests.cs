@@ -44,12 +44,12 @@ public class QueueConfiguratorTests
     [TestCase("")]
     [TestCase(" ")]
     [TestCase(null)]
-    public void When_Dead_Letter_Exchange_Name_Is_Empty_Should_Not_Configure_Dead_Lettering(string dlx)
+    public void When_Dead_Letter_Exchange_Name_Is_Empty_Should_Not_Configure_Dead_Lettering(string empty_dlx)
     {
         var options = new QueueConfigurationOptions
         {
             ExchangeName = "x",
-            DeadLetterExchangeName = dlx,
+            DeadLetterExchangeName = empty_dlx,
             QueueName = "q"
         };
 
