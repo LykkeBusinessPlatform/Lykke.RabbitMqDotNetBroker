@@ -3,31 +3,50 @@
 
 using RabbitMQ.Client;
 
-namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
+namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
+
+public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 {
-    public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
-    {
-        private readonly string _routingKey;
+    private const string StrategyDefaultDeadLetterExchangeType = "direct";
+    
+    private readonly string _routingKey;
         
-        protected bool Durable { get; init; }
-        protected bool AutoDelete { get; init; }
+    protected bool Durable { get; init; }
+    protected bool AutoDelete { get; init; }
 
-        protected TemplatedMessageReadStrategy(string routingKey = "")
+    protected TemplatedMessageReadStrategy(string routingKey = "")
+    {
+        _routingKey = routingKey ?? string.Empty;
+    }
+
+    public string Configure(RabbitMqSubscriptionSettings settings, IModel channel)
+    {
+        var queueConfigurationResult = QueueConfigurator.Configure(
+            channel, 
+            CreateQueueConfigurationOptions(settings));
+        
+        return queueConfigurationResult.QueueName;
+    }
+    
+    private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)
+    {
+        var durabilityFromStrategy = Durable;
+        var autoDeleteFromStrategy = AutoDelete;
+        var routingKeyFromStrategy = _routingKey;
+        
+        var effectiveRoutingKey = string.IsNullOrWhiteSpace(routingKeyFromStrategy)
+            ? settings.RoutingKey ?? string.Empty
+            : routingKeyFromStrategy;
+
+        return new QueueConfigurationOptions
         {
-            _routingKey = routingKey ?? string.Empty;
-        }
-
-        public string Configure(RabbitMqSubscriptionSettings settings, IModel channel)
-        {
-            var queue = settings.GetQueueName();
-            channel.QueueDeclare(queue, durable: Durable, exclusive: false, autoDelete: AutoDelete);
-
-            var effectiveRoutingKey = string.IsNullOrWhiteSpace(_routingKey)
-                ? settings.RoutingKey ?? string.Empty
-                : _routingKey;
-            channel.QueueBind(queue, settings.ExchangeName, effectiveRoutingKey);
-
-            return queue;
-        }
+            QueueName = settings.GetQueueName(),
+            ExchangeName = settings.ExchangeName,
+            DeadLetterExchangeName = settings.DeadLetterExchangeName,
+            DeadLetterExchangeType = StrategyDefaultDeadLetterExchangeType,
+            Durable = durabilityFromStrategy,
+            AutoDelete = autoDeleteFromStrategy,
+            RoutingKey = effectiveRoutingKey
+        };
     }
 }

@@ -7,6 +7,8 @@ namespace Lykke.RabbitMqBroker
 {
     internal static class RabbitMqSettingsExtension
     {
+        private const string PoisonQueueSuffix = "poison"; 
+        
         internal static string GetPublisherDisplayName(this RabbitMqSubscriptionSettings settings)
         {
             return $"Publisher {settings.ExchangeName}";
@@ -32,6 +34,36 @@ namespace Lykke.RabbitMqBroker
             return string.IsNullOrEmpty(settings.QueueName)
                 ? settings.ExchangeName + "." + Guid.NewGuid()
                 : settings.QueueName;
+        }
+        
+        /// <summary>
+        /// Gets the poison queue name. If the queue name is not set, it will be generated.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        internal static string GetPoisonQueueName(this RabbitMqSubscriptionSettings settings)
+        {
+            return settings.GetQueueName().GetPoisonQueueName();
+        }
+
+        /// <summary>
+        /// Gets the poison queue name for the regular queue.
+        /// </summary>
+        /// <param name="regularQueueName"></param>
+        /// <returns></returns>
+        internal static string GetPoisonQueueName(this string regularQueueName)
+        {
+            if (string.IsNullOrEmpty(regularQueueName))
+            {
+                throw new ArgumentNullException(nameof(regularQueueName));
+            }
+            
+            if (regularQueueName.EndsWith(PoisonQueueSuffix))
+            {
+                return regularQueueName;
+            }
+            
+            return $"{regularQueueName}-{PoisonQueueSuffix}";
         }
     }
 }
