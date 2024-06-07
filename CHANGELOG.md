@@ -1,4 +1,4 @@
-## [[tbd]] (2024-06-07)
+## 13.5.0 (2024-06-07)
 
 ### Changed
 - LT-5418: Connection display name more informative (includes library version)
