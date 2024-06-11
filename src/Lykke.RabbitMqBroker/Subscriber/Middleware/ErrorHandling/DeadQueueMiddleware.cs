@@ -4,7 +4,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Lykke.RabbitMqBroker.Subscriber.Middleware.ErrorHandling
 {
-    public class DeadQueueMiddleware<T> : IEventMiddleware<T>
+    public class 
+        DeadQueueMiddleware<T> : IEventMiddleware<T>
     {
         private readonly ILogger<DeadQueueMiddleware<T>> _logger;
 
