@@ -1,4 +1,4 @@
-## [[tbd]] (2024-06-11)
+## 13.6.0 (2024-06-11)
 
 ### Changed
 - LT-5418: Listeners by default registered as `IStartable`. This can be changed by setting `autoStart` parameter to `false` when registering listener.
