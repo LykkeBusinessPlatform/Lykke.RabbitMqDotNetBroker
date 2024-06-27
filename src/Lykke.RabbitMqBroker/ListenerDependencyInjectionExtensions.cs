@@ -19,7 +19,7 @@ namespace Lykke.RabbitMqBroker
         /// multiple subscribers and message handler.
         ///
         /// Listener is not started automatically by default. For this,
-        /// use <see cref="IRabbitMqListenerBuilder{TModel}.AutoStart"/>.
+        /// use <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.AutoStart"/>.
         /// For autostart to work properly, Autofac is required to be used
         /// at least as service provider factory. Otherwise, listener
         /// should be started manually by resolving it from the container
@@ -32,7 +32,7 @@ namespace Lykke.RabbitMqBroker
         /// Can be registered once for each message type. If required, handling
         /// can be extended by registering more handlers implementing
         /// <see cref="IMessageHandler{TModel}"/> interface either manually or using
-        /// <see cref="IRabbitMqListenerBuilder{TModel}.WithAdditionalMessageHandler{THandler}"/>
+        /// <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.WithAdditionalMessageHandler{THandler}"/>
         /// </summary>
         /// <param name="services"></param>
         /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
@@ -40,7 +40,7 @@ namespace Lykke.RabbitMqBroker
         /// <typeparam name="TModel"></typeparam>
         /// <typeparam name="THandler"></typeparam>
         /// <returns></returns>
-        public static IRabbitMqListenerBuilder<TModel> AddRabbitMqListener<TModel, THandler>(
+        public static IRabbitMqListenerRegistrationBuilder<TModel> AddRabbitMqListener<TModel, THandler>(
             this IServiceCollection services,
             RabbitMqSubscriptionSettings subscriptionSettings,
             Action<RabbitMqSubscriber<TModel>, IServiceProvider> configureSubscriber = null)
@@ -57,7 +57,7 @@ namespace Lykke.RabbitMqBroker
                 p.GetRequiredService<IEnumerable<IMessageHandler<TModel>>>(),
                 p.GetRequiredService<ILoggerFactory>()));
             
-            return new RabbitMqListenerBuilder<TModel>(services);
+            return new RabbitMqListenerRegistrationBuilder<TModel>(services);
         }
         
         /// <summary>

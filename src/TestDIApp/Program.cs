@@ -30,39 +30,42 @@ await builder
             .Configuration
             .GetSection("MarsSubscription")
             .Get<RabbitMqSubscriptionSettings>();
-        services.AddRabbitMqListener<MarsMessage, MarsMessageHandler>(
-            marsSubscriptionSettings,
-            opt =>
-            {
-                opt.SerializationFormat = SerializationFormat.Json;
-                opt.ShareConnection = true;
-                opt.SubscriptionTemplate = SubscriptionTemplate.NoLoss;
-            });
+        services
+            .AddRabbitMqListener<MarsMessage, MarsMessageHandler>(marsSubscriptionSettings)
+            .WithOptions(
+                opt =>
+                {
+                    opt.SerializationFormat = SerializationFormat.Json;
+                    opt.ShareConnection = true;
+                    opt.SubscriptionTemplate = SubscriptionTemplate.NoLoss;
+                })
+            .AutoStart();
 
-        // Add Jupiter messages listener
+        // Add Jupiter messages listener with additional messages handler
         var jupiterSubscriptionSettings = ctx
             .Configuration
             .GetSection("JupiterSubscription")
             .Get<RabbitMqSubscriptionSettings>();
-        services.AddRabbitMqListener<JupiterMessage, JupiterMessageHandler>(
-            jupiterSubscriptionSettings,
-            opt =>
-            {
-                opt.SerializationFormat = SerializationFormat.Json;
-                opt.ShareConnection = true;
-                opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
-            });
-        
-        // Additional Jupiter messages handler
-        services.AddSingleton<IMessageHandler<JupiterMessage>, AnotherJupiterMessageHandler>();
+        services
+            .AddRabbitMqListener<JupiterMessage, JupiterMessageHandler>(jupiterSubscriptionSettings)
+            .WithAdditionalMessageHandler<AnotherJupiterMessageHandler>()
+            .WithOptions(
+                opt =>
+                {
+                    opt.SerializationFormat = SerializationFormat.Json;
+                    opt.ShareConnection = true;
+                    opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
+                })
+            .AutoStart();
         
         // empty options, defaults will be used
         var venusSubscriptionSettings = ctx
             .Configuration
             .GetSection("VenusSubscription")
             .Get<RabbitMqSubscriptionSettings>();
-        services.AddRabbitMqListener<VenusMessage, VenusMessageHandler>(
-            venusSubscriptionSettings, _ => { });
+        services.AddRabbitMqListener<VenusMessage, VenusMessageHandler>(venusSubscriptionSettings)
+            .WithOptions(_ => { })
+            .AutoStart();
 
         // subscriber additional manual re-configuration example
         var mercurySubscriptionSettings = ctx
@@ -70,36 +73,38 @@ await builder
             .GetSection("MercurySubscription")
             .Get<RabbitMqSubscriptionSettings>();
         services.AddRabbitMqListener<MercuryMessage, MercuryMessageHandler>(
-            mercurySubscriptionSettings,
-            _ => { },
-            (s, p) => 
-                s.SetPrefetchCount(p.GetService<RandomPrefetchCountGenerator>()?.Generate() ?? 1)
-                    //.UseMiddleware()
-                    //.SetReadHeadersAction())
-                    // ...
-                    );
+                mercurySubscriptionSettings,
+                (s, p) =>
+                    s.SetPrefetchCount(p.GetService<RandomPrefetchCountGenerator>()?.Generate() ?? 1)
+                //.UseMiddleware()
+                //.SetReadHeadersAction())
+                // ...
+            )
+            .WithOptions(_ => { })
+            .AutoStart();
         
         // Multiple subscribers example
         var plutoSubscriptionSettings = ctx
             .Configuration
             .GetSection("PlutoSubscription")
             .Get<RabbitMqSubscriptionSettings>();
-        services.AddRabbitMqListener<PlutoMessage, PlutoMessageHandler>(
-            plutoSubscriptionSettings,
-            opt =>
-            {
-                opt.SerializationFormat = SerializationFormat.Json;
-                opt.ShareConnection = true;
-                opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
-                opt.ConsumerCount = 5;
-            });
-
+        services.AddRabbitMqListener<PlutoMessage, PlutoMessageHandler>(plutoSubscriptionSettings)
+            .WithOptions(
+                opt =>
+                {
+                    opt.SerializationFormat = SerializationFormat.Json;
+                    opt.ShareConnection = true;
+                    opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
+                    opt.ConsumerCount = 5;
+                })
+            .AutoStart();
     })
     .RunConsoleAsync();
 
 
-/*
+
 // Using Autofac extensions 
+/*
 await builder
     .UseServiceProviderFactory(new AutofacServiceProviderFactory())
     .ConfigureAppConfiguration((_, configurationBuilder) =>
