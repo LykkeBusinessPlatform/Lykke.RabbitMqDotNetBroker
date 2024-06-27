@@ -11,12 +11,12 @@ namespace Lykke.RabbitMqBroker;
 internal sealed class RabbitMqListenerRegistrationBuilder<TModel> : IRabbitMqListenerRegistrationBuilder<TModel>
     where TModel : class
 {
-    public IServiceCollection Services { get; }
-
     public RabbitMqListenerRegistrationBuilder(IServiceCollection services)
     {
         Services = services;
     }
+    
+    public IServiceCollection Services { get; }
 
     public IRabbitMqListenerRegistrationBuilder<TModel> WithAdditionalMessageHandler<THandler>()
         where THandler : class, IMessageHandler<TModel>
