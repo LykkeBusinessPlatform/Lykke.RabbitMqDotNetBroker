@@ -1,4 +1,4 @@
-## [[tbd]] (2024-06-27)
+## 13.7.0 (2024-06-27)
 
 ### Changed
 - LT-5418: Add DI container registration builder to simplify listener registration and conveniently manage multiple handlers if required.
