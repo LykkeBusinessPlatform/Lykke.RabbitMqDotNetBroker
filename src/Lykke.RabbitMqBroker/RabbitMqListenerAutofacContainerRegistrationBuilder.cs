@@ -18,8 +18,8 @@ internal sealed class RabbitMqListenerAutofacContainerRegistrationBuilder<TModel
     }
 
     public ContainerBuilder Builder { get; }
-    
-    public IRabbitMqListenerRegistrationBuilder<TModel> WithAdditionalMessageHandler<THandler>()
+
+    public IRabbitMqListenerRegistrationBuilder<TModel> AddMessageHandler<THandler>()
         where THandler : class, IMessageHandler<TModel>
     {
         Builder.RegisterType<THandler>()
@@ -35,7 +35,7 @@ internal sealed class RabbitMqListenerAutofacContainerRegistrationBuilder<TModel
     /// </summary>
     /// <param name="setupListenerOptions"></param>
     /// <returns></returns>
-    public IRabbitMqListenerRegistrationBuilder<TModel> WithOptions(
+    public IRabbitMqListenerRegistrationBuilder<TModel> AddOptions(
         Action<RabbitMqListenerOptions<TModel>> setupListenerOptions)
     {
         Builder.Register(_ => new ConfigureNamedOptions<RabbitMqListenerOptions<TModel>>(string.Empty, setupListenerOptions))

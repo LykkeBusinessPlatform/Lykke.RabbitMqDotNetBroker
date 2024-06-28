@@ -34,7 +34,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly ILoggerFactory _loggerFactory;
         private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
-
+        
         private List<RabbitMqSubscriber<T>> _subscribers = new ();
 
         /// <summary>
@@ -57,18 +57,10 @@ namespace Lykke.RabbitMqBroker.Subscriber
         {
             _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
             _subscriptionSettings = subscriptionSettings ?? throw new ArgumentNullException(nameof(subscriptionSettings));
-            _options = optionsAccessor?.Value ?? RabbitMqListenerOptions<T>.Default;
+            _options = optionsAccessor?.Value ?? RabbitMqListenerOptions<T>.Json.Default;
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _configureSubscriber = configureSubscriber;
             _handlers = handlers;
-
-            ThrowIfOptionsNotSupportedYet();
-        }
-
-        private void ThrowIfOptionsNotSupportedYet()
-        {
-            if (_options.ReadCorrelationId)
-                throw new NotSupportedException("ReadCorrelationId is not supported yet");
         }
 
         public void Start()
@@ -86,7 +78,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _subscribers.Add(subscriber);
             }
         }
-
+        
         private IAutorecoveringConnection CreateConnection()
         {
             return _options.ShareConnection switch

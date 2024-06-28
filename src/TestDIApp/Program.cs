@@ -34,13 +34,7 @@ await builder
             .Get<RabbitMqSubscriptionSettings>();
         services
             .AddRabbitMqListener<MarsMessage, MarsMessageHandler>(marsSubscriptionSettings)
-            .WithOptions(
-                opt =>
-                {
-                    opt.SerializationFormat = SerializationFormat.Json;
-                    opt.ShareConnection = true;
-                    opt.SubscriptionTemplate = SubscriptionTemplate.NoLoss;
-                })
+            .AddOptions(RabbitMqListenerOptions<MarsMessage>.Json.NoLoss)
             .AutoStart();
 
         // Add Jupiter messages listener with additional messages handler
@@ -50,14 +44,8 @@ await builder
             .Get<RabbitMqSubscriptionSettings>();
         services
             .AddRabbitMqListener<JupiterMessage, JupiterMessageHandler>(jupiterSubscriptionSettings)
-            .WithAdditionalMessageHandler<AnotherJupiterMessageHandler>()
-            .WithOptions(
-                opt =>
-                {
-                    opt.SerializationFormat = SerializationFormat.Json;
-                    opt.ShareConnection = true;
-                    opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
-                })
+            .AddMessageHandler<AnotherJupiterMessageHandler>()
+            .AddOptions(RabbitMqListenerOptions<JupiterMessage>.Json.LossAcceptable)
             .AutoStart();
         
         // empty options, defaults will be used
@@ -66,7 +54,7 @@ await builder
             .GetSection("VenusSubscription")
             .Get<RabbitMqSubscriptionSettings>();
         services.AddRabbitMqListener<VenusMessage, VenusMessageHandler>(venusSubscriptionSettings)
-            .WithOptions(_ => { })
+            .AddOptions(_ => { })
             .AutoStart();
 
         // subscriber additional manual re-configuration example
@@ -82,7 +70,7 @@ await builder
                 //.SetReadHeadersAction())
                 // ...
             )
-            .WithOptions(_ => { })
+            .AddOptions(_ => { })
             .AutoStart();
         
         // Multiple subscribers example
@@ -91,7 +79,7 @@ await builder
             .GetSection("PlutoSubscription")
             .Get<RabbitMqSubscriptionSettings>();
         services.AddRabbitMqListener<PlutoMessage, PlutoMessageHandler>(plutoSubscriptionSettings)
-            .WithOptions(
+            .AddOptions(
                 opt =>
                 {
                     opt.SerializationFormat = SerializationFormat.Json;
@@ -105,53 +93,40 @@ await builder
 
 # endregion
 
-/*
-# region Using Autofac as a container
 
-await builder
-    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-    .ConfigureAppConfiguration((_, configurationBuilder) =>
-    {
-        configurationBuilder.AddEnvironmentVariables();
-        configurationBuilder.AddJsonFile("appsettings.json");
-    })
-    .ConfigureContainer<ContainerBuilder>((ctx, bld) =>
-    {
-        bld.AddRabbitMqConnectionProvider();
-        bld.RegisterType<RandomPrefetchCountGenerator>();
-
-        // Add Mars messages listener
-        var marsSubscriptionSettings = ctx
-            .Configuration
-            .GetSection("MarsSubscription")
-            .Get<RabbitMqSubscriptionSettings>();
-        bld.AddRabbitMqListener<MarsMessage, MarsMessageHandler>(marsSubscriptionSettings)
-            .WithOptions(
-                opt =>
-                {
-                    opt.SerializationFormat = SerializationFormat.Json;
-                    opt.ShareConnection = true;
-                    opt.SubscriptionTemplate = SubscriptionTemplate.NoLoss;
-                })
-            .AutoStart();
-
-        // Add Jupiter messages listener with additional messages handler
-        var jupiterSubscriptionSettings = ctx
-            .Configuration
-            .GetSection("JupiterSubscription")
-            .Get<RabbitMqSubscriptionSettings>();
-        bld.AddRabbitMqListener<JupiterMessage, JupiterMessageHandler>(jupiterSubscriptionSettings)
-            .WithAdditionalMessageHandler<AnotherJupiterMessageHandler>()
-            .WithOptions(
-                opt =>
-                {
-                    opt.SerializationFormat = SerializationFormat.Json;
-                    opt.ShareConnection = true;
-                    opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
-                })
-            .AutoStart();
-
-    }).RunConsoleAsync();
-
-#endregion
-*/
+// # region Using Autofac as a container
+//
+// await builder
+//     .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+//     .ConfigureAppConfiguration((_, configurationBuilder) =>
+//     {
+//         configurationBuilder.AddEnvironmentVariables();
+//         configurationBuilder.AddJsonFile("appsettings.json");
+//     })
+//     .ConfigureContainer<ContainerBuilder>((ctx, bld) =>
+//     {
+//         bld.AddRabbitMqConnectionProvider();
+//         bld.RegisterType<RandomPrefetchCountGenerator>();
+//
+//         // Add Mars messages listener
+//         var marsSubscriptionSettings = ctx
+//             .Configuration
+//             .GetSection("MarsSubscription")
+//             .Get<RabbitMqSubscriptionSettings>();
+//         bld.AddRabbitMqListener<MarsMessage, MarsMessageHandler>(marsSubscriptionSettings)
+//             .AddOptions(RabbitMqListenerOptions<MarsMessage>.Json.NoLoss)
+//             .AutoStart();
+//
+//         // Add Jupiter messages listener with additional messages handler
+//         var jupiterSubscriptionSettings = ctx
+//             .Configuration
+//             .GetSection("JupiterSubscription")
+//             .Get<RabbitMqSubscriptionSettings>();
+//         bld.AddRabbitMqListener<JupiterMessage, JupiterMessageHandler>(jupiterSubscriptionSettings)
+//             .AddMessageHandler<AnotherJupiterMessageHandler>()
+//             .AddOptions(RabbitMqListenerOptions<JupiterMessage>.Json.LossAcceptable)
+//             .AutoStart();
+//
+//     }).RunConsoleAsync();
+//
+// #endregion

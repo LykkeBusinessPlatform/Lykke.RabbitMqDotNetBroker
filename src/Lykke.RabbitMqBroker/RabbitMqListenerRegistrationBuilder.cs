@@ -18,14 +18,14 @@ internal sealed class RabbitMqListenerRegistrationBuilder<TModel> : IRabbitMqLis
     
     public IServiceCollection Services { get; }
 
-    public IRabbitMqListenerRegistrationBuilder<TModel> WithAdditionalMessageHandler<THandler>()
+    public IRabbitMqListenerRegistrationBuilder<TModel> AddMessageHandler<THandler>()
         where THandler : class, IMessageHandler<TModel>
     {
         Services.AddSingleton<IMessageHandler<TModel>, THandler>();
         return this;
     }
 
-    public IRabbitMqListenerRegistrationBuilder<TModel> WithOptions(
+    public IRabbitMqListenerRegistrationBuilder<TModel> AddOptions(
         Action<RabbitMqListenerOptions<TModel>> setupListenerOptions)
     {
         Services.Configure(setupListenerOptions);
