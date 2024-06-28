@@ -1,5 +1,7 @@
 using System;
 
+using Autofac;
+
 using Lykke.RabbitMqBroker.Subscriber;
 
 namespace Lykke.RabbitMqBroker;
@@ -15,16 +17,24 @@ public interface IRabbitMqListenerRegistrationBuilder<TModel> where TModel : cla
     /// </summary>
     /// <typeparam name="THandler"></typeparam>
     /// <returns></returns>
-    IRabbitMqListenerRegistrationBuilder<TModel> WithAdditionalMessageHandler<THandler>()
+    IRabbitMqListenerRegistrationBuilder<TModel> AddMessageHandler<THandler>()
         where THandler : class, IMessageHandler<TModel>;
-        
+    
     /// <summary>
-    /// Configure listener options if default options are not enough.
+    /// Set up listener options if default options are not enough.
     /// </summary>
     /// <param name="setupListenerOptions"></param>
     /// <returns></returns>
-    IRabbitMqListenerRegistrationBuilder<TModel> WithOptions(Action<RabbitMqListenerOptions<TModel>> setupListenerOptions);
-        
+    IRabbitMqListenerRegistrationBuilder<TModel> AddOptions(Action<RabbitMqListenerOptions<TModel>> setupListenerOptions);
+    
+    /// <summary>
+    /// Set up listener options if default options are not enough.
+    /// </summary>
+    /// <param name="listenerOptions"></param>
+    /// <returns></returns>
+    IRabbitMqListenerRegistrationBuilder<TModel> AddOptions(RabbitMqListenerOptions<TModel> listenerOptions) =>
+        AddOptions(opt => opt.CopyFrom(listenerOptions));
+
     /// <summary>
     /// Register listener in DI container as <see cref="IStartable"/> and start it automatically.
     /// </summary>

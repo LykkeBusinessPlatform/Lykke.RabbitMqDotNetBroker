@@ -1,3 +1,8 @@
+## [[tbd]] (2024-06-28)
+
+### Changed
+- LT-5418: Improve AddOptions API, ready-to-use options
+
 ## 13.7.0 (2024-06-27)
 
 ### Changed

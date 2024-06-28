@@ -25,11 +25,54 @@ namespace Lykke.RabbitMqBroker.Subscriber
         /// </summary>
         public byte ConsumerCount { get; set; } = 1;
         
-        /// <summary>
-        /// Instructs the listener to read the correlation ID from the message headers.
-        /// </summary>
-        public bool ReadCorrelationId { get; set; } = false;
-        
-        public static RabbitMqListenerOptions<T> Default => new();
+        public static class Json
+        {
+            public static RabbitMqListenerOptions<T> Default => NoLoss;
+            
+            public static RabbitMqListenerOptions<T> NoLoss => new RabbitMqListenerOptions<T>
+            {
+                ConsumerCount = 1,
+                SerializationFormat = SerializationFormat.Json,
+                ShareConnection = true,
+                SubscriptionTemplate = SubscriptionTemplate.NoLoss
+            };
+            
+            public static RabbitMqListenerOptions<T> LossAcceptable => new RabbitMqListenerOptions<T>
+            {
+                ConsumerCount = 1,
+                SerializationFormat = SerializationFormat.Json,
+                ShareConnection = true,
+                SubscriptionTemplate = SubscriptionTemplate.LossAcceptable
+            };
+        }
+
+        public static class MessagePack
+        {
+            public static RabbitMqListenerOptions<T> Default => NoLoss;
+            
+            public static RabbitMqListenerOptions<T> NoLoss => new RabbitMqListenerOptions<T>
+            {
+                ConsumerCount = 1,
+                SerializationFormat = SerializationFormat.Messagepack,
+                ShareConnection = true,
+                SubscriptionTemplate = SubscriptionTemplate.NoLoss
+            };
+
+            public static RabbitMqListenerOptions<T> LossAcceptable => new RabbitMqListenerOptions<T>
+            {
+                ConsumerCount = 1,
+                SerializationFormat = SerializationFormat.Messagepack,
+                ShareConnection = true,
+                SubscriptionTemplate = SubscriptionTemplate.LossAcceptable
+            };
+        }
+
+        public void CopyFrom<TModel>(RabbitMqListenerOptions<TModel> source) where TModel : class
+        {
+            ShareConnection = source.ShareConnection;
+            SerializationFormat = source.SerializationFormat;
+            SubscriptionTemplate = source.SubscriptionTemplate;
+            ConsumerCount = source.ConsumerCount;
+        }
     }
 }

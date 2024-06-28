@@ -33,7 +33,7 @@ namespace Lykke.RabbitMqBroker
         /// Can be registered once for each message type. If required, handling
         /// can be extended by registering more handlers implementing
         /// <see cref="IMessageHandler{TModel}"/> interface either manually or using
-        /// <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.WithAdditionalMessageHandler{THandler}"/>
+        /// <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.AddMessageHandler{THandler}"/>
         /// </summary>
         /// <param name="services"></param>
         /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
@@ -137,7 +137,7 @@ namespace Lykke.RabbitMqBroker
         /// Can be registered once for each message type. If required, handling
         /// can be extended by registering more handlers implementing
         /// <see cref="IMessageHandler{TModel}"/> interface either manually or using
-        /// <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.WithAdditionalMessageHandler{THandler}"/>
+        /// <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.AddMessageHandler{THandler}"/>
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
