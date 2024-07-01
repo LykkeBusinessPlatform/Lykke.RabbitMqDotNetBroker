@@ -1,4 +1,4 @@
-## [[tbd]] (2024-06-28)
+## 13.9.0 (2024-06-28)
 
 ### Changed
 - LT-5418: Add feature to register provided message handler instance with DI container
