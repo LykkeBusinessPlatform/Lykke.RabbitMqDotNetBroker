@@ -21,6 +21,15 @@ public interface IRabbitMqListenerRegistrationBuilder<TModel> where TModel : cla
         where THandler : class, IMessageHandler<TModel>;
     
     /// <summary>
+    /// Add additional message handler to the listener constructed with the provided instance.
+    /// </summary>
+    /// <param name="handler"></param>
+    /// <typeparam name="THandler"></typeparam>
+    /// <returns></returns>
+    IRabbitMqListenerRegistrationBuilder<TModel> AddMessageHandler<THandler>(THandler handler)
+        where THandler : class, IMessageHandler<TModel>;
+    
+    /// <summary>
     /// Set up listener options if default options are not enough.
     /// </summary>
     /// <param name="setupListenerOptions"></param>

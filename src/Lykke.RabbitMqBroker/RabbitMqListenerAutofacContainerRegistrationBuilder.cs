@@ -28,6 +28,15 @@ internal sealed class RabbitMqListenerAutofacContainerRegistrationBuilder<TModel
         return this;
     }
 
+    public IRabbitMqListenerRegistrationBuilder<TModel> AddMessageHandler<THandler>(THandler handler)
+        where THandler : class, IMessageHandler<TModel>
+    {
+        Builder.RegisterInstance(handler)
+            .As<IMessageHandler<TModel>>()
+            .SingleInstance();
+        return this;
+    }
+
     /// <summary>
     /// Configure listener options if default options are not enough.
     /// Prerequisite: This method depends on "Options" feature so that take
@@ -38,7 +47,8 @@ internal sealed class RabbitMqListenerAutofacContainerRegistrationBuilder<TModel
     public IRabbitMqListenerRegistrationBuilder<TModel> AddOptions(
         Action<RabbitMqListenerOptions<TModel>> setupListenerOptions)
     {
-        Builder.Register(_ => new ConfigureNamedOptions<RabbitMqListenerOptions<TModel>>(string.Empty, setupListenerOptions))
+        Builder.Register(
+                _ => new ConfigureNamedOptions<RabbitMqListenerOptions<TModel>>(string.Empty, setupListenerOptions))
             .As<IConfigureOptions<RabbitMqListenerOptions<TModel>>>()
             .SingleInstance();
         return this;
