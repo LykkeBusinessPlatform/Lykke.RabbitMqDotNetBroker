@@ -156,13 +156,21 @@ namespace Lykke.RabbitMqBroker
                 .As<IMessageHandler<TModel>>()
                 .SingleInstance();
 
-            builder.Register(ctx => new RabbitMqListener<TModel>(
-                    ctx.Resolve<IConnectionProvider>(),
-                    subscriptionSettings,
-                    ctx.Resolve<IOptions<RabbitMqListenerOptions<TModel>>>(),
-                    s => configureSubscriber?.Invoke(s, ctx),
-                    ctx.Resolve<IEnumerable<IMessageHandler<TModel>>>(),
-                    ctx.Resolve<ILoggerFactory>()))
+            builder.Register(ctx =>
+                {
+                    // the original IComponentContext can't be captured because it is short-lived
+                    // and not thread-safe. It will be disposed long before the configure subscriber action
+                    // is invoked. So it is required to resolve a new IComponentContext which is LifetimeScope.
+                    // see https://autofac.readthedocs.io/en/latest/register/registration.html#lambda-expression-components
+                    var ccLifetimeScope = ctx.Resolve<IComponentContext>();
+                    return new RabbitMqListener<TModel>(
+                        ctx.Resolve<IConnectionProvider>(),
+                        subscriptionSettings,
+                        ctx.Resolve<IOptions<RabbitMqListenerOptions<TModel>>>(),
+                        s => configureSubscriber?.Invoke(s, ccLifetimeScope),
+                        ctx.Resolve<IEnumerable<IMessageHandler<TModel>>>(),
+                        ctx.Resolve<ILoggerFactory>());
+                })
                 .AsSelf()
                 .SingleInstance();
 
@@ -213,13 +221,21 @@ namespace Lykke.RabbitMqBroker
                 .As<IMessageHandler<TModel>>()
                 .SingleInstance();
 
-            var listenerRegistration = builder.Register(ctx => new RabbitMqListener<TModel>(
-                    ctx.Resolve<IConnectionProvider>(),
-                    subscriptionSettings,
-                    ctx.Resolve<IOptions<RabbitMqListenerOptions<TModel>>>(),
-                    s => configureSubscriber?.Invoke(s, ctx),
-                    ctx.Resolve<IEnumerable<IMessageHandler<TModel>>>(),
-                    ctx.Resolve<ILoggerFactory>()))
+            var listenerRegistration = builder.Register(ctx =>
+                {
+                    // the original IComponentContext can't be captured because it is short-lived
+                    // and not thread-safe. It will be disposed long before the configure subscriber action
+                    // is invoked. So it is required to resolve a new IComponentContext which is LifetimeScope.
+                    // see https://autofac.readthedocs.io/en/latest/register/registration.html#lambda-expression-components
+                    var ccLifetimeScope = ctx.Resolve<IComponentContext>();
+                    return new RabbitMqListener<TModel>(
+                        ctx.Resolve<IConnectionProvider>(),
+                        subscriptionSettings,
+                        ctx.Resolve<IOptions<RabbitMqListenerOptions<TModel>>>(),
+                        s => configureSubscriber?.Invoke(s, ccLifetimeScope),
+                        ctx.Resolve<IEnumerable<IMessageHandler<TModel>>>(),
+                        ctx.Resolve<ILoggerFactory>());
+                })
                 .AsSelf()
                 .SingleInstance();
             
