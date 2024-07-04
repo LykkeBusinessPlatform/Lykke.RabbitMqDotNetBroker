@@ -1,4 +1,4 @@
-## [[tbd]] (2024-07-04)
+## 13.9.1 (2024-07-04)
 
 ### Changed
 - LT-5418: fix a bug in the DI container listener registration extensions
