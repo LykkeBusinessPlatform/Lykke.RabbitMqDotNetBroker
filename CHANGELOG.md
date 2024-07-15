@@ -1,4 +1,4 @@
-## [[tbd]] (2024-07-15)
+## 13.10.0 (2024-07-15)
 
 ### Added
 - LT-5418: ConsumerCount record to cover edge cases 
