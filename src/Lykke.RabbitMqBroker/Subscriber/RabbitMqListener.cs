@@ -5,10 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Autofac;
+
 using JetBrains.Annotations;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber
@@ -68,7 +72,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             if (_subscribers.Any())
                 throw new InvalidOperationException("The listener is already started");
 
-            for (var i = 0; i < _options.ConsumerCount; i++)
+            foreach (var _ in _options.ConsumerCount)
             {
                 var connection = CreateConnection();
                 var subscriber = CreateSubscriber(connection)
@@ -94,22 +98,18 @@ namespace Lykke.RabbitMqBroker.Subscriber
             {
                 SerializationFormat.Json => _options.SubscriptionTemplate switch
                 {
-                    SubscriptionTemplate.NoLoss => RabbitMqSubscriber<T>
-                        .Json
+                    SubscriptionTemplate.NoLoss => RabbitMqSubscriber<T>.Json
                         .CreateNoLossSubscriber(_subscriptionSettings, connection, _loggerFactory, _configureSubscriber),
-                    SubscriptionTemplate.LossAcceptable => RabbitMqSubscriber<T>
-                        .Json
+                    SubscriptionTemplate.LossAcceptable => RabbitMqSubscriber<T>.Json
                         .CreateLossAcceptableSubscriber(_subscriptionSettings, connection, _loggerFactory, _configureSubscriber),
                     _ => throw new InvalidOperationException(
                         $"Unsupported subscription template: {_options.SubscriptionTemplate}")
                 },
                 SerializationFormat.Messagepack => _options.SubscriptionTemplate switch
                 {
-                    SubscriptionTemplate.NoLoss => RabbitMqSubscriber<T>
-                        .MessagePack
+                    SubscriptionTemplate.NoLoss => RabbitMqSubscriber<T>.MessagePack
                         .CreateNoLossSubscriber(_subscriptionSettings, connection, _loggerFactory, _configureSubscriber),
-                    SubscriptionTemplate.LossAcceptable => RabbitMqSubscriber<T>
-                        .MessagePack
+                    SubscriptionTemplate.LossAcceptable => RabbitMqSubscriber<T>.MessagePack
                         .CreateLossAcceptableSubscriber(_subscriptionSettings, connection, _loggerFactory, _configureSubscriber),
                     _ => throw new InvalidOperationException(
                         $"Unsupported subscription template: {_options.SubscriptionTemplate}")
