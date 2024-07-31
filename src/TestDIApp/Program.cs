@@ -1,4 +1,4 @@
-﻿using Autofac;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
 
 using Lykke.RabbitMqBroker;
@@ -27,7 +27,7 @@ await builder
     .ConfigureServices((ctx, services) =>
     {
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        services.AddRabbitMqConnectionProvider();
+        services.AddRabbitMq();
         services.AddSingleton<RandomPrefetchCountGenerator>();
 
         // Add Mars messages listener
@@ -91,6 +91,8 @@ await builder
                     opt.ConsumerCount = 5;
                 })
             .AutoStart();
+
+        services.AddHostedService<ListenerRegistryLogger>();
     })
     .RunConsoleAsync();
 
@@ -108,7 +110,7 @@ await builder
 //     })
 //     .ConfigureContainer<ContainerBuilder>((ctx, bld) =>
 //     {
-//         bld.AddRabbitMqConnectionProvider();
+//         bld.AddRabbitMq();
 //         bld.RegisterType<RandomPrefetchCountGenerator>();
 //
 //         // Add Mars messages listener

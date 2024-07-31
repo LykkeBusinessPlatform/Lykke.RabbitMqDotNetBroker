@@ -20,6 +20,8 @@ namespace Lykke.RabbitMqBroker
         /// Registers a Rabbit MQ listener in the service collection.
         /// Behind the scenes, it registers a low-level subscriber or
         /// multiple subscribers and message handler.
+        /// Also adds listener registration metadata to the listeners registry, if available,
+        /// check <see cref="IListenersRegistry"/>.
         ///
         /// Listener is not started automatically by default. For this,
         /// use <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.AutoStart"/>.
@@ -52,13 +54,19 @@ namespace Lykke.RabbitMqBroker
         {
             services.AddSingleton<IMessageHandler<TModel>, THandler>();
 
-            services.AddSingleton(p => new RabbitMqListener<TModel>(
-                p.GetRequiredService<IConnectionProvider>(),
-                subscriptionSettings,
-                p.GetRequiredService<IOptions<RabbitMqListenerOptions<TModel>>>(),
-                s => configureSubscriber?.Invoke(s, p),
-                p.GetRequiredService<IEnumerable<IMessageHandler<TModel>>>(),
-                p.GetRequiredService<ILoggerFactory>()));
+            services.AddSingleton(p =>
+            {
+                var registry = p.GetService<IListenersRegistry>();
+                registry?.Add(new ListenerRegistration<TModel>(subscriptionSettings.ExchangeName, subscriptionSettings.QueueName, subscriptionSettings.RoutingKey));
+
+                return new RabbitMqListener<TModel>(
+                    p.GetRequiredService<IConnectionProvider>(),
+                    subscriptionSettings,
+                    p.GetRequiredService<IOptions<RabbitMqListenerOptions<TModel>>>(),
+                    s => configureSubscriber?.Invoke(s, p),
+                    p.GetRequiredService<IEnumerable<IMessageHandler<TModel>>>(),
+                    p.GetRequiredService<ILoggerFactory>());
+            });
 
             return new RabbitMqListenerRegistrationBuilder<TModel>(services);
         }
@@ -67,6 +75,8 @@ namespace Lykke.RabbitMqBroker
         /// Registers a Rabbit MQ listener in the DI container.
         /// Behind the scenes, it registers a low-level subscriber or
         /// multiple subscribers and message handler.
+        /// Also adds listener registration metadata to the listeners registry, if available,
+        /// check <see cref="IListenersRegistry"/>.
         ///
         /// Listener is not started automatically by default. For this,
         /// use <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.AutoStart"/>.
@@ -107,6 +117,8 @@ namespace Lykke.RabbitMqBroker
                     // and not thread-safe. It will be disposed long before the configure subscriber action
                     // is invoked. So it is required to resolve a new IComponentContext which is LifetimeScope.
                     // see https://autofac.readthedocs.io/en/latest/register/registration.html#lambda-expression-components
+                    var registry = ctx.ResolveOptional<IListenersRegistry>();
+                    registry?.Add(new ListenerRegistration<TModel>(subscriptionSettings.ExchangeName, subscriptionSettings.QueueName, subscriptionSettings.RoutingKey));
                     var ccLifetimeScope = ctx.Resolve<IComponentContext>();
                     return new RabbitMqListener<TModel>(
                         ctx.Resolve<IConnectionProvider>(),
