@@ -179,6 +179,7 @@ csharp_wrap_after_invocation_lpar = true
 csharp_max_formal_parameters_on_line = 3
 csharp_max_invocation_arguments_on_line = 3
 csharp_max_initializer_elements_on_line = 3
+csharp_max_line_length = 120
 
 #### Naming styles ####
 [*.{cs,vb}]
