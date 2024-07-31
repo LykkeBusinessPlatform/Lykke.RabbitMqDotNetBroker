@@ -100,7 +100,7 @@ await builder
 
 
 // # region Using Autofac as a container
-//
+
 // await builder
 //     .UseServiceProviderFactory(new AutofacServiceProviderFactory())
 //     .ConfigureAppConfiguration((_, configurationBuilder) =>
@@ -112,7 +112,7 @@ await builder
 //     {
 //         bld.AddRabbitMq();
 //         bld.RegisterType<RandomPrefetchCountGenerator>();
-//
+
 //         // Add Mars messages listener
 //         var marsSubscriptionSettings = ctx
 //             .Configuration
@@ -121,7 +121,7 @@ await builder
 //         bld.AddRabbitMqListener<MarsMessage, MarsMessageHandler>(marsSubscriptionSettings)
 //             .AddOptions(RabbitMqListenerOptions<MarsMessage>.Json.NoLoss)
 //             .AutoStart();
-//
+
 //         // Add Jupiter messages listener with additional messages handler
 //         var jupiterSubscriptionSettings = ctx
 //             .Configuration
@@ -131,7 +131,9 @@ await builder
 //             .AddMessageHandler<AnotherJupiterMessageHandler>()
 //             .AddOptions(RabbitMqListenerOptions<JupiterMessage>.Json.LossAcceptable)
 //             .AutoStart();
-//
+
+//         bld.RegisterType<ListenerRegistryLogger>().As<IHostedService>().SingleInstance();
+
 //     }).RunConsoleAsync();
-//
+
 // #endregion
