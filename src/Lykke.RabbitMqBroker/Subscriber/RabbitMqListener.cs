@@ -40,7 +40,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
 
-        private List<RabbitMqSubscriber<T>> _subscribers = new ();
+        private readonly List<RabbitMqSubscriber<T>> _subscribers = [];
         private CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
