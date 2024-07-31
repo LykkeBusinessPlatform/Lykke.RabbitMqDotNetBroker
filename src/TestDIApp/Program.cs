@@ -1,11 +1,13 @@
-﻿using Autofac;
-using Autofac.Extensions.DependencyInjection;
+﻿using Autofac.Extensions.DependencyInjection;
+
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using TestDIApp;
 using TestDIApp.Handlers;
 using TestDIApp.Messages;
@@ -24,9 +26,9 @@ await builder
     .ConfigureServices((ctx, services) =>
     {
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        services.AddRabbitMqConnectionProvider();
+        services.AddRabbitMq();
         services.AddSingleton<RandomPrefetchCountGenerator>();
-        
+
         // Add Mars messages listener
         var marsSubscriptionSettings = ctx
             .Configuration
@@ -47,7 +49,7 @@ await builder
             .AddMessageHandler<AnotherJupiterMessageHandler>()
             .AddOptions(RabbitMqListenerOptions<JupiterMessage>.Json.LossAcceptable)
             .AutoStart();
-        
+
         // empty options, defaults will be used
         var venusSubscriptionSettings = ctx
             .Configuration
@@ -72,7 +74,7 @@ await builder
             )
             .AddOptions(_ => { })
             .AutoStart();
-        
+
         // Multiple subscribers example
         var plutoSubscriptionSettings = ctx
             .Configuration
@@ -88,6 +90,8 @@ await builder
                     opt.ConsumerCount = 5;
                 })
             .AutoStart();
+
+        services.AddHostedService<ListenerRegistryLogger>();
     })
     .RunConsoleAsync();
 
@@ -105,7 +109,7 @@ await builder
 //     })
 //     .ConfigureContainer<ContainerBuilder>((ctx, bld) =>
 //     {
-//         bld.AddRabbitMqConnectionProvider();
+//         bld.AddRabbitMq();
 //         bld.RegisterType<RandomPrefetchCountGenerator>();
 //
 //         // Add Mars messages listener
