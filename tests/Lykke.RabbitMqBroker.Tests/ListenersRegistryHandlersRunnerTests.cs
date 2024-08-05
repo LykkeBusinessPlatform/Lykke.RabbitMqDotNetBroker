@@ -9,47 +9,47 @@ using NUnit.Framework;
 
 namespace Lykke.RabbitMqBroker.Tests
 {
-    internal sealed class CountingListenerRegistrationHandler : IListenerRegistrationHandler
-    {
-        public string Name => "CountingHandler";
-
-        public int Counter { get; private set; } = 0;
-
-        public Task Handle(IListenerRegistration registration)
-        {
-            Counter++;
-            return Task.CompletedTask;
-        }
-    }
-
-    internal sealed class NameTracingListenerRegistrationHandler : IListenerRegistrationHandler
-    {
-        public string Name => "NameTracingHandler";
-        private readonly HashSet<string> _handledRegistrations = new();
-        public IReadOnlyCollection<string> HandledRegistrations { get => _handledRegistrations.ToList(); }
-
-        public Task Handle(IListenerRegistration registration)
-        {
-            _handledRegistrations.Add(registration.ToString());
-            return Task.CompletedTask;
-        }
-    }
-
-    internal sealed class FailingListenerRegistrationHandler : IListenerRegistrationHandler
-    {
-        public string Name => "FailingHandler";
-
-        public Task Handle(IListenerRegistration registration)
-        {
-            throw new InvalidOperationException($"FailingHandler exception on purpose for registration: {registration}");
-        }
-    }
-
     [TestFixture]
     public class ListenersRegistryHandlersRunnerTests
     {
-        class Model1 { }
-        class Model2 { }
+        internal sealed class CountingListenerRegistrationHandler : IListenerRegistrationHandler
+        {
+            public string Name => "CountingHandler";
+
+            public int Counter { get; private set; } = 0;
+
+            public Task Handle(IListenerRegistration registration)
+            {
+                Counter++;
+                return Task.CompletedTask;
+            }
+        }
+
+        internal sealed class NameTracingListenerRegistrationHandler : IListenerRegistrationHandler
+        {
+            public string Name => "NameTracingHandler";
+            private readonly HashSet<string> _handledRegistrations = new();
+            public IReadOnlyCollection<string> HandledRegistrations { get => _handledRegistrations.ToList(); }
+
+            public Task Handle(IListenerRegistration registration)
+            {
+                _handledRegistrations.Add(registration.ToString());
+                return Task.CompletedTask;
+            }
+        }
+
+        internal sealed class FailingListenerRegistrationHandler : IListenerRegistrationHandler
+        {
+            public string Name => "FailingHandler";
+
+            public Task Handle(IListenerRegistration registration)
+            {
+                throw new InvalidOperationException($"FailingHandler exception on purpose for registration: {registration}");
+            }
+        }
+
+        class MessageModel1 { }
+        class MessageModel2 { }
 
         [Test]
         public async Task When_ListenersRegistry_NotProvided_SkipsHandling()
@@ -70,8 +70,8 @@ namespace Lykke.RabbitMqBroker.Tests
         {
             var nameTracingHandler = new NameTracingListenerRegistrationHandler();
             var countingHandler = new CountingListenerRegistrationHandler();
-            var registration1 = new ListenerRegistration<Model1>("ex1", "q1", "r1");
-            var registration2 = new ListenerRegistration<Model2>("ex2", "q2", "r2");
+            var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
+            var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
             var runner = new ListenersRegistryHandlersRunner(
                 new List<IListenerRegistrationHandler> { nameTracingHandler, countingHandler },
                 NullLogger<ListenersRegistryHandlersRunner>.Instance,
@@ -93,8 +93,8 @@ namespace Lykke.RabbitMqBroker.Tests
         {
             var failingHandler = new FailingListenerRegistrationHandler();
             var countingHandler = new CountingListenerRegistrationHandler();
-            var registration1 = new ListenerRegistration<Model1>("ex1", "q1", "r1");
-            var registration2 = new ListenerRegistration<Model2>("ex2", "q2", "r2");
+            var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
+            var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
             var runner = new ListenersRegistryHandlersRunner(
                 new List<IListenerRegistrationHandler> { failingHandler, countingHandler },
                 NullLogger<ListenersRegistryHandlersRunner>.Instance,
