@@ -47,5 +47,12 @@ namespace Lykke.RabbitMqBroker
         {
             return !(left == right);
         }
+
+        public override string ToString()
+        {
+            return string.IsNullOrWhiteSpace(RoutingKey)
+                ? $"[Exchange: {ExchangeName}] -> {typeof(TModel).Name} -> [Queue: {QueueName}]"
+                : $"[Exchange: {ExchangeName}] -> {typeof(TModel).Name} -> [Queue: {QueueName}] by {RoutingKey}";
+        }
     }
 }
