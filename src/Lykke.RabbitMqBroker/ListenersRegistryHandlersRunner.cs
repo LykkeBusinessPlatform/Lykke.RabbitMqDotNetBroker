@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Lykke.RabbitMqBroker
 {
+
     internal sealed class ListenersRegistryHandlersRunner : IListenersRegistryHandlersRunner
     {
         private readonly IListenersRegistry _listenersRegistry;
