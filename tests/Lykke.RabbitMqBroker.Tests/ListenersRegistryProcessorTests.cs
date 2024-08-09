@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace Lykke.RabbitMqBroker.Tests
 {
     [TestFixture]
-    public class ListenersRegistryHandlersRunnerTests
+    public class ListenersRegistryProcessorTests
     {
         internal sealed class CountingListenerRegistrationHandler : IListenerRegistrationHandler
         {
@@ -55,12 +55,12 @@ namespace Lykke.RabbitMqBroker.Tests
         public async Task When_ListenersRegistry_NotProvided_SkipsHandling()
         {
             var handler = new CountingListenerRegistrationHandler();
-            var runner = new ListenersRegistryHandlersRunner(
+            var processor = new ListenersRegistryProcessor(
                 new List<IListenerRegistrationHandler> { handler },
-                NullLogger<ListenersRegistryHandlersRunner>.Instance,
+                NullLogger<ListenersRegistryProcessor>.Instance,
                 listenersRegistry: null);
 
-            await runner.Run();
+            await processor.ProcessListeners();
 
             Assert.AreEqual(0, handler.Counter);
         }
@@ -72,16 +72,16 @@ namespace Lykke.RabbitMqBroker.Tests
             var countingHandler = new CountingListenerRegistrationHandler();
             var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
             var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
-            var runner = new ListenersRegistryHandlersRunner(
+            var processor = new ListenersRegistryProcessor(
                 new List<IListenerRegistrationHandler> { nameTracingHandler, countingHandler },
-                NullLogger<ListenersRegistryHandlersRunner>.Instance,
+                NullLogger<ListenersRegistryProcessor>.Instance,
                 listenersRegistry: new ListenersRegistry
                 {
                     registration1,
                     registration2
                 });
 
-            await runner.Run();
+            await processor.ProcessListeners();
 
             CollectionAssert.Contains(nameTracingHandler.HandledRegistrations, registration1.ToString());
             CollectionAssert.Contains(nameTracingHandler.HandledRegistrations, registration2.ToString());
@@ -95,16 +95,16 @@ namespace Lykke.RabbitMqBroker.Tests
             var countingHandler = new CountingListenerRegistrationHandler();
             var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
             var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
-            var runner = new ListenersRegistryHandlersRunner(
+            var processor = new ListenersRegistryProcessor(
                 new List<IListenerRegistrationHandler> { failingHandler, countingHandler },
-                NullLogger<ListenersRegistryHandlersRunner>.Instance,
+                NullLogger<ListenersRegistryProcessor>.Instance,
                 listenersRegistry: new ListenersRegistry
                 {
                     registration1,
                     registration2
                 });
 
-            await runner.Run();
+            await processor.ProcessListeners();
 
             Assert.AreEqual(2, countingHandler.Counter);
         }

@@ -9,6 +9,7 @@ namespace Lykke.RabbitMqBroker
         public string ExchangeName { get; }
         public string QueueName { get; }
         public string RoutingKey { get; }
+        public string MessageRoute => ToString();
 
         public ListenerRegistration(string exchangeName, string queueName, string routingKey = "")
         {
