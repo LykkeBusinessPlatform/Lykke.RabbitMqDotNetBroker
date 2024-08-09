@@ -6,15 +6,18 @@ using Microsoft.Extensions.Hosting;
 
 namespace Lykke.RabbitMqBroker
 {
+    /// <summary>
+    /// 
+    /// </summary>
     internal sealed class ListenersRegistryTimer : BackgroundService
     {
-        private readonly IListenersRegistryHandlersRunner _handlersRunner;
+        private readonly IListenersRegistryProcessor _processor;
         private readonly TimeSpan _interval;
         private readonly static TimeSpan DefaultInterval = TimeSpan.FromMinutes(1);
 
-        public ListenersRegistryTimer(IListenersRegistryHandlersRunner handlersRunner, TimeSpan? interval = null)
+        public ListenersRegistryTimer(IListenersRegistryProcessor processor, TimeSpan? interval = null)
         {
-            _handlersRunner = handlersRunner;
+            _processor = processor;
             _interval = interval ?? DefaultInterval;
         }
 
@@ -22,8 +25,8 @@ namespace Lykke.RabbitMqBroker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await _handlersRunner.Run();
-                await Task.Delay(_interval.Milliseconds, stoppingToken);
+                await _processor.ProcessListeners();
+                await Task.Delay((int)_interval.TotalMilliseconds, stoppingToken);
             }
         }
     }
