@@ -1,5 +1,4 @@
-﻿using Lykke.RabbitMqBroker.Subscriber;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Lykke.RabbitMqBroker.Tests
 {
@@ -14,14 +13,14 @@ namespace Lykke.RabbitMqBroker.Tests
 
             var shortPubSettings = RabbitMqSubscriptionSettings.ForPublisher(connString, endPoint);
 
-            Assert.AreEqual(connString, shortPubSettings.ConnectionString);
-            Assert.Null(shortPubSettings.DeadLetterExchangeName);
-            Assert.AreEqual($"{RabbitMqSubscriptionSettings.LykkeNameSpace}.{endPoint}", shortPubSettings.ExchangeName);
-            Assert.False(shortPubSettings.IsDurable);
-            Assert.Null(shortPubSettings.QueueName);
-            Assert.AreEqual(RabbitMqSubscriptionSettings.DefaultReconnectionDelay, shortPubSettings.ReconnectionDelay);
-            Assert.AreEqual(RabbitMqSubscriptionSettings.DefaultReconnectionsCountToAlarm, shortPubSettings.ReconnectionsCountToAlarm);
-            Assert.AreEqual(string.Empty, shortPubSettings.RoutingKey);
+            Assert.That(connString, Is.EqualTo(shortPubSettings.ConnectionString));
+            Assert.That(shortPubSettings.DeadLetterExchangeName, Is.Null);
+            Assert.That($"{RabbitMqSubscriptionSettings.LykkeNameSpace}.{endPoint}", Is.EqualTo(shortPubSettings.ExchangeName));
+            Assert.That(shortPubSettings.IsDurable, Is.False);
+            Assert.That(shortPubSettings.QueueName, Is.Null);
+            Assert.That(RabbitMqSubscriptionSettings.DefaultReconnectionDelay, Is.EqualTo(shortPubSettings.ReconnectionDelay));
+            Assert.That(RabbitMqSubscriptionSettings.DefaultReconnectionsCountToAlarm, Is.EqualTo(shortPubSettings.ReconnectionsCountToAlarm));
+            Assert.That(string.Empty, Is.EqualTo(shortPubSettings.RoutingKey));
         }
 
         [Test]
@@ -36,14 +35,14 @@ namespace Lykke.RabbitMqBroker.Tests
                 namespace1,
                 endPoint);
 
-            Assert.AreEqual(connString, shortPubSettings.ConnectionString);
-            Assert.Null(shortPubSettings.DeadLetterExchangeName);
-            Assert.AreEqual($"{namespace1}.{endPoint}", shortPubSettings.ExchangeName);
-            Assert.False(shortPubSettings.IsDurable);
-            Assert.Null(shortPubSettings.QueueName);
-            Assert.AreEqual(RabbitMqSubscriptionSettings.DefaultReconnectionDelay, shortPubSettings.ReconnectionDelay);
-            Assert.AreEqual(RabbitMqSubscriptionSettings.DefaultReconnectionsCountToAlarm, shortPubSettings.ReconnectionsCountToAlarm);
-            Assert.AreEqual(string.Empty, shortPubSettings.RoutingKey);
+            Assert.That(connString, Is.EqualTo(shortPubSettings.ConnectionString));
+            Assert.That(shortPubSettings.DeadLetterExchangeName, Is.Null);
+            Assert.That($"{namespace1}.{endPoint}", Is.EqualTo(shortPubSettings.ExchangeName));
+            Assert.That(shortPubSettings.IsDurable, Is.False);
+            Assert.That(shortPubSettings.QueueName, Is.Null);
+            Assert.That(RabbitMqSubscriptionSettings.DefaultReconnectionDelay, Is.EqualTo(shortPubSettings.ReconnectionDelay));
+            Assert.That(RabbitMqSubscriptionSettings.DefaultReconnectionsCountToAlarm, Is.EqualTo(shortPubSettings.ReconnectionsCountToAlarm));
+            Assert.That(string.Empty, Is.EqualTo(shortPubSettings.RoutingKey));
         }
 
         [Test]
@@ -57,7 +56,7 @@ namespace Lykke.RabbitMqBroker.Tests
                 namespace1,
                 endPoint);
 
-            Assert.AreEqual(endPoint, shortPubSettings.ExchangeName);
+            Assert.That(endPoint, Is.EqualTo(shortPubSettings.ExchangeName));
         }
 
         [Test]
@@ -71,7 +70,7 @@ namespace Lykke.RabbitMqBroker.Tests
                 namespace1,
                 endPoint);
 
-            Assert.AreEqual($"{namespace1}.{endPoint}", shortPubSettings.ExchangeName);
+            Assert.That($"{namespace1}.{endPoint}", Is.EqualTo(shortPubSettings.ExchangeName));
         }
 
         [Test]
@@ -86,14 +85,14 @@ namespace Lykke.RabbitMqBroker.Tests
                 source,
                 endPoint);
 
-            Assert.AreEqual(connString, shortPubSettings.ConnectionString);
-            Assert.AreEqual($"{RabbitMqSubscriptionSettings.LykkeNameSpace}.{endPoint}.{source}.dlx", shortPubSettings.DeadLetterExchangeName);
-            Assert.AreEqual($"{RabbitMqSubscriptionSettings.LykkeNameSpace}.{source}", shortPubSettings.ExchangeName);
-            Assert.False(shortPubSettings.IsDurable);
-            Assert.AreEqual($"{RabbitMqSubscriptionSettings.LykkeNameSpace}.{source}.{endPoint}", shortPubSettings.QueueName);
-            Assert.AreEqual(RabbitMqSubscriptionSettings.DefaultReconnectionDelay, shortPubSettings.ReconnectionDelay);
-            Assert.AreEqual(RabbitMqSubscriptionSettings.DefaultReconnectionsCountToAlarm, shortPubSettings.ReconnectionsCountToAlarm);
-            Assert.AreEqual(string.Empty, shortPubSettings.RoutingKey);
+            Assert.That(connString, Is.EqualTo(shortPubSettings.ConnectionString));
+            Assert.That($"{RabbitMqSubscriptionSettings.LykkeNameSpace}.{endPoint}.{source}.dlx", Is.EqualTo(shortPubSettings.DeadLetterExchangeName));
+            Assert.That($"{RabbitMqSubscriptionSettings.LykkeNameSpace}.{source}", Is.EqualTo(shortPubSettings.ExchangeName));
+            Assert.That(shortPubSettings.IsDurable, Is.False);
+            Assert.That($"{RabbitMqSubscriptionSettings.LykkeNameSpace}.{source}.{endPoint}", Is.EqualTo(shortPubSettings.QueueName));
+            Assert.That(RabbitMqSubscriptionSettings.DefaultReconnectionDelay, Is.EqualTo(shortPubSettings.ReconnectionDelay));
+            Assert.That(RabbitMqSubscriptionSettings.DefaultReconnectionsCountToAlarm, Is.EqualTo(shortPubSettings.ReconnectionsCountToAlarm));
+            Assert.That(string.Empty, Is.EqualTo(shortPubSettings.RoutingKey));
         }
 
         [Test]
@@ -112,14 +111,14 @@ namespace Lykke.RabbitMqBroker.Tests
                 endpointNamespace,
                 endPoint);
 
-            Assert.AreEqual(connString, shortPubSettings.ConnectionString);
-            Assert.AreEqual($"{endpointNamespace}.{endPoint}.{source}.dlx", shortPubSettings.DeadLetterExchangeName);
-            Assert.AreEqual($"{sourceNamespace}.{source}", shortPubSettings.ExchangeName);
-            Assert.False(shortPubSettings.IsDurable);
-            Assert.AreEqual($"{sourceNamespace}.{source}.{endPoint}", shortPubSettings.QueueName);
-            Assert.AreEqual(RabbitMqSubscriptionSettings.DefaultReconnectionDelay, shortPubSettings.ReconnectionDelay);
-            Assert.AreEqual(RabbitMqSubscriptionSettings.DefaultReconnectionsCountToAlarm, shortPubSettings.ReconnectionsCountToAlarm);
-            Assert.AreEqual(string.Empty, shortPubSettings.RoutingKey);
+            Assert.That(connString, Is.EqualTo(shortPubSettings.ConnectionString));
+            Assert.That($"{endpointNamespace}.{endPoint}.{source}.dlx", Is.EqualTo(shortPubSettings.DeadLetterExchangeName));
+            Assert.That($"{sourceNamespace}.{source}", Is.EqualTo(shortPubSettings.ExchangeName));
+            Assert.That(shortPubSettings.IsDurable, Is.False);
+            Assert.That($"{sourceNamespace}.{source}.{endPoint}", Is.EqualTo(shortPubSettings.QueueName));
+            Assert.That(RabbitMqSubscriptionSettings.DefaultReconnectionDelay, Is.EqualTo(shortPubSettings.ReconnectionDelay));
+            Assert.That(RabbitMqSubscriptionSettings.DefaultReconnectionsCountToAlarm, Is.EqualTo(shortPubSettings.ReconnectionsCountToAlarm));
+            Assert.That(string.Empty, Is.EqualTo(shortPubSettings.RoutingKey));
         }
 
         [Test]
@@ -137,9 +136,9 @@ namespace Lykke.RabbitMqBroker.Tests
                 endpointNamespace,
                 endPoint);
 
-            Assert.AreEqual($"{endPoint}.{source}.dlx", shortPubSettings.DeadLetterExchangeName);
-            Assert.AreEqual($"{source}", shortPubSettings.ExchangeName);
-            Assert.AreEqual($"{source}.{endPoint}", shortPubSettings.QueueName);
+            Assert.That($"{endPoint}.{source}.dlx", Is.EqualTo(shortPubSettings.DeadLetterExchangeName));
+            Assert.That($"{source}", Is.EqualTo(shortPubSettings.ExchangeName));
+            Assert.That($"{source}.{endPoint}", Is.EqualTo(shortPubSettings.QueueName));
         }
 
         [Test]
@@ -157,9 +156,9 @@ namespace Lykke.RabbitMqBroker.Tests
                 endpointNamespace,
                 endPoint);
 
-            Assert.AreEqual($"{endpointNamespace}.{endPoint}.{source}.dlx", shortPubSettings.DeadLetterExchangeName);
-            Assert.AreEqual($"{sourceNamespace}.{source}", shortPubSettings.ExchangeName);
-            Assert.AreEqual($"{sourceNamespace}.{source}.{endPoint}", shortPubSettings.QueueName);
+            Assert.That($"{endpointNamespace}.{endPoint}.{source}.dlx", Is.EqualTo(shortPubSettings.DeadLetterExchangeName));
+            Assert.That($"{sourceNamespace}.{source}", Is.EqualTo(shortPubSettings.ExchangeName));
+            Assert.That($"{sourceNamespace}.{source}.{endPoint}", Is.EqualTo(shortPubSettings.QueueName));
         }
     }
 }

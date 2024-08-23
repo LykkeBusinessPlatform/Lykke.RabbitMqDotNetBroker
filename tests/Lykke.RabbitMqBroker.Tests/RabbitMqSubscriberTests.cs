@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.Deserializers;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 using Lykke.RabbitMqBroker.Tests.Fakes;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+
 using NSubstitute;
+
 using NUnit.Framework;
 
 namespace Lykke.RabbitMqBroker.Tests
@@ -32,13 +36,13 @@ namespace Lykke.RabbitMqBroker.Tests
             _connection = new FakeConnection();
             _subscriber = new RabbitMqSubscriber<StubMessage>(_logger, _settings, _connection);
         }
-        
+
         [Test]
         public void Test_SetMessageDeserializer_ShouldSetDeserializer()
         {
             _messageDeserializer = Substitute.For<IMessageDeserializer<StubMessage>>();
             _subscriber.SetMessageDeserializer(_messageDeserializer);
-            Assert.AreEqual(_subscriber.MessageDeserializer, _messageDeserializer);
+            Assert.That(_subscriber.MessageDeserializer, Is.EqualTo(_messageDeserializer));
         }
 
         [Test]
@@ -46,7 +50,7 @@ namespace Lykke.RabbitMqBroker.Tests
         {
             _eventHandler = Substitute.For<Func<StubMessage, Task>>();
             _subscriber.Subscribe(_eventHandler);
-            Assert.AreEqual(_subscriber.EventHandler, _eventHandler);
+            Assert.That(_subscriber.EventHandler, Is.EqualTo(_eventHandler));
         }
 
         [Test]
@@ -54,7 +58,7 @@ namespace Lykke.RabbitMqBroker.Tests
         {
             _cancellableEventHandler = Substitute.For<Func<StubMessage, CancellationToken, Task>>();
             _subscriber.Subscribe(_cancellableEventHandler);
-            Assert.AreEqual(_subscriber.CancellableEventHandler, _cancellableEventHandler);
+            Assert.That(_subscriber.CancellableEventHandler, Is.EqualTo(_cancellableEventHandler));
         }
 
         [Test]
@@ -62,15 +66,15 @@ namespace Lykke.RabbitMqBroker.Tests
         {
             _messageReadStrategy = Substitute.For<IMessageReadStrategy>();
             _subscriber.SetMessageReadStrategy(_messageReadStrategy);
-            Assert.AreEqual(_subscriber.MessageReadStrategy, _messageReadStrategy);
+            Assert.That(_subscriber.MessageReadStrategy, Is.EqualTo(_messageReadStrategy));
         }
-        
+
         [Test]
         public void Test_Start_ShouldThrowException_WhenNoMessageDeserializer()
         {
             Assert.Throws<InvalidOperationException>(() => _subscriber.Start());
         }
-        
+
         [Test]
         public void Test_Start_ShouldThrowException_WhenNoHandler()
         {
@@ -89,15 +93,15 @@ namespace Lykke.RabbitMqBroker.Tests
                 .Subscribe(_eventHandler);
 
             _subscriber.Start();
-            
-            Assert.NotNull(_subscriber.MessageReadStrategy);
+
+            Assert.That(_subscriber.MessageReadStrategy, Is.Not.Null);
         }
-        
+
         [Test]
         public void Test_Start_ShouldConfigureChannelPrefetch_WhenPrefetchCountIsSet()
         {
             ushort prefetchCount = 10;
-            
+
             _messageDeserializer = Substitute.For<IMessageDeserializer<StubMessage>>();
             _eventHandler = Substitute.For<Func<StubMessage, Task>>();
             _subscriber
@@ -106,8 +110,8 @@ namespace Lykke.RabbitMqBroker.Tests
                 .Subscribe(_eventHandler);
 
             _subscriber.Start();
-            
-            Assert.AreEqual(prefetchCount, _connection.LatestChannel.PrefetchCount);
+
+            Assert.That(prefetchCount, Is.EqualTo(_connection.LatestChannel.PrefetchCount));
         }
     }
 }
