@@ -28,7 +28,7 @@ namespace Lykke.RabbitMqBroker
 
         public Task Handle(IListenerRegistration registration)
         {
-            using var connection = CreateConnection();
+            var connection = CreateConnection();
             using var channel = CreateChannel(connection);
             var properties = _propertiesFactory.Create(channel, registration.MessageRoute);
             channel.BasicPublish(

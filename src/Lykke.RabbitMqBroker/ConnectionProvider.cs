@@ -16,7 +16,9 @@ namespace Lykke.RabbitMqBroker
     /// When a shared connection is requested, it is created once and reused for
     /// all subsequent requests with the same connection string.
     /// When an exclusive connection is requested, a new connection is created each time.
-    /// Takes care of attaching and detaching event handlers to connections to log connection events.
+    /// Takes care of attaching and detaching event handlers to connections to log connection events
+    /// as well as manages lifetime of connections.
+    /// Connections obtained from this provider should not be disposed manually.
     /// </summary>
     public sealed class ConnectionProvider : IConnectionProvider
     {
