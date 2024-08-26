@@ -20,8 +20,6 @@
     <PackageReference Include="NUnit" Version="4.2.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
     <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
-    <PackageReference Include="coverlet.msbuild" Version="6.0.2" />
-    <PackageReference Include="coverlet.collector" Version="6.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lykke.RabbitMqBroker\Lykke.RabbitMqBroker.csproj" />

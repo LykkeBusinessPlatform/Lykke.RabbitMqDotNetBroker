@@ -62,7 +62,7 @@ namespace Lykke.RabbitMqBroker.Tests
 
             await processor.ProcessListeners();
 
-            Assert.AreEqual(0, handler.Counter);
+            Assert.That(handler.Counter, Is.EqualTo(0));
         }
 
         [Test]
@@ -83,9 +83,9 @@ namespace Lykke.RabbitMqBroker.Tests
 
             await processor.ProcessListeners();
 
-            CollectionAssert.Contains(nameTracingHandler.HandledRegistrations, registration1.ToString());
-            CollectionAssert.Contains(nameTracingHandler.HandledRegistrations, registration2.ToString());
-            Assert.AreEqual(2, countingHandler.Counter);
+            Assert.That(nameTracingHandler.HandledRegistrations, Contains.Item(registration1.ToString()));
+            Assert.That(nameTracingHandler.HandledRegistrations, Contains.Item(registration2.ToString()));
+            Assert.That(countingHandler.Counter, Is.EqualTo(2));
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace Lykke.RabbitMqBroker.Tests
 
             await processor.ProcessListeners();
 
-            Assert.AreEqual(2, countingHandler.Counter);
+            Assert.That(countingHandler.Counter, Is.EqualTo(2));
         }
     }
 }
