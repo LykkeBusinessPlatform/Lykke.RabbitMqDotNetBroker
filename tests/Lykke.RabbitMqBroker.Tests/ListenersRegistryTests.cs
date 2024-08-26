@@ -23,7 +23,7 @@ namespace Lykke.RabbitMqBroker.Tests
 
             var added = registry.Add(registration);
 
-            Assert.That(registry, Does.Contain(registration));
+            Assert.That(registry, Contains.Item(registration));
             Assert.That(added);
         }
 
@@ -50,9 +50,8 @@ namespace Lykke.RabbitMqBroker.Tests
             registry.Add(registration1);
             registry.Add(registration2);
 
-            Assert.That(registry, Does.Contain(registration1));
-            Assert.That(registry, Does.Contain(registration2));
+            Assert.That(registry, Contains.Item(registration1));
+            Assert.That(registry, Contains.Item(registration2));
         }
     }
-
 }
