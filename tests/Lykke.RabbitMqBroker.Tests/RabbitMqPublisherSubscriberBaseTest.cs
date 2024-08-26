@@ -6,11 +6,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+
+
 using JetBrains.Annotations;
-using Lykke.RabbitMqBroker.Logging;
+
+
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Publisher.Serializers;
+
+
 using NUnit.Framework;
+
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Tests
@@ -50,7 +57,7 @@ namespace Lykke.RabbitMqBroker.Tests
                 RoutingKey = "RoutingKey"
             };
 
-            _factory = new ConnectionFactory {Uri = new Uri(RabbitConnectionString, UriKind.Absolute)};
+            _factory = new ConnectionFactory { Uri = new Uri(RabbitConnectionString, UriKind.Absolute) };
 
             EnsureRabbitInstalledAndRun();
         }
@@ -150,11 +157,11 @@ namespace Lykke.RabbitMqBroker.Tests
             {
                 _buffer.Dequeue(cancellationToken);
             }
-            
+
             [CanBeNull]
             public RawMessage WaitOneAndPeek(CancellationToken cancellationToken)
             {
-                Gate.Wait( cancellationToken);
+                Gate.Wait(cancellationToken);
                 return _buffer.WaitOneAndPeek(cancellationToken);
             }
         }

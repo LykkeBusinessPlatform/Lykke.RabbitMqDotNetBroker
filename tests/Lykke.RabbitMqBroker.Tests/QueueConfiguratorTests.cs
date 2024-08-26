@@ -1,5 +1,8 @@
+using System.Runtime;
+
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 using Lykke.RabbitMqBroker.Tests.Fakes;
+
 using NUnit.Framework;
 
 namespace Lykke.RabbitMqBroker.Tests;
@@ -19,11 +22,11 @@ public class QueueConfiguratorTests
         var channel = new QueueConfiguratorFakeChannel();
         var result = QueueConfigurator.Configure(channel, options);
 
-        Assert.AreEqual(options.QueueName, result.QueueName);
-        CollectionAssert.DoesNotContain(channel.DeclaredExchanges, options.ExchangeName);
-        CollectionAssert.Contains(channel.DeclaredQueues, result.QueueName);
+        Assert.That(options.QueueName, Is.EqualTo(result.QueueName));
+        Assert.That(channel.DeclaredExchanges, Does.Not.Contain(options.ExchangeName));
+        Assert.That(channel.DeclaredQueues, Does.Contain(options.QueueName));
     }
-    
+
     [Test]
     public void When_Dead_Letter_Exchange_Name_Is_Not_Empty_Should_Configure_Dead_Lettering()
     {
@@ -37,10 +40,10 @@ public class QueueConfiguratorTests
         var channel = new QueueConfiguratorFakeChannel();
         QueueConfigurator.Configure(channel, options);
 
-        CollectionAssert.Contains(channel.DeclaredExchanges, options.DeadLetterExchangeName);
-        CollectionAssert.Contains(channel.DeclaredQueues, options.QueueName.GetPoisonQueueName());
+        Assert.That(channel.DeclaredExchanges, Does.Contain(options.DeadLetterExchangeName));
+        Assert.That(channel.DeclaredQueues, Does.Contain(options.QueueName.GetPoisonQueueName()));
     }
-    
+
     [TestCase("")]
     [TestCase(" ")]
     [TestCase(null)]
@@ -56,8 +59,8 @@ public class QueueConfiguratorTests
         var channel = new QueueConfiguratorFakeChannel();
         QueueConfigurator.Configure(channel, options);
 
-        CollectionAssert.DoesNotContain(channel.DeclaredExchanges, options.DeadLetterExchangeName);
-        CollectionAssert.DoesNotContain(channel.DeclaredQueues, options.QueueName.GetPoisonQueueName());
+        Assert.That(channel.DeclaredExchanges, Does.Not.Contain(options.DeadLetterExchangeName));
+        Assert.That(channel.DeclaredQueues, Does.Not.Contain(options.QueueName.GetPoisonQueueName()));
     }
 
     [Test]
@@ -69,11 +72,11 @@ public class QueueConfiguratorTests
             DeadLetterExchangeName = "dlx",
             QueueName = "q"
         };
-        
+
         var channel = new QueueConfiguratorFakeChannel();
         var result = QueueConfigurator.Configure(channel, options);
-        
+
         channel.DeclaredQueuesArguments.TryGetValue(result.QueueName, out var args);
-        Assert.AreEqual("dlx", args?["x-dead-letter-exchange"]);
+        Assert.That("dlx", Is.EqualTo(args?["x-dead-letter-exchange"]));
     }
 }

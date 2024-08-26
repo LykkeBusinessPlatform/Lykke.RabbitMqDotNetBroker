@@ -37,7 +37,7 @@ public class ConsumerCountTests
     public void ImplicitConversion_FromByte_ShouldSetProperValue(byte value)
     {
         ConsumerCount consumerCount = value;
-        Assert.AreEqual(value, consumerCount.Value);
+        Assert.That(value, Is.EqualTo(consumerCount.Value));
     }
 
     [TestCase(1)]
@@ -45,7 +45,7 @@ public class ConsumerCountTests
     public void ImplicitConversion_FromInt_ShouldSetProperValue(int value)
     {
         ConsumerCount consumerCount = value;
-        Assert.AreEqual(value, consumerCount.Value);
+        Assert.That(value, Is.EqualTo(consumerCount.Value));
     }
 
     [TestCase("1")]
@@ -53,7 +53,7 @@ public class ConsumerCountTests
     public void ImplicitConversion_FromString_ShouldSetProperValue(string value)
     {
         ConsumerCount consumerCount = value;
-        Assert.AreEqual(int.Parse(value), consumerCount.Value);
+        Assert.That(int.Parse(value), Is.EqualTo(consumerCount.Value));
     }
 
     [TestCase("invalid")]
@@ -70,7 +70,7 @@ public class ConsumerCountTests
     public void ImplicitConversion_FromDecimal_ShouldSetProperValue(decimal value)
     {
         ConsumerCount consumerCount = value;
-        Assert.AreEqual((int)value, consumerCount.Value);
+        Assert.That((int)value, Is.EqualTo(consumerCount.Value));
     }
 
     [Test]
@@ -78,7 +78,7 @@ public class ConsumerCountTests
     {
         ConsumerCount consumerCount = 100;
         int intValue = consumerCount;
-        Assert.AreEqual(100, intValue);
+        Assert.That(100, Is.EqualTo(intValue));
     }
 
     [Test]
@@ -86,16 +86,16 @@ public class ConsumerCountTests
     {
         ConsumerCount consumerCount = 100;
         byte byteValue = consumerCount;
-        Assert.AreEqual(100, byteValue);
+        Assert.That(100, Is.EqualTo(byteValue));
     }
 
     [Test]
     public void DefaultProperty_ShouldReturnConsumerCountOfOne()
     {
         var defaultConsumerCount = ConsumerCount.Default;
-        Assert.AreEqual(1, defaultConsumerCount.Value);
+        Assert.That(1, Is.EqualTo(defaultConsumerCount.Value));
     }
-    
+
     [TestCase(1)]
     [TestCase(255)]
     [TestCase(100)]
@@ -103,9 +103,9 @@ public class ConsumerCountTests
     {
         ConsumerCount consumerCount = value;
         string result = consumerCount.ToString();
-        Assert.AreEqual(value.ToString(), result);
+        Assert.That(value.ToString(), Is.EqualTo(result));
     }
-    
+
     [Test]
     public void GetEnumerator_ShouldReturnCorrectSequence()
     {
@@ -113,7 +113,7 @@ public class ConsumerCountTests
         var expectedValues = new[] { 1, 2, 3, 4, 5 };
         var actualValues = consumerCount.ToList();
 
-        CollectionAssert.AreEqual(expectedValues, actualValues);
+        Assert.That(expectedValues, Is.EqualTo(actualValues));
     }
 
     [TestCase(1, 2)]
@@ -122,7 +122,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.Less(count1.CompareTo(count2), 0);
+        Assert.That(count1.CompareTo(count2), Is.LessThan(0));
     }
 
     [TestCase(2, 1)]
@@ -131,7 +131,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.Greater(count1.CompareTo(count2), 0);
+        Assert.That(count1.CompareTo(count2), Is.GreaterThan(0));
     }
 
     [TestCase(1)]
@@ -141,7 +141,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value };
         var count2 = new ConsumerCount { Value = value };
-        Assert.AreEqual(0, count1.CompareTo(count2));
+        Assert.That(0, Is.EqualTo(count1.CompareTo(count2)));
     }
 
     [TestCase(1, 2)]
@@ -150,7 +150,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.IsTrue(count1 < count2);
+        Assert.That(count1 < count2);
     }
 
     [TestCase(2, 1)]
@@ -159,7 +159,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.IsTrue(count1 > count2);
+        Assert.That(count1 > count2);
     }
 
     [TestCase(1)]
@@ -169,7 +169,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value };
         var count2 = new ConsumerCount { Value = value };
-        Assert.IsTrue(count1.Equals(count2));
+        Assert.That(count1, Is.EqualTo(count2));
     }
 
     [TestCase(1, 2)]
@@ -178,7 +178,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.IsFalse(count1.Equals(count2));
+        Assert.That(count1, Is.Not.EqualTo(count2));
     }
 
     [Test]
@@ -186,9 +186,9 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = 100 };
         var count2 = new ConsumerCount { Value = 100 };
-        Assert.AreEqual(count1.GetHashCode(), count2.GetHashCode());
+        Assert.That(count1.GetHashCode(), Is.EqualTo(count2.GetHashCode()));
     }
-    
+
     [TestCase(1, 2)]
     [TestCase(100, 255)]
     [TestCase(100, 100)]
@@ -196,7 +196,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.IsTrue(count1 <= count2);
+        Assert.That(count1 <= count2);
     }
 
     [TestCase(2, 1)]
@@ -205,7 +205,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.IsFalse(count1 <= count2);
+        Assert.That(count1 > count2);
     }
 
     [TestCase(2, 1)]
@@ -215,7 +215,7 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.IsTrue(count1 >= count2);
+        Assert.That(count1 >= count2);
     }
 
     [TestCase(1, 2)]
@@ -224,6 +224,6 @@ public class ConsumerCountTests
     {
         var count1 = new ConsumerCount { Value = value1 };
         var count2 = new ConsumerCount { Value = value2 };
-        Assert.IsFalse(count1 >= count2);
+        Assert.That(count1 < count2);
     }
 }
