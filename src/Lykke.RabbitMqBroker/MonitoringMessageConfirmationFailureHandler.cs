@@ -24,7 +24,7 @@ namespace Lykke.RabbitMqBroker
             }
             catch (OperationInterruptedException ex)
             {
-                throw new InvalidOperationException($"Failed to confirm sending monitoring message: {ex.Message}");
+                throw new InvalidOperationException($"Failed to confirm sending monitoring message: {ex.Message}", ex);
             }
             return Task.CompletedTask;
         }
