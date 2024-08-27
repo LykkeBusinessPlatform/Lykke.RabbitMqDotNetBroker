@@ -41,10 +41,13 @@ namespace Lykke.RabbitMqBroker
         {
             services.AddSingleton(configuration);
             services.AddSingleton<IMonitoringMessagePropertiesFactory, MonitoringMessagePropertiesFactory>();
+            services.AddSingleton<IMonitoringMessageChannelProvider, MonitoringMessageChannelProvider>(
+                p => new MonitoringMessageChannelProvider(
+                    p.GetRequiredService<IConnectionProvider>(),
+                    connectionString));
             services.AddSingleton(p => new MonitoringMessageSender(
-                        p.GetRequiredService<IConnectionProvider>(),
+                        p.GetRequiredService<IMonitoringMessageChannelProvider>(),
                         p.GetRequiredService<IMonitoringMessagePropertiesFactory>(),
-                        connectionString,
                         TimeSpan.FromMilliseconds(configuration.PublishConfirmationWaitTimeoutMs)));
             services.AddSingleton<IListenerRegistrationHandler>(p =>
                 new MonitoringMessageConfirmationFailureHandler(
@@ -93,6 +96,11 @@ namespace Lykke.RabbitMqBroker
 
             builder.RegisterType<MonitoringMessagePropertiesFactory>()
                 .As<IMonitoringMessagePropertiesFactory>()
+                .SingleInstance();
+
+            builder.RegisterType<MonitoringMessageChannelProvider>()
+                .As<IMonitoringMessageChannelProvider>()
+                .WithParameter(TypedParameter.From(connectionString))
                 .SingleInstance();
 
             builder.RegisterType<MonitoringMessageSender>()
