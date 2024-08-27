@@ -38,4 +38,7 @@
     <PackageReference Include="protobuf-net" Version="2.3.13" />
     <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lykke.RabbitMqBroker.Abstractions\Lykke.RabbitMqBroker.Abstractions.csproj" />
+  </ItemGroup>
 </Project>
