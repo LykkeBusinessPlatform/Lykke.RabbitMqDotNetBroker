@@ -7,17 +7,17 @@ using Microsoft.Extensions.Hosting;
 namespace Lykke.RabbitMqBroker
 {
     /// <summary>
-    /// 
+    /// Background service to run <see cref="IListenersRegistryWorker"/> at a specified interval.
     /// </summary>
     internal sealed class ListenersRegistryTimer : BackgroundService
     {
-        private readonly IListenersRegistryProcessor _processor;
+        private readonly IListenersRegistryWorker _worker;
         private readonly TimeSpan _interval;
         private readonly static TimeSpan DefaultInterval = TimeSpan.FromMinutes(1);
 
-        public ListenersRegistryTimer(IListenersRegistryProcessor processor, TimeSpan? interval = null)
+        public ListenersRegistryTimer(IListenersRegistryWorker worker, TimeSpan? interval = null)
         {
-            _processor = processor;
+            _worker = worker;
             _interval = interval ?? DefaultInterval;
         }
 
@@ -25,7 +25,7 @@ namespace Lykke.RabbitMqBroker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await _processor.ProcessListeners();
+                await _worker.Execute();
                 await Task.Delay((int)_interval.TotalMilliseconds, stoppingToken);
             }
         }

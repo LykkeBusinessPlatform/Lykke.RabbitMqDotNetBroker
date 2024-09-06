@@ -2,6 +2,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker
@@ -23,6 +24,11 @@ namespace Lykke.RabbitMqBroker
                 ClientProvidedName = displayName
             };
 
+            // todo: improve here since according to documentation:
+            // "If initial client connection to a RabbitMQ node fails, 
+            // automatic connection recovery won't kick in. 
+            // Applications developers are responsible for retrying such connections".
+            // https://www.rabbitmq.com/client-libraries/dotnet-api-guide#recovery-triggers
             return factory.CreateConnection() as IAutorecoveringConnection;
         }
     }

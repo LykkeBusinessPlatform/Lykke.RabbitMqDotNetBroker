@@ -46,7 +46,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         /// </summary>
         /// <param name="connectionProvider">Rabbit MQ connection provider</param>
         /// <param name="subscriptionSettings">Subscription configuration</param>
-        /// <param name="optionsAccessor">Subscription template configuration</param>
+        /// <param name="optionsAccessor">Listener options</param>
         /// <param name="configureSubscriber">Low-level subscriber configuration callback</param>
         /// <param name="handlers">Message handlers</param>
         /// <param name="loggerFactory"></param>

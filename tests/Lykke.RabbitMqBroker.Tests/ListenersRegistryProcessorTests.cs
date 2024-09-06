@@ -55,12 +55,12 @@ namespace Lykke.RabbitMqBroker.Tests
         public async Task When_ListenersRegistry_NotProvided_SkipsHandling()
         {
             var handler = new CountingListenerRegistrationHandler();
-            var processor = new ListenersRegistryProcessor(
+            var processor = new ListenersRegistryWorker(
                 new List<IListenerRegistrationHandler> { handler },
-                NullLogger<ListenersRegistryProcessor>.Instance,
+                NullLogger<ListenersRegistryWorker>.Instance,
                 listenersRegistry: null);
 
-            await processor.ProcessListeners();
+            await processor.Execute();
 
             Assert.That(handler.Counter, Is.EqualTo(0));
         }
@@ -72,16 +72,16 @@ namespace Lykke.RabbitMqBroker.Tests
             var countingHandler = new CountingListenerRegistrationHandler();
             var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
             var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
-            var processor = new ListenersRegistryProcessor(
+            var processor = new ListenersRegistryWorker(
                 new List<IListenerRegistrationHandler> { nameTracingHandler, countingHandler },
-                NullLogger<ListenersRegistryProcessor>.Instance,
+                NullLogger<ListenersRegistryWorker>.Instance,
                 listenersRegistry: new ListenersRegistry
                 {
                     registration1,
                     registration2
                 });
 
-            await processor.ProcessListeners();
+            await processor.Execute();
 
             Assert.That(nameTracingHandler.HandledRegistrations, Contains.Item(registration1.ToString()));
             Assert.That(nameTracingHandler.HandledRegistrations, Contains.Item(registration2.ToString()));
@@ -95,16 +95,16 @@ namespace Lykke.RabbitMqBroker.Tests
             var countingHandler = new CountingListenerRegistrationHandler();
             var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
             var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
-            var processor = new ListenersRegistryProcessor(
+            var processor = new ListenersRegistryWorker(
                 new List<IListenerRegistrationHandler> { failingHandler, countingHandler },
-                NullLogger<ListenersRegistryProcessor>.Instance,
+                NullLogger<ListenersRegistryWorker>.Instance,
                 listenersRegistry: new ListenersRegistry
                 {
                     registration1,
                     registration2
                 });
 
-            await processor.ProcessListeners();
+            await processor.Execute();
 
             Assert.That(countingHandler.Counter, Is.EqualTo(2));
         }

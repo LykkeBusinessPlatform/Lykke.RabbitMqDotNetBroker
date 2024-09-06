@@ -27,12 +27,12 @@ await builder
     .ConfigureServices((ctx, services) =>
     {
         services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        services.AddRabbitMq();
-
         var configuration = new RabbitMqConfiguration();
         ctx.Configuration.GetSection("RabbitMq").Bind(configuration);
+        services.AddRabbitMq(configuration);
+
         var connectionString = ctx.Configuration.GetConnectionString("RabbitMq");
-        services.AddRabbitMqMonitoring(configuration.Monitoring, connectionString);
+        services.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage>(configuration.Monitoring, connectionString);
         services.AddSingleton<RandomPrefetchCountGenerator>();
 
         // Add Mars messages listener
@@ -45,59 +45,59 @@ await builder
             .AddOptions(RabbitMqListenerOptions<MarsMessage>.Json.NoLoss)
             .AutoStart();
 
-        // // Add Jupiter messages listener with additional messages handler
-        // var jupiterSubscriptionSettings = ctx
-        //     .Configuration
-        //     .GetSection("JupiterSubscription")
-        //     .Get<RabbitMqSubscriptionSettings>();
-        // services
-        //     .AddRabbitMqListener<JupiterMessage, JupiterMessageHandler>(jupiterSubscriptionSettings)
-        //     .AddMessageHandler<AnotherJupiterMessageHandler>()
-        //     .AddOptions(RabbitMqListenerOptions<JupiterMessage>.Json.LossAcceptable)
-        //     .AutoStart();
+        // Add Jupiter messages listener with additional messages handler
+        var jupiterSubscriptionSettings = ctx
+            .Configuration
+            .GetSection("JupiterSubscription")
+            .Get<RabbitMqSubscriptionSettings>();
+        services
+            .AddRabbitMqListener<JupiterMessage, JupiterMessageHandler>(jupiterSubscriptionSettings)
+            .AddMessageHandler<AnotherJupiterMessageHandler>()
+            .AddOptions(RabbitMqListenerOptions<JupiterMessage>.Json.LossAcceptable)
+            .AutoStart();
 
-        // // empty options, defaults will be used
-        // var venusSubscriptionSettings = ctx
-        //     .Configuration
-        //     .GetSection("VenusSubscription")
-        //     .Get<RabbitMqSubscriptionSettings>();
-        // services.AddRabbitMqListener<VenusMessage, VenusMessageHandler>(venusSubscriptionSettings)
-        //     .AddOptions(_ => { })
-        //     .AutoStart();
+        // empty options, defaults will be used
+        var venusSubscriptionSettings = ctx
+            .Configuration
+            .GetSection("VenusSubscription")
+            .Get<RabbitMqSubscriptionSettings>();
+        services.AddRabbitMqListener<VenusMessage, VenusMessageHandler>(venusSubscriptionSettings)
+            .AddOptions(_ => { })
+            .AutoStart();
 
-        // // subscriber additional manual re-configuration example
-        // var mercurySubscriptionSettings = ctx
-        //     .Configuration
-        //     .GetSection("MercurySubscription")
-        //     .Get<RabbitMqSubscriptionSettings>();
-        // services.AddRabbitMqListener<MercuryMessage, MercuryMessageHandler>(
-        //         mercurySubscriptionSettings,
-        //         (s, p) =>
-        //             s.SetPrefetchCount(p.GetService<RandomPrefetchCountGenerator>()?.Generate() ?? 1)
-        //         //.UseMiddleware()
-        //         //.SetReadHeadersAction())
-        //         // ...
-        //     )
-        //     .AddOptions(_ => { })
-        //     .AutoStart();
+        // subscriber additional manual re-configuration example
+        var mercurySubscriptionSettings = ctx
+            .Configuration
+            .GetSection("MercurySubscription")
+            .Get<RabbitMqSubscriptionSettings>();
+        services.AddRabbitMqListener<MercuryMessage, MercuryMessageHandler>(
+                mercurySubscriptionSettings,
+                (s, p) =>
+                    s.SetPrefetchCount(p.GetService<RandomPrefetchCountGenerator>()?.Generate() ?? 1)
+                //.UseMiddleware()
+                //.SetReadHeadersAction())
+                // ...
+            )
+            .AddOptions(_ => { })
+            .AutoStart();
 
-        // // Multiple subscribers example
-        // var plutoSubscriptionSettings = ctx
-        //     .Configuration
-        //     .GetSection("PlutoSubscription")
-        //     .Get<RabbitMqSubscriptionSettings>();
-        // services.AddRabbitMqListener<PlutoMessage, PlutoMessageHandler>(plutoSubscriptionSettings)
-        //     .AddOptions(
-        //         opt =>
-        //         {
-        //             opt.SerializationFormat = SerializationFormat.Json;
-        //             opt.ShareConnection = true;
-        //             opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
-        //             opt.ConsumerCount = 5;
-        //         })
-        //     .AutoStart();
+        // Multiple subscribers example
+        var plutoSubscriptionSettings = ctx
+            .Configuration
+            .GetSection("PlutoSubscription")
+            .Get<RabbitMqSubscriptionSettings>();
+        services.AddRabbitMqListener<PlutoMessage, PlutoMessageHandler>(plutoSubscriptionSettings)
+            .AddOptions(
+                opt =>
+                {
+                    opt.SerializationFormat = SerializationFormat.Json;
+                    opt.ShareConnection = true;
+                    opt.SubscriptionTemplate = SubscriptionTemplate.LossAcceptable;
+                    opt.ConsumerCount = 5;
+                })
+            .AutoStart();
 
-        // services.AddHostedService<ListenerRegistryLogger>();
+        services.AddHostedService<ListenerRegistryLogger>();
     })
     .RunConsoleAsync();
 
@@ -115,7 +115,13 @@ await builder
 //     })
 //     .ConfigureContainer<ContainerBuilder>((ctx, bld) =>
 //     {
-//         bld.AddRabbitMq();
+//         var configuration = new RabbitMqConfiguration();
+//         ctx.Configuration.GetSection("RabbitMq").Bind(configuration);
+//         bld.AddRabbitMq(configuration);
+
+//         var connectionString = ctx.Configuration.GetConnectionString("RabbitMq");
+//         bld.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage>(configuration.Monitoring, connectionString);
+
 //         bld.RegisterType<RandomPrefetchCountGenerator>();
 
 //         // Add Mars messages listener

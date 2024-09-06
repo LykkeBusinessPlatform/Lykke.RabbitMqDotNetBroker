@@ -2,12 +2,15 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System;
+
 using JetBrains.Annotations;
 
 namespace Lykke.RabbitMqBroker
 {
     // TODO: Hide setters, when next breaking changes release will be required
     // the name is confusing, it's not only for subscriptions, but for publishers too
+
+    // TODO: Naming is confuing since it's not only used by subscribers, but by publishers too
     [PublicAPI]
     public sealed class RabbitMqSubscriptionSettings
     {
@@ -197,7 +200,7 @@ namespace Lykke.RabbitMqBroker
 
             return this;
         }
-        
+
         public RabbitMqSubscriptionSettings MakeDurable()
         {
             IsDurable = true;
@@ -221,7 +224,7 @@ namespace Lykke.RabbitMqBroker
                 throw new ArgumentException(
                     $"Buffer type '{bufferType}' is not valid. Allowed values: {string.Join(", ", PublisherBufferTypes.All)}",
                     nameof(bufferType));
-            
+
             BufferType = bufferType;
 
             return this;
