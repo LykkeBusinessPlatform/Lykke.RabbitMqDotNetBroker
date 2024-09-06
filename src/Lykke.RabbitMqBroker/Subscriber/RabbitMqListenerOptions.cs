@@ -6,7 +6,8 @@ namespace Lykke.RabbitMqBroker.Subscriber
     public class RabbitMqListenerOptions<T> where T : class
     {
         /// <summary>
-        /// Instructs the listener to request shared connection instead of creating a new one.
+        /// Instructs the listener to request shared connection if possible instead of creating a new one.
+        /// If there is no shared connection available, a new one will be created.
         /// </summary>
         public bool ShareConnection { get; set; } = true;
 

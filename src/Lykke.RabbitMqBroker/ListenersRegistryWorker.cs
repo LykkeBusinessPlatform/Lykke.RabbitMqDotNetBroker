@@ -8,22 +8,22 @@ namespace Lykke.RabbitMqBroker
 {
 
     /// <summary>
-    /// The listeners registry processor.
+    /// The listeners registry worker.
     /// Iterates over all the registered <see cref="IListenerRegistrationHandler"/>
     /// and calls their <see cref="IListenerRegistrationHandler.Handle"/> method
     /// for every listener registration.
     /// Guarantees that all the handlers will be called for every registration,
     /// even if some of them throw an exception.
     /// </summary>
-    internal sealed class ListenersRegistryProcessor : IListenersRegistryProcessor
+    internal sealed class ListenersRegistryWorker : IListenersRegistryWorker
     {
         private readonly IListenersRegistry _listenersRegistry;
         private readonly IEnumerable<IListenerRegistrationHandler> _handlers;
-        private readonly ILogger<ListenersRegistryProcessor> _logger;
+        private readonly ILogger<ListenersRegistryWorker> _logger;
 
-        public ListenersRegistryProcessor(
+        public ListenersRegistryWorker(
             IEnumerable<IListenerRegistrationHandler> handlers,
-            ILogger<ListenersRegistryProcessor> logger,
+            ILogger<ListenersRegistryWorker> logger,
             IListenersRegistry listenersRegistry = null)
         {
             _handlers = handlers;
@@ -31,7 +31,7 @@ namespace Lykke.RabbitMqBroker
             _listenersRegistry = listenersRegistry;
         }
 
-        public async Task ProcessListeners()
+        public async Task Execute()
         {
             if (_listenersRegistry == null)
             {

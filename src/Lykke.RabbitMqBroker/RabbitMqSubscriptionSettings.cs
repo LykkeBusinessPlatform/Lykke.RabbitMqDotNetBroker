@@ -9,6 +9,8 @@ namespace Lykke.RabbitMqBroker
 {
     // TODO: Hide setters, when next breaking changes release will be required
     // the name is confusing, it's not only for subscriptions, but for publishers too
+
+    // TODO: Naming is confuing since it's not only used by subscribers, but by publishers too
     [PublicAPI]
     public sealed class RabbitMqSubscriptionSettings
     {

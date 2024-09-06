@@ -1,11 +1,16 @@
-using System;
-
 using Autofac;
 
+using Lykke.RabbitMqBroker.Abstractions.Tracking;
+using Lykke.RabbitMqBroker.Monitoring;
+using Lykke.RabbitMqBroker.Publisher;
+
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Lykke.RabbitMqBroker
 {
+
     public static class DependencyInjectionExtensions
     {
         /// <summary>
@@ -14,19 +19,19 @@ namespace Lykke.RabbitMqBroker
         /// - Listeners registry
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection AddRabbitMq(this IServiceCollection services)
+        /// <param name="configuration"></param>
+        public static IServiceCollection AddRabbitMq(
+            this IServiceCollection services,
+            RabbitMqConfiguration configuration)
         {
             services.AddRabbitMqConnectionProvider();
-            services.AddListenersRegistry();
+            services.AddListenersRegistry(configuration.ListenersRegistryHandleIntervalMs);
 
             return services;
         }
 
         /// <summary>
-        /// Adds RabbitMq monitoring services to the service collection:
-        /// - Monitoring message sender
-        /// - Listeners registry handlers runner
-        /// - Listeners registry timer hosted service
+        /// Adds a plethora of RabbitMq monitoring services to the service collection.
         /// RabbitMQ connection provider and Listeners registry should be already 
         /// registered in the container.
         /// </summary>
@@ -34,30 +39,25 @@ namespace Lykke.RabbitMqBroker
         /// <param name="configuration"></param>
         /// <param name="connectionString"></param>
         /// <returns></returns>
-        public static IServiceCollection AddRabbitMqMonitoring(
+        public static IServiceCollection AddRabbitMqMonitoring<TMessageDeliveryStorage>(
             this IServiceCollection services,
             RabbitMqMonitoringConfiguration configuration,
             string connectionString)
+            where TMessageDeliveryStorage : class, IMessageDeliveryStorage
         {
-            services.AddSingleton(configuration);
-            services.AddSingleton<IMonitoringMessagePropertiesFactory, MonitoringMessagePropertiesFactory>();
-            services.AddSingleton<IMonitoringMessageChannelProvider, MonitoringMessageChannelProvider>(
-                p => new MonitoringMessageChannelProvider(
+            services.AddSingleton<IListenerRegistrationHandler, MonitoringHandler>();
+            services.AddSingleton<IMessageProducer<MonitoringMessage>, MonitoringMessagePublisher>();
+            services.AddSingleton<ITrackableMessagePublisher<MonitoringMessage>, TrackableMessagePublisher<MonitoringMessage>>();
+            services.TryAddSingleton<IMessageDeliveryStorage, TMessageDeliveryStorage>();
+            services.Configure<RabbitMqPublisherOptions<MonitoringMessage>>(opt =>
+                opt.CopyFrom(MonitoringMessagePublisherOptions.Create(
+                    configuration.PublishConfirmationWaitTimeoutMs,
+                    configuration.MessageExpirationMs)));
+            services.AddSingleton<IPurePublisher<MonitoringMessage>, ImmediatePublisher<MonitoringMessage>>(p =>
+                new ImmediatePublisher<MonitoringMessage>(
                     p.GetRequiredService<IConnectionProvider>(),
-                    connectionString));
-            services.AddSingleton(p => new MonitoringMessageSender(
-                        p.GetRequiredService<IMonitoringMessageChannelProvider>(),
-                        p.GetRequiredService<IMonitoringMessagePropertiesFactory>(),
-                        TimeSpan.FromMilliseconds(configuration.PublishConfirmationWaitTimeoutMs)));
-            services.AddSingleton<IListenerRegistrationHandler>(p =>
-                new MonitoringMessageConfirmationFailureHandler(
-                    p.GetRequiredService<MonitoringMessageSender>()));
-            services.AddSingleton<IListenersRegistryProcessor, ListenersRegistryProcessor>();
-            services.AddHostedService(p =>
-                new ListenersRegistryTimer(
-                    p.GetRequiredService<IListenersRegistryProcessor>(),
-                    TimeSpan.FromMilliseconds(configuration.IntervalMs)
-                ));
+                    p.GetRequiredService<IOptions<RabbitMqPublisherOptions<MonitoringMessage>>>(),
+                    MonitoringMessagePublisherSettingsFactory.Create(connectionString)));
 
             return services;
         }
@@ -67,57 +67,61 @@ namespace Lykke.RabbitMqBroker
         /// - RabbitMq connection provider
         /// - Listeners registry
         /// </summary>
-        public static void AddRabbitMq(this ContainerBuilder builder)
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddRabbitMq(
+            this ContainerBuilder builder,
+            RabbitMqConfiguration configuration)
         {
             builder.AddRabbitMqConnectionProvider();
-            builder.AddListenersRegistry();
+            builder.AddListenersRegistry(configuration.ListenersRegistryHandleIntervalMs);
         }
 
         /// <summary>
-        /// Adds RabbitMq monitoring services to the container:
-        /// - Monitoring message sender
-        /// - Listeners registry handlers runner
-        /// - Listeners registry timer hosted service
-        /// RabbitMQ connection provider and Listeners registry should be already
+        /// Adds a plethora of RabbitMq monitoring services to the service collection.
+        /// RabbitMQ connection provider and Listeners registry should be already 
         /// registered in the container.
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
         /// <param name="connectionString"></param>
         /// <returns></returns>
-        public static void AddRabbitMqMonitoring(
+        public static void AddRabbitMqMonitoring<TMessageDeliveryStorage>(
             this ContainerBuilder builder,
             RabbitMqMonitoringConfiguration configuration,
             string connectionString)
         {
-            builder.RegisterInstance(configuration)
-                .AsSelf()
-                .SingleInstance();
-
-            builder.RegisterType<MonitoringMessagePropertiesFactory>()
-                .As<IMonitoringMessagePropertiesFactory>()
-                .SingleInstance();
-
-            builder.RegisterType<MonitoringMessageChannelProvider>()
-                .As<IMonitoringMessageChannelProvider>()
-                .WithParameter(TypedParameter.From(connectionString))
-                .SingleInstance();
-
-            builder.RegisterType<MonitoringMessageSender>()
+            builder.RegisterType<MonitoringHandler>()
                 .As<IListenerRegistrationHandler>()
-                .WithParameter(TypedParameter.From(connectionString))
-                .WithParameter(TypedParameter.From(TimeSpan.FromMilliseconds(configuration.PublishConfirmationWaitTimeoutMs)))
-                .SingleInstance();
-            builder.RegisterDecorator<MonitoringMessageConfirmationFailureHandler, IListenerRegistrationHandler>();
-
-            builder.RegisterType<ListenersRegistryProcessor>()
-                .As<IListenersRegistryProcessor>()
                 .SingleInstance();
 
-            builder.RegisterType<ListenersRegistryTimer>()
-                .AsSelf()
-                .WithParameter("interval", TimeSpan.FromMilliseconds(configuration.IntervalMs))
+            builder.RegisterType<MonitoringMessagePublisher>()
+                .As<IMessageProducer<MonitoringMessage>>()
                 .SingleInstance();
+
+            builder.RegisterType<TrackableMessagePublisher<MonitoringMessage>>()
+                .As<ITrackableMessagePublisher<MonitoringMessage>>()
+                .SingleInstance();
+
+            builder.RegisterType<TMessageDeliveryStorage>()
+                .As<IMessageDeliveryStorage>()
+                .SingleInstance()
+                .IfNotRegistered(typeof(IMessageDeliveryStorage));
+
+            builder.Register(
+                _ => new ConfigureNamedOptions<RabbitMqPublisherOptions<MonitoringMessage>>(
+                    string.Empty,
+                    opt => opt.CopyFrom(
+                        MonitoringMessagePublisherOptions.Create(
+                            configuration.PublishConfirmationWaitTimeoutMs,
+                            configuration.MessageExpirationMs))))
+                .As<IConfigureOptions<RabbitMqPublisherOptions<MonitoringMessage>>>()
+                .SingleInstance();
+
+            builder.RegisterType<ImmediatePublisher<MonitoringMessage>>()
+                .As<IPurePublisher<MonitoringMessage>>()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(MonitoringMessagePublisherSettingsFactory.Create(connectionString)));
         }
     }
 }
