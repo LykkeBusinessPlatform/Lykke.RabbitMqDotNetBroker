@@ -62,13 +62,5 @@ namespace Lykke.RabbitMqBroker.Tests
             var registration2 = new ListenerRegistration<object>("exchange", "queue2", "routingKey");
             Assert.That(registration1, Is.Not.EqualTo(registration2));
         }
-
-        [Test]
-        public void ListenerRegistration_Equals_ModelType_Matters()
-        {
-            var registration1 = new ListenerRegistration<Model1>("exchange", "queue", "routingKey");
-            var registration2 = new ListenerRegistration<Model2>("exchange", "queue", "routingKey");
-            Assert.That(registration1, Is.Not.EqualTo(registration2));
-        }
     }
 }

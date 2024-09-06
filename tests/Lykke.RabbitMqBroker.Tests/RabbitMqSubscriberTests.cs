@@ -125,5 +125,14 @@ namespace Lykke.RabbitMqBroker.Tests
             _connection?.Close();
             _connection?.Dispose();
         }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _subscriber?.Stop();
+            _subscriber?.Dispose();
+
+            _connection?.Dispose();
+        }
     }
 }
