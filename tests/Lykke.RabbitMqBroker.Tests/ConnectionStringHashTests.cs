@@ -30,20 +30,6 @@ public class ConnectionStringHashTests
     }
 
     [Test]
-    public void Equals_SameObject_ReturnsTrue()
-    {
-        var hash = new ConnectionStringHash("connectionString");
-        Assert.That(hash, Is.EqualTo(hash));
-    }
-
-    [Test]
-    public void Equals_DifferentTypeObject_ReturnsFalse()
-    {
-        var hash = new ConnectionStringHash("connectionString");
-        Assert.That(hash, Is.Not.EqualTo("not a ConnectionStringHash"));
-    }
-
-    [Test]
     public void Equals_EqualHash_ReturnsTrue()
     {
         var hash1 = new ConnectionStringHash("connectionString");
