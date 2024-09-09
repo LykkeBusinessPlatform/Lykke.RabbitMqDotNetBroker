@@ -26,29 +26,21 @@ public readonly struct MessageDelivery
         Failure = failure;
     }
 
-    public MessageDeliveryStatus Status() => this switch
-    {
-        { Failure: not null } => MessageDeliveryStatus.Failed,
-        { ReceivedTimestamp: not null } => MessageDeliveryStatus.Received,
-        { DispatchedTimestamp: not null } => MessageDeliveryStatus.Dispatched,
-        _ => MessageDeliveryStatus.Pending
-    };
-
     public static MessageDelivery Create() => new(Guid.NewGuid(), null, null, null);
 
-    public MessageDelivery Dispatched(DateTime dispatchedTimestamp) => Status() switch
+    public MessageDelivery Dispatched(DateTime dispatchedTimestamp) => this.GetStatus() switch
     {
         MessageDeliveryStatus.Pending => new(Id, dispatchedTimestamp, ReceivedTimestamp, Failure),
         _ => throw new InvalidOperationException($"Delivery {Id} status is invalid for setting dispatched")
     };
 
-    public MessageDelivery Received(DateTime receivedTimestamp) => Status() switch
+    public MessageDelivery Received(DateTime receivedTimestamp) => this.GetStatus() switch
     {
         MessageDeliveryStatus.Dispatched => new(Id, DispatchedTimestamp, receivedTimestamp, Failure),
         _ => throw new InvalidOperationException($"Delivery {Id} status is invalid for setting received")
     };
 
-    public MessageDelivery Failed(MessageDeliveryFailure failure) => Status() switch
+    public MessageDelivery Failed(MessageDeliveryFailure failure) => this.GetStatus() switch
     {
         MessageDeliveryStatus.Failed => throw new InvalidOperationException($"Delivery {Id} is already failed. Cannot set failed again."),
         _ => new(Id, DispatchedTimestamp, ReceivedTimestamp, failure)
