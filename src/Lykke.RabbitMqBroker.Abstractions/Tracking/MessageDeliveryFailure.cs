@@ -1,6 +1,6 @@
 namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 
-public sealed record MessageDeliveryFailure(
+public record MessageDeliveryFailure(
     MessageDeliveryFailureReason Reason,
     string? Description,
     DateTime Timestamp)
