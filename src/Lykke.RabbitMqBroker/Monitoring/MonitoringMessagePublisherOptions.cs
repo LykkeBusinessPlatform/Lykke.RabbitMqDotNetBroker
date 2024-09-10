@@ -4,7 +4,7 @@ using Lykke.RabbitMqBroker.Publisher;
 
 namespace Lykke.RabbitMqBroker.Monitoring
 {
-    public class MonitoringMessagePublisherOptions : RabbitMqPublisherOptions<MonitoringMessage>
+    internal class MonitoringMessagePublisherOptions : RabbitMqPublisherOptions<MonitoringMessage>
     {
         public static MonitoringMessagePublisherOptions Create(
             int confirmationTimeoutMs,

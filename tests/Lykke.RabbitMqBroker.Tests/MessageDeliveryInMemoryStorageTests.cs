@@ -13,7 +13,7 @@ internal sealed class MessageDeliveryInMemoryStorageTests
     public async Task Add_WhenAdded_ShouldBeAbleToGetById()
     {
         var storage = new MessageDeliveryInMemoryStorage();
-        var messageDelivery = MessageDelivery.Create();
+        MessageDelivery messageDelivery = new();
 
         await storage.Add(messageDelivery);
 

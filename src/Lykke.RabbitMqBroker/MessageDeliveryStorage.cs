@@ -8,7 +8,7 @@ namespace Lykke.RabbitMqBroker;
 
 public sealed class MessageDeliveryInMemoryStorage : IMessageDeliveryStorage
 {
-    private readonly ConcurrentDictionary<Guid, MessageDelivery> _storage = new();
+    private readonly ConcurrentDictionary<MessageDeliveryId, MessageDelivery> _storage = new();
     public Task Add(MessageDelivery messageDelivery)
     {
         var added = _storage.TryAdd(messageDelivery.Id, messageDelivery);
@@ -20,7 +20,7 @@ public sealed class MessageDeliveryInMemoryStorage : IMessageDeliveryStorage
         return Task.CompletedTask;
     }
 
-    public Task<MessageDelivery?> Get(Guid id) =>
+    public Task<MessageDelivery?> Get(MessageDeliveryId id) =>
         _storage.TryGetValue(id, out var messageDelivery)
             ? Task.FromResult<MessageDelivery?>(messageDelivery)
             : Task.FromResult<MessageDelivery?>(null);
