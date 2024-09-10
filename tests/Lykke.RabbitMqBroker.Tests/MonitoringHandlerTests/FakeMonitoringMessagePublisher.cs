@@ -5,7 +5,7 @@ using Lykke.RabbitMqBroker.Publisher;
 
 namespace Lykke.RabbitMqBroker.Tests.MonitoringHandlerTests;
 
-public class FakeMonitoringMessagePublisher : IMessageProducer<MonitoringMessage>
+internal class FakeMonitoringMessagePublisher : IMessageProducer<MonitoringMessage>
 {
     public int PublicationsCount { get; private set; }
     public Task ProduceAsync(MonitoringMessage message)

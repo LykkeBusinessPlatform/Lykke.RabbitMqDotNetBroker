@@ -9,13 +9,13 @@ namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 /// <param name="Failure"></param>
 public readonly struct MessageDelivery
 {
-    public readonly Guid Id;
-    public readonly DateTime? DispatchedTimestamp;
-    public readonly DateTime? ReceivedTimestamp;
-    public readonly MessageDeliveryFailure? Failure;
+    public MessageDeliveryId Id { get; init; }
+    public DateTime? DispatchedTimestamp { get; init; }
+    public DateTime? ReceivedTimestamp { get; init; }
+    public MessageDeliveryFailure? Failure { get; init; }
 
     private MessageDelivery(
-        Guid id,
+        MessageDeliveryId id,
         DateTime? dispatchedTimestamp,
         DateTime? receivedTimestamp,
         MessageDeliveryFailure? failure)
@@ -26,23 +26,25 @@ public readonly struct MessageDelivery
         Failure = failure;
     }
 
-    public static MessageDelivery Create() => new(Guid.NewGuid(), null, null, null);
+    public MessageDelivery() : this(new MessageDeliveryId(), null, null, null) { }
+
+    public MessageDelivery(MessageDelivery other) : this(other.Id, other.DispatchedTimestamp, other.ReceivedTimestamp, other.Failure) { }
 
     public MessageDelivery Dispatched(DateTime dispatchedTimestamp) => this.GetStatus() switch
     {
-        MessageDeliveryStatus.Pending => new(Id, dispatchedTimestamp, ReceivedTimestamp, Failure),
+        MessageDeliveryStatus.Pending => new(this) { DispatchedTimestamp = dispatchedTimestamp },
         _ => throw new InvalidOperationException($"Delivery {Id} status is invalid for setting dispatched")
     };
 
     public MessageDelivery Received(DateTime receivedTimestamp) => this.GetStatus() switch
     {
-        MessageDeliveryStatus.Dispatched => new(Id, DispatchedTimestamp, receivedTimestamp, Failure),
+        MessageDeliveryStatus.Dispatched => new(this) { ReceivedTimestamp = receivedTimestamp },
         _ => throw new InvalidOperationException($"Delivery {Id} status is invalid for setting received")
     };
 
     public MessageDelivery Failed(MessageDeliveryFailure failure) => this.GetStatus() switch
     {
         MessageDeliveryStatus.Failed => throw new InvalidOperationException($"Delivery {Id} is already failed. Cannot set failed again."),
-        _ => new(Id, DispatchedTimestamp, ReceivedTimestamp, failure)
+        _ => new(this) { Failure = failure }
     };
 }

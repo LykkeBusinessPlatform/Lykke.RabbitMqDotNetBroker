@@ -7,5 +7,5 @@ public interface IMessageDeliveryStorage
 {
     Task Add(MessageDelivery messageDelivery);
     Task Update(MessageDelivery messageDelivery);
-    Task<MessageDelivery?> Get(Guid id);
+    Task<MessageDelivery?> Get(MessageDeliveryId id);
 }

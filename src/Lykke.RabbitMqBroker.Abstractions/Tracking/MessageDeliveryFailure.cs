@@ -1,6 +1,6 @@
 namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 
-public record MessageDeliveryFailure(
+public readonly record struct MessageDeliveryFailure(
     MessageDeliveryFailureReason Reason,
     string? Description,
     DateTime Timestamp)

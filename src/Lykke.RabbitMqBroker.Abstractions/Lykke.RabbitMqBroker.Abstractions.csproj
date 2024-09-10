@@ -11,6 +11,7 @@
 
  <ItemGroup>
   <InternalsVisibleTo Include="Lykke.RabbitMqBroker.Abstractions.Tests" />
+  <InternalsVisibleTo Include="Lykke.RabbitMqBroker.Tests" />
  </ItemGroup>
 
 </Project>
