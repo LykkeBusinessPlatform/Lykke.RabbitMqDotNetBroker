@@ -27,13 +27,13 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
 
     private async Task OnReturned(object sender, BasicReturnEventArgs @event)
     {
-        var deliveryId = Guid.Parse(@event.BasicProperties.Headers["DeliveryId"].ToString());
+        var deliveryId = MessageDeliveryId.FromGuid(@event.BasicProperties.Headers["DeliveryId"].ToString());
         await _storage.SetFailed(
             deliveryId,
             MessageDeliveryFailure.Create(FailureReason.Unroutable));
     }
 
-    public async Task<Guid> Publish(
+    public async Task<MessageDeliveryId> Publish(
         ReadOnlyMemory<byte> body,
         Action<IBasicProperties> configurator = null,
         string exchangeName = null,
@@ -69,7 +69,7 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
         return deliveryId;
     }
 
-    private static void ConfigureProperties(Action<IBasicProperties> configurator, IBasicProperties properties, Guid deliveryId)
+    private static void ConfigureProperties(Action<IBasicProperties> configurator, IBasicProperties properties, MessageDeliveryId deliveryId)
     {
         properties.Headers ??= new Dictionary<string, object>();
         properties.Headers["Host"] = Environment.MachineName;

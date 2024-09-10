@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Abstractions.Tracking;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Publisher
@@ -24,7 +26,7 @@ namespace Lykke.RabbitMqBroker.Publisher
         /// <param name="exchangeName"></param>
         /// <param name="routingKey"></param>
         /// <returns>Delivery id</returns>
-        Task<Guid> Publish(
+        Task<MessageDeliveryId> Publish(
             ReadOnlyMemory<byte> body,
             Action<IBasicProperties> configurator = null,
             string exchangeName = null,

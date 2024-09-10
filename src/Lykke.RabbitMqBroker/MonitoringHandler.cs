@@ -14,10 +14,11 @@ internal sealed class MonitoringHandler(
 
     public async Task Handle(IListenerRegistration registration)
     {
-        var message = MonitoringMessage.Create(MonitoringMessageMetadata.Create(
-            registration.ExchangeName,
-            registration.RoutingKey,
-            registration.MessageRoute));
+        MonitoringMessage message = new(
+            new MonitoringMessageMetadata(
+                registration.ExchangeName,
+                registration.RoutingKey,
+                registration.MessageRoute));
 
         await _monitoringMessagePublisher.ProduceAsync(message);
     }

@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Lykke.RabbitMqBroker.Tests.MonitoringHandlerTests;
 
 [TestFixture]
-internal sealed class HandleTests
+internal class HandleTests
 {
     private FakeMonitoringMessagePublisher _fakeMonitoringMessagePublisher;
 
