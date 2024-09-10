@@ -1,3 +1,3 @@
 namespace Lykke.RabbitMqBroker.Monitoring;
 
-readonly record struct MonitoringMessageMetadata(NonEmptyString ExchangeName, string RoutingKey, string RouteText);
+readonly record struct MonitoringMessageMetadata(string ExchangeName, string RoutingKey, string RouteText);

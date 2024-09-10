@@ -9,7 +9,7 @@ namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 /// <param name="Failure"></param>
 public readonly struct MessageDelivery
 {
-    public MessageDeliveryId Id { get; init; }
+    public MessageDeliveryId Id { get; }
     public DateTime? DispatchedTimestamp { get; init; }
     public DateTime? ReceivedTimestamp { get; init; }
     public MessageDeliveryFailure? Failure { get; init; }
