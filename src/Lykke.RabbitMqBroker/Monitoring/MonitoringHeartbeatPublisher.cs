@@ -11,13 +11,13 @@ using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Monitoring;
 
-internal sealed class MonitoringMessagePublisher(
-    ITrackableMessagePublisher<MonitoringMessage> publisher) : IMessageProducer<MonitoringMessage>
+internal sealed class MonitoringHeartbeatPublisher(
+    ITrackableMessagePublisher<MonitoringHeartbeat> publisher) : IMessageProducer<MonitoringHeartbeat>
 {
-    private readonly ITrackableMessagePublisher<MonitoringMessage> _publisher = publisher;
+    private readonly ITrackableMessagePublisher<MonitoringHeartbeat> _publisher = publisher;
     private const byte NonPersistentDeliveryMode = 1;
 
-    public async Task ProduceAsync(MonitoringMessage message)
+    public async Task ProduceAsync(MonitoringHeartbeat message)
     {
         var messageBody = new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(SerializeMessage(message)));
 
@@ -28,7 +28,7 @@ internal sealed class MonitoringMessagePublisher(
             message.Metadata.RoutingKey);
     }
 
-    private static void ConfigureProperties(IBasicProperties properties, MonitoringMessage message)
+    private static void ConfigureProperties(IBasicProperties properties, MonitoringHeartbeat message)
     {
         properties.Headers ??= new Dictionary<string, object>();
         properties.Headers["Route"] = message.Metadata.RouteText;
@@ -37,5 +37,5 @@ internal sealed class MonitoringMessagePublisher(
         properties.Type = ServiceMessageType.Monitoring.ToString();
     }
 
-    private static string SerializeMessage(MonitoringMessage message) => JsonConvert.SerializeObject(message);
+    private static string SerializeMessage(MonitoringHeartbeat message) => JsonConvert.SerializeObject(message);
 }

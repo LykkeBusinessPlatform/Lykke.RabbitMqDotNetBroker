@@ -39,7 +39,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
 
-        private readonly List<RabbitMqSubscriber<T>> _subscribers = new();
+        private readonly List<RabbitMqSubscriber<T>> _subscribers = [];
 
         /// <summary>
         /// Creates a new instance of <see cref="RabbitMqListener{T}"/>

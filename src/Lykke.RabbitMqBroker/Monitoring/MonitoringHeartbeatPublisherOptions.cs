@@ -4,9 +4,9 @@ using Lykke.RabbitMqBroker.Publisher;
 
 namespace Lykke.RabbitMqBroker.Monitoring
 {
-    internal class MonitoringMessagePublisherOptions : RabbitMqPublisherOptions<MonitoringMessage>
+    internal class MonitoringHeartbeatPublisherOptions : RabbitMqPublisherOptions<MonitoringHeartbeat>
     {
-        public static MonitoringMessagePublisherOptions Create(int confirmationTimeoutMs, int messageExpirationMs = 0) =>
+        public static MonitoringHeartbeatPublisherOptions Create(int confirmationTimeoutMs, int messageExpirationMs = 0) =>
             new()
             {
                 ShareConnection = false,

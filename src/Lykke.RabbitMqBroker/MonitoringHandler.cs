@@ -6,20 +6,20 @@ using Lykke.RabbitMqBroker.Publisher;
 namespace Lykke.RabbitMqBroker;
 
 internal sealed class MonitoringHandler(
-    IMessageProducer<MonitoringMessage> monitoringMessagePublisher) : IListenerRegistrationHandler
+    IMessageProducer<MonitoringHeartbeat> monitoringMessagePublisher) : IListenerRegistrationHandler
 {
-    private readonly IMessageProducer<MonitoringMessage> _monitoringMessagePublisher = monitoringMessagePublisher;
+    private readonly IMessageProducer<MonitoringHeartbeat> _monitoringMessagePublisher = monitoringMessagePublisher;
 
     public string Name => nameof(MonitoringHandler);
 
     public async Task Handle(IListenerRegistration registration)
     {
-        MonitoringMessage message = new(
-            new MonitoringMessageMetadata(
+        MonitoringHeartbeat heartbeatMessage = new(
+            new MonitoringHeartbeatMetadata(
                 registration.ExchangeName,
                 registration.RoutingKey,
                 registration.MessageRoute));
 
-        await _monitoringMessagePublisher.ProduceAsync(message);
+        await _monitoringMessagePublisher.ProduceAsync(heartbeatMessage);
     }
 }
