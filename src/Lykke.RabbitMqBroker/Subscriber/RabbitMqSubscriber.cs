@@ -26,7 +26,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly RabbitMqSubscriptionSettings _settings;
         private readonly ILogger<RabbitMqSubscriber<TTopicModel>> _logger;
         private readonly MiddlewareQueue<TTopicModel> _middlewareQueue;
-        private readonly List<Action<IDictionary<string, object>>> _readHeadersActions = new();
+        private readonly List<Action<IDictionary<string, object>>> _readHeadersActions = [];
         private readonly IAutorecoveringConnection _connection;
 
         private CancellationTokenSource _cancellationTokenSource = new();

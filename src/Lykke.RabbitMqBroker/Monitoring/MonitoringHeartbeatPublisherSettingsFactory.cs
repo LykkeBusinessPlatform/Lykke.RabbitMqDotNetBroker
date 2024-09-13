@@ -1,6 +1,6 @@
 namespace Lykke.RabbitMqBroker.Monitoring;
 
-public static class MonitoringMessagePublisherSettingsFactory
+public static class MonitoringHeartbeatPublisherSettingsFactory
 {
     public static RabbitMqSubscriptionSettings Create(
         string connectionString) => new()

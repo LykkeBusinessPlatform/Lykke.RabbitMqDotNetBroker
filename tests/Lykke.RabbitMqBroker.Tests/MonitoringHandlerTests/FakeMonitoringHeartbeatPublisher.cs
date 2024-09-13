@@ -5,10 +5,10 @@ using Lykke.RabbitMqBroker.Publisher;
 
 namespace Lykke.RabbitMqBroker.Tests.MonitoringHandlerTests;
 
-internal class FakeMonitoringMessagePublisher : IMessageProducer<MonitoringMessage>
+internal class FakeMonitoringHeartbeatPublisher : IMessageProducer<MonitoringHeartbeat>
 {
     public int PublicationsCount { get; private set; }
-    public Task ProduceAsync(MonitoringMessage message)
+    public Task ProduceAsync(MonitoringHeartbeat message)
     {
         PublicationsCount++;
         return Task.CompletedTask;

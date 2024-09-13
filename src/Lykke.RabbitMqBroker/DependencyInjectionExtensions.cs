@@ -46,18 +46,18 @@ namespace Lykke.RabbitMqBroker
             where TMessageDeliveryStorage : class, IMessageDeliveryStorage
         {
             services.AddSingleton<IListenerRegistrationHandler, MonitoringHandler>();
-            services.AddSingleton<IMessageProducer<MonitoringMessage>, MonitoringMessagePublisher>();
-            services.AddSingleton<ITrackableMessagePublisher<MonitoringMessage>, TrackableMessagePublisher<MonitoringMessage>>();
+            services.AddSingleton<IMessageProducer<MonitoringHeartbeat>, MonitoringHeartbeatPublisher>();
+            services.AddSingleton<ITrackableMessagePublisher<MonitoringHeartbeat>, TrackableMessagePublisher<MonitoringHeartbeat>>();
             services.TryAddSingleton<IMessageDeliveryStorage, TMessageDeliveryStorage>();
-            services.Configure<RabbitMqPublisherOptions<MonitoringMessage>>(opt =>
-                opt.CopyFrom(MonitoringMessagePublisherOptions.Create(
+            services.Configure<RabbitMqPublisherOptions<MonitoringHeartbeat>>(opt =>
+                opt.CopyFrom(MonitoringHeartbeatPublisherOptions.Create(
                     configuration.PublishConfirmationWaitTimeoutMs,
                     configuration.MessageExpirationMs)));
-            services.AddSingleton<IPurePublisher<MonitoringMessage>, ImmediatePublisher<MonitoringMessage>>(p =>
-                new ImmediatePublisher<MonitoringMessage>(
+            services.AddSingleton<IPurePublisher<MonitoringHeartbeat>, ImmediatePublisher<MonitoringHeartbeat>>(p =>
+                new ImmediatePublisher<MonitoringHeartbeat>(
                     p.GetRequiredService<IConnectionProvider>(),
-                    p.GetRequiredService<IOptions<RabbitMqPublisherOptions<MonitoringMessage>>>(),
-                    MonitoringMessagePublisherSettingsFactory.Create(connectionString)));
+                    p.GetRequiredService<IOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>>(),
+                    MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
 
             return services;
         }
@@ -95,12 +95,12 @@ namespace Lykke.RabbitMqBroker
                 .As<IListenerRegistrationHandler>()
                 .SingleInstance();
 
-            builder.RegisterType<MonitoringMessagePublisher>()
-                .As<IMessageProducer<MonitoringMessage>>()
+            builder.RegisterType<MonitoringHeartbeatPublisher>()
+                .As<IMessageProducer<MonitoringHeartbeat>>()
                 .SingleInstance();
 
-            builder.RegisterType<TrackableMessagePublisher<MonitoringMessage>>()
-                .As<ITrackableMessagePublisher<MonitoringMessage>>()
+            builder.RegisterType<TrackableMessagePublisher<MonitoringHeartbeat>>()
+                .As<ITrackableMessagePublisher<MonitoringHeartbeat>>()
                 .SingleInstance();
 
             builder.RegisterType<TMessageDeliveryStorage>()
@@ -109,19 +109,19 @@ namespace Lykke.RabbitMqBroker
                 .IfNotRegistered(typeof(IMessageDeliveryStorage));
 
             builder.Register(
-                _ => new ConfigureNamedOptions<RabbitMqPublisherOptions<MonitoringMessage>>(
+                _ => new ConfigureNamedOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>(
                     string.Empty,
                     opt => opt.CopyFrom(
-                        MonitoringMessagePublisherOptions.Create(
+                        MonitoringHeartbeatPublisherOptions.Create(
                             configuration.PublishConfirmationWaitTimeoutMs,
                             configuration.MessageExpirationMs))))
-                .As<IConfigureOptions<RabbitMqPublisherOptions<MonitoringMessage>>>()
+                .As<IConfigureOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>>()
                 .SingleInstance();
 
-            builder.RegisterType<ImmediatePublisher<MonitoringMessage>>()
-                .As<IPurePublisher<MonitoringMessage>>()
+            builder.RegisterType<ImmediatePublisher<MonitoringHeartbeat>>()
+                .As<IPurePublisher<MonitoringHeartbeat>>()
                 .SingleInstance()
-                .WithParameter(TypedParameter.From(MonitoringMessagePublisherSettingsFactory.Create(connectionString)));
+                .WithParameter(TypedParameter.From(MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
         }
     }
 }
