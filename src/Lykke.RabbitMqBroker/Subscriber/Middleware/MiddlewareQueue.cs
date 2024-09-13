@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using JetBrains.Annotations;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.Middleware
 {
     internal class MiddlewareQueue<T> : IMiddlewareQueue<T>
     {
-        private readonly List<IEventMiddleware<T>> _eventMiddlewares = new List<IEventMiddleware<T>>();
+        private readonly List<IEventMiddleware<T>> _eventMiddlewares = [];
         private readonly RabbitMqSubscriptionSettings _settings;
 
         internal MiddlewareQueue(RabbitMqSubscriptionSettings settings)

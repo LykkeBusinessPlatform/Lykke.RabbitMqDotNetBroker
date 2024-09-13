@@ -9,12 +9,12 @@ namespace Lykke.RabbitMqBroker.Tests.MonitoringHandlerTests;
 [TestFixture]
 internal class HandleTests
 {
-    private FakeMonitoringMessagePublisher _fakeMonitoringMessagePublisher;
+    private FakeMonitoringHeartbeatPublisher _fakeMonitoringMessagePublisher;
 
     [SetUp]
     public void SetUp()
     {
-        _fakeMonitoringMessagePublisher = new FakeMonitoringMessagePublisher();
+        _fakeMonitoringMessagePublisher = new FakeMonitoringHeartbeatPublisher();
     }
 
     [Test]
