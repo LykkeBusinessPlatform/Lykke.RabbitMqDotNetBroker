@@ -28,7 +28,7 @@ namespace Lykke.RabbitMqBroker
             int handleIntervalMs = DefaultHandleIntervalMs)
         {
             services.TryAddSingleton<IListenersRegistry, ListenersRegistry>();
-            services.TryAddSingleton<IListenersRegistryWorker, ListenersRegistryWorker>();
+            services.TryAddSingleton<IListenersRegistryWorker, ListenersRegistrySequentialWorker>();
             services.AddHostedService(p =>
                 new ListenersRegistryTimer(
                     p.GetRequiredService<IListenersRegistryWorker>(),
@@ -54,7 +54,7 @@ namespace Lykke.RabbitMqBroker
                 .As<IListenersRegistry>()
                 .SingleInstance()
                 .IfNotRegistered(typeof(IListenersRegistry));
-            builder.RegisterType<ListenersRegistryWorker>()
+            builder.RegisterType<ListenersRegistrySequentialWorker>()
                 .As<IListenersRegistryWorker>()
                 .SingleInstance()
                 .IfNotRegistered(typeof(IListenersRegistryWorker));

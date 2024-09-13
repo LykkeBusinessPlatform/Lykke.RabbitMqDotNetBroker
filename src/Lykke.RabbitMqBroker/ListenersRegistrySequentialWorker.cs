@@ -9,21 +9,22 @@ namespace Lykke.RabbitMqBroker
 
     /// <summary>
     /// The listeners registry worker.
-    /// Iterates over all the registered <see cref="IListenerRegistrationHandler"/>
-    /// and calls their <see cref="IListenerRegistrationHandler.Handle"/> method
+    /// Iterates sequentially over all the registered 
+    /// <see cref="IListenerRegistrationHandler"/> and calls 
+    /// their <see cref="IListenerRegistrationHandler.Handle"/> method
     /// for every listener registration.
     /// Guarantees that all the handlers will be called for every registration,
     /// even if some of them throw an exception.
     /// </summary>
-    internal sealed class ListenersRegistryWorker : IListenersRegistryWorker
+    internal sealed class ListenersRegistrySequentialWorker : IListenersRegistryWorker
     {
         private readonly IListenersRegistry _listenersRegistry;
         private readonly IEnumerable<IListenerRegistrationHandler> _handlers;
-        private readonly ILogger<ListenersRegistryWorker> _logger;
+        private readonly ILogger<ListenersRegistrySequentialWorker> _logger;
 
-        public ListenersRegistryWorker(
+        public ListenersRegistrySequentialWorker(
             IEnumerable<IListenerRegistrationHandler> handlers,
-            ILogger<ListenersRegistryWorker> logger,
+            ILogger<ListenersRegistrySequentialWorker> logger,
             IListenersRegistry listenersRegistry = null)
         {
             _handlers = handlers;
@@ -39,7 +40,6 @@ namespace Lykke.RabbitMqBroker
             }
 
             foreach (var handler in _handlers)
-            {
                 foreach (var registration in _listenersRegistry)
                 {
                     try
@@ -55,7 +55,6 @@ namespace Lykke.RabbitMqBroker
                             handler.Name);
                     }
                 }
-            }
         }
     }
 }
