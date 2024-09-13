@@ -10,9 +10,9 @@ using NUnit.Framework;
 namespace Lykke.RabbitMqBroker.Tests;
 
 [TestFixture]
-internal class ListenersRegistryWorkerTests
+internal class ListenersRegistrySequentialWorkerTests
 {
-    internal sealed class CountingListenerRegistrationHandler : IListenerRegistrationHandler
+    internal sealed class FakeCountingListenerRegistrationHandler : IListenerRegistrationHandler
     {
         public string Name => "CountingHandler";
 
@@ -25,7 +25,7 @@ internal class ListenersRegistryWorkerTests
         }
     }
 
-    internal sealed class NameTracingListenerRegistrationHandler : IListenerRegistrationHandler
+    internal sealed class FakeNameTracingListenerRegistrationHandler : IListenerRegistrationHandler
     {
         public string Name => "NameTracingHandler";
         private readonly HashSet<string> _handledRegistrations = new();
@@ -38,7 +38,7 @@ internal class ListenersRegistryWorkerTests
         }
     }
 
-    internal sealed class FailingListenerRegistrationHandler : IListenerRegistrationHandler
+    internal sealed class FakeFailingListenerRegistrationHandler : IListenerRegistrationHandler
     {
         public string Name => "FailingHandler";
 
@@ -54,10 +54,10 @@ internal class ListenersRegistryWorkerTests
     [Test]
     public async Task When_ListenersRegistry_NotProvided_SkipsHandling()
     {
-        var handler = new CountingListenerRegistrationHandler();
-        var worker = new ListenersRegistryWorker(
-            new List<IListenerRegistrationHandler> { handler },
-            NullLogger<ListenersRegistryWorker>.Instance,
+        var handler = new FakeCountingListenerRegistrationHandler();
+        var worker = new ListenersRegistrySequentialWorker(
+            [handler],
+            NullLogger<ListenersRegistrySequentialWorker>.Instance,
             listenersRegistry: null);
 
         await worker.Execute();
@@ -68,13 +68,13 @@ internal class ListenersRegistryWorkerTests
     [Test]
     public async Task Handlers_Are_Called_For_Each_Registration()
     {
-        var nameTracingHandler = new NameTracingListenerRegistrationHandler();
-        var countingHandler = new CountingListenerRegistrationHandler();
+        var nameTracingHandler = new FakeNameTracingListenerRegistrationHandler();
+        var countingHandler = new FakeCountingListenerRegistrationHandler();
         var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
         var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
-        var worker = new ListenersRegistryWorker(
-            new List<IListenerRegistrationHandler> { nameTracingHandler, countingHandler },
-            NullLogger<ListenersRegistryWorker>.Instance,
+        var worker = new ListenersRegistrySequentialWorker(
+            [nameTracingHandler, countingHandler],
+            NullLogger<ListenersRegistrySequentialWorker>.Instance,
             listenersRegistry: new ListenersRegistry
             {
                 registration1,
@@ -91,13 +91,13 @@ internal class ListenersRegistryWorkerTests
     [Test]
     public async Task One_Handler_Failure_Does_Not_Stop_Other_Handlers()
     {
-        var failingHandler = new FailingListenerRegistrationHandler();
-        var countingHandler = new CountingListenerRegistrationHandler();
+        var failingHandler = new FakeFailingListenerRegistrationHandler();
+        var countingHandler = new FakeCountingListenerRegistrationHandler();
         var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
         var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
-        var worker = new ListenersRegistryWorker(
-            new List<IListenerRegistrationHandler> { failingHandler, countingHandler },
-            NullLogger<ListenersRegistryWorker>.Instance,
+        var worker = new ListenersRegistrySequentialWorker(
+            [failingHandler, countingHandler],
+            NullLogger<ListenersRegistrySequentialWorker>.Instance,
             listenersRegistry: new ListenersRegistry
             {
                 registration1,

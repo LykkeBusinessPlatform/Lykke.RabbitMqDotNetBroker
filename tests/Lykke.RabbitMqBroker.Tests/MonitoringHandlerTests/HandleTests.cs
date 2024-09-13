@@ -22,7 +22,7 @@ internal class HandleTests
     {
         var sut = CreateSut();
 
-        await sut.Handle(new ListenerRegistration<MessageModel>("exchange", "queue"));
+        await sut.Handle(ListenerRegistration<MessageModel>.Create("exchange", "queue"));
 
         Assert.That(_fakeMonitoringMessagePublisher.PublicationsCount, Is.EqualTo(1));
     }

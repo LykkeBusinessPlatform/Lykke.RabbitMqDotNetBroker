@@ -6,10 +6,8 @@ namespace Lykke.RabbitMqBroker.Monitoring
 {
     internal class MonitoringMessagePublisherOptions : RabbitMqPublisherOptions<MonitoringMessage>
     {
-        public static MonitoringMessagePublisherOptions Create(
-            int confirmationTimeoutMs,
-            int messageExpirationMs = 0) =>
-            new MonitoringMessagePublisherOptions
+        public static MonitoringMessagePublisherOptions Create(int confirmationTimeoutMs, int messageExpirationMs = 0) =>
+            new()
             {
                 ShareConnection = false,
                 ConnectionNameWhenExclusive = "Monitoring",
