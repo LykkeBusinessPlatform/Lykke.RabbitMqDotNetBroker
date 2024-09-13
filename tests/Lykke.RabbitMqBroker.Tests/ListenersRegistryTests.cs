@@ -19,7 +19,7 @@ internal class ListenersRegistryTests
     public void Add_RegistrationIsNotNull_AddsRegistration()
     {
         var registry = new ListenersRegistry();
-        var registration = new ListenerRegistration<MessageModel>("exchange", "queue");
+        var registration = ListenerRegistration<MessageModel>.Create("exchange", "queue");
 
         var added = registry.Add(registration);
 
@@ -31,7 +31,7 @@ internal class ListenersRegistryTests
     public void AddDuplicateRegistration_ReturnsFalse()
     {
         var registry = new ListenersRegistry();
-        var registration = new ListenerRegistration<MessageModel>("exchange", "queue");
+        var registration = ListenerRegistration<MessageModel>.Create("exchange", "queue");
 
         var firstAdd = registry.Add(registration);
         var secondAdd = registry.Add(registration);
@@ -44,8 +44,8 @@ internal class ListenersRegistryTests
     public void AddMultipleRegistrations_AddsAll()
     {
         var registry = new ListenersRegistry();
-        var registration1 = new ListenerRegistration<MessageModel>("exchange1", "queue1");
-        var registration2 = new ListenerRegistration<MessageModel>("exchange1", "queue2");
+        var registration1 = ListenerRegistration<MessageModel>.Create("exchange1", "queue1");
+        var registration2 = ListenerRegistration<MessageModel>.Create("exchange1", "queue2");
 
         registry.Add(registration1);
         registry.Add(registration2);

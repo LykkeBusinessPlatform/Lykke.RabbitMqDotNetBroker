@@ -6,16 +6,15 @@ namespace Lykke.RabbitMqBroker
 {
     public class ListenersRegistry : IListenersRegistry
     {
-        private readonly HashSet<IListenerRegistration> _registrations = new();
+        private readonly HashSet<IListenerRegistration> _registrations = [];
 
         public bool Add(IListenerRegistration registration)
         {
-            if (registration == null)
+            return registration switch
             {
-                throw new ArgumentNullException(nameof(registration));
-            }
-
-            return _registrations.Add(registration);
+                null => throw new ArgumentNullException(nameof(registration)),
+                _ => _registrations.Add(registration)
+            };
         }
 
         public IEnumerator<IListenerRegistration> GetEnumerator()

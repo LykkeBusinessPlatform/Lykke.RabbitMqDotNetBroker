@@ -41,14 +41,16 @@ public sealed class ImmediatePublisher<T>(
     RabbitMqSubscriptionSettings settings) : IPurePublisher<T>, IDisposable
     where T : class
 {
+    private const int DefaultConfirmationTimeoutMs = 5_000;
     private readonly IConnectionProvider _connectionProvider = connectionProvider;
     private readonly RabbitMqSubscriptionSettings _settings = settings;
     private readonly RabbitMqPublisherOptions<T> _options = optionsAccessor?.Value;
     private readonly TimeSpan _actualConfirmationTimeout =
         optionsAccessor?.Value?.ConfirmationTimeout ?? TimeSpan.FromMilliseconds(DefaultConfirmationTimeoutMs);
+
+    // Thread-unsafe fields
     private IModel _channel;
     private bool _initialized = false;
-    private const int DefaultConfirmationTimeoutMs = 5_000;
 
     public event AsyncEventHandler<BasicReturnEventArgs> ReturnedEventHandler;
 

@@ -9,57 +9,64 @@ internal class ListenerRegistrationTests
     class Model2 { }
 
     [Test]
-    public void ListenerRegistration_CanBeCreated()
+    public void CanBeCreated()
     {
-        var registration = new ListenerRegistration<object>("exchange", "queue");
+        var registration = ListenerRegistration<object>.Create("exchange", "queue");
         Assert.That(registration, Is.Not.Null);
     }
 
     [TestCase(null)]
     [TestCase("")]
     [TestCase(" ")]
-    public void ListenerRegistration_ExchangeNameIsRequired(string exchangeName)
+    public void ExchangeNameIsRequired(string exchangeName)
     {
-        Assert.That(() => new ListenerRegistration<object>(exchangeName, "queue"), Throws.ArgumentException);
+        Assert.That(() => ListenerRegistration<object>.Create(exchangeName, "queue"), Throws.ArgumentException);
     }
 
     [TestCase(null)]
     [TestCase("")]
     [TestCase(" ")]
-    public void ListenerRegistration_QueueNameIsRequired(string queueName)
+    public void QueueNameIsRequired(string queueName)
     {
-        Assert.That(() => new ListenerRegistration<object>("exchange", queueName), Throws.ArgumentException);
+        Assert.That(() => ListenerRegistration<object>.Create("exchange", queueName), Throws.ArgumentException);
     }
 
     [Test]
-    public void ListenerRegistration_Equals()
+    public void Equals()
     {
-        var registration1 = new ListenerRegistration<object>("exchange", "queue", "routingKey");
-        var registration2 = new ListenerRegistration<object>("exchange", "queue", "routingKey");
+        var registration1 = ListenerRegistration<object>.Create("exchange", "queue", "routingKey");
+        var registration2 = ListenerRegistration<object>.Create("exchange", "queue", "routingKey");
         Assert.That(registration1, Is.EqualTo(registration2));
     }
 
     [Test]
-    public void ListenerRegistration_Equals_RoutingKey_Matters()
+    public void Equals_RoutingKey_Matters()
     {
-        var registration1 = new ListenerRegistration<object>("exchange", "queue", "routingKey1");
-        var registration2 = new ListenerRegistration<object>("exchange", "queue", "routingKey2");
+        var registration1 = ListenerRegistration<object>.Create("exchange", "queue", "routingKey1");
+        var registration2 = ListenerRegistration<object>.Create("exchange", "queue", "routingKey2");
         Assert.That(registration1, Is.Not.EqualTo(registration2));
     }
 
     [Test]
-    public void ListenerRegistration_Equals_ExchangeName_Matters()
+    public void Equals_ExchangeName_Matters()
     {
-        var registration1 = new ListenerRegistration<object>("exchange1", "queue", "routingKey");
-        var registration2 = new ListenerRegistration<object>("exchange2", "queue", "routingKey");
+        var registration1 = ListenerRegistration<object>.Create("exchange1", "queue", "routingKey");
+        var registration2 = ListenerRegistration<object>.Create("exchange2", "queue", "routingKey");
         Assert.That(registration1, Is.Not.EqualTo(registration2));
     }
 
     [Test]
-    public void ListenerRegistration_Equals_QueueName_Matters()
+    public void Equals_QueueName_Matters()
     {
-        var registration1 = new ListenerRegistration<object>("exchange", "queue1", "routingKey");
-        var registration2 = new ListenerRegistration<object>("exchange", "queue2", "routingKey");
+        var registration1 = ListenerRegistration<object>.Create("exchange", "queue1", "routingKey");
+        var registration2 = ListenerRegistration<object>.Create("exchange", "queue2", "routingKey");
         Assert.That(registration1, Is.Not.EqualTo(registration2));
+    }
+
+    [Test]
+    public void ToString_Contains_RoutingKey_WhenSet()
+    {
+        var registration = ListenerRegistration<object>.Create("exchange", "queue", "routingKey");
+        Assert.That(registration.ToString(), Contains.Substring("routingKey"));
     }
 }
