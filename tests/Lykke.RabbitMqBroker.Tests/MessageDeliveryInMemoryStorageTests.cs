@@ -19,38 +19,43 @@ internal sealed class MessageDeliveryInMemoryStorageTests
     }
 
     [Test]
-    public async Task Add_WhenAdded_ShouldBeAbleToGetById()
+    public async Task AddOrUpdate_WhenAdded_ShouldBeAbleToGetById()
     {
-        MessageDelivery messageDelivery = new();
+        var messageDelivery = MessageDelivery.Create();
 
-        await _storage.Add(messageDelivery);
+        await _storage.AddOrUpdate(messageDelivery);
 
-        var existingMessageDelivery = await _storage.Get(messageDelivery.Id);
-        Assert.That(existingMessageDelivery, Is.Not.Null);
-        Assert.That(existingMessageDelivery, Is.EqualTo(messageDelivery));
+        var addedDelivery = await _storage.Get(messageDelivery.Id);
+        Assert.Multiple(() =>
+        {
+            Assert.That(addedDelivery.IsNone, Is.False);
+            Assert.That(addedDelivery, Is.EqualTo(messageDelivery));
+        });
     }
 
     [Test]
-    public async Task Add_WhenKeyAlreadyExists_ShouldThrowInvalidOperationException()
+    public async Task AddOrUpdate_Does_Not_Add_None()
     {
-        MessageDelivery messageDelivery = new();
+        var added = await _storage.AddOrUpdate(MessageDelivery.None);
 
-        await _storage.Add(messageDelivery);
-
-        Assert.That(async () => await _storage.Add(messageDelivery), Throws.InvalidOperationException);
+        Assert.That(added, Is.False);
     }
 
     [Test]
-    public async Task Update_WhenUpdated_ShouldBeAbleToGetById()
+    public async Task AddOrUpdate_WhenUpdated_ShouldBeAbleToGetById()
     {
-        MessageDelivery original = new();
-        await _storage.Add(original);
-        var updated = original.Dispatched(DateTime.UtcNow);
-        await _storage.Update(updated);
+        var messageDelivery = MessageDelivery.Create();
+        await _storage.AddOrUpdate(messageDelivery);
 
-        var fromStorage = await _storage.Get(updated.Id);
-        Assert.That(fromStorage, Is.Not.Null);
-        Assert.That(fromStorage, Is.EqualTo(updated));
-        Assert.That(fromStorage, Is.Not.EqualTo(original));
+        var updatedDelivery = messageDelivery.TrySetDispatched(DateTime.UtcNow);
+        var updated = await _storage.AddOrUpdate(updatedDelivery);
+
+        var fromStorage = await _storage.Get(messageDelivery.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(updated);
+            Assert.That(fromStorage, Is.EqualTo(updatedDelivery));
+        });
     }
 }
