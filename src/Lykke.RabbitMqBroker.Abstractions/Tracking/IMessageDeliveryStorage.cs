@@ -5,7 +5,6 @@ namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 /// </summary>
 public interface IMessageDeliveryStorage
 {
-    Task Add(MessageDelivery messageDelivery);
-    Task Update(MessageDelivery messageDelivery);
-    Task<MessageDelivery?> Get(MessageDeliveryId id);
+    Task<bool> AddOrUpdate(MessageDelivery messageDelivery);
+    Task<MessageDelivery> Get(MessageDeliveryId id);
 }

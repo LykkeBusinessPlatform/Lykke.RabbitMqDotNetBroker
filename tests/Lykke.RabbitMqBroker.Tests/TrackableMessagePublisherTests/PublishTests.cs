@@ -69,8 +69,8 @@ internal class PublishTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(delivery?.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Dispatched));
-            Assert.That(delivery?.Failure, Is.Null);
+            Assert.That(delivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Dispatched));
+            Assert.That(delivery.Failure.IsEmpty);
         });
     }
 }

@@ -1,17 +1,10 @@
 namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 
-public readonly struct MessageDeliveryId
+public readonly record struct MessageDeliveryId(Guid Value)
 {
-    public readonly Guid Value { get; init; }
-    public MessageDeliveryId() => Value = Guid.NewGuid();
-    private MessageDeliveryId(Guid value)
-    {
-        if (value == Guid.Empty)
-            throw new ArgumentException("Value cannot be empty", nameof(value));
-
-        Value = value;
-    }
+    public static readonly MessageDeliveryId Empty = new(Guid.Empty);
+    public static MessageDeliveryId Create() => new(Guid.NewGuid());
+    public static MessageDeliveryId Parse(string value) => Guid.TryParse(value, out var guid) ? new(guid) : Empty;
+    public bool IsEmpty => this == Empty;
     public override string ToString() => Value.ToString();
-    public static MessageDeliveryId FromGuid(Guid value) => new(value);
-    public static MessageDeliveryId FromGuid(string value) => new(Guid.Parse(value));
 }

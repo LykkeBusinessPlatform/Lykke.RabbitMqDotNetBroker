@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
-using Lykke.RabbitMqBroker.Monitoring;
 using Lykke.RabbitMqBroker.Publisher;
 
-namespace Lykke.RabbitMqBroker;
+namespace Lykke.RabbitMqBroker.Monitoring;
 
 internal sealed class MonitoringHandler(
     IMessageProducer<MonitoringHeartbeat> monitoringMessagePublisher) : IListenerRegistrationHandler

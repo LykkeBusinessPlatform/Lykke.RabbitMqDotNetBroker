@@ -27,8 +27,8 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
 
     private async Task OnReturned(object sender, BasicReturnEventArgs @event)
     {
-        var deliveryId = MessageDeliveryId.FromGuid(@event.BasicProperties.Headers["DeliveryId"].ToString());
-        await _storage.SetFailed(
+        var deliveryId = @event.BasicProperties.GetDeliveryId();
+        await _storage.TrySetFailed(
             deliveryId,
             MessageDeliveryFailure.Create(FailureReason.Unroutable));
     }
@@ -52,20 +52,20 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
         catch (OperationInterruptedException ex)
         {
             // if publisher confirms enabled
-            await _storage.SetFailed(
+            await _storage.TrySetFailed(
                 deliveryId,
                 MessageDeliveryFailure.FromException(ex, FailureReason.BrokerCustodyNotConfirmed));
             return deliveryId;
         }
         catch (Exception ex)
         {
-            await _storage.SetFailed(
+            await _storage.TrySetFailed(
                 deliveryId,
                 MessageDeliveryFailure.FromException(ex, FailureReason.DispatchError));
             return deliveryId;
         }
 
-        await _storage.SetDispatched(deliveryId);
+        await _storage.TrySetDispatched(deliveryId);
         return deliveryId;
     }
 
