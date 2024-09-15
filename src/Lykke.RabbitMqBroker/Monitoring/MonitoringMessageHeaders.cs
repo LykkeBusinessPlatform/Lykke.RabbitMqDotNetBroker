@@ -10,7 +10,7 @@ public static class MonitoringMessageHeaders
     {
         if (props == null)
         {
-            return EmptyMessageDeliveryId.Instance;
+            return MessageDeliveryId.Empty;
         }
 
         if (props.Headers.TryGetValue("DeliveryId", out var value))
@@ -18,7 +18,7 @@ public static class MonitoringMessageHeaders
             return MessageDeliveryId.Parse(value.ToString());
         }
 
-        return EmptyMessageDeliveryId.Instance;
+        return MessageDeliveryId.Empty;
 
     }
 }

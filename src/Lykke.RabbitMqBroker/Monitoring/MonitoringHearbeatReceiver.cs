@@ -22,9 +22,9 @@ internal sealed class MonitoringHeartbeatReceiver : IMonitoringHeartbeatReceiver
         _logger.LogDebug("Received heartbeat message: {heartbeat}", heartbeat);
 
 
-        if (deliveryId is not EmptyMessageDeliveryId)
+        if (!deliveryId.IsEmpty)
         {
-            await _messageDeliveryStorage.SetReceived(deliveryId);
+            await _messageDeliveryStorage.TrySetReceived(deliveryId);
             _logger.LogDebug("DeliveryId {deliveryId} marked as received", deliveryId);
         }
     }

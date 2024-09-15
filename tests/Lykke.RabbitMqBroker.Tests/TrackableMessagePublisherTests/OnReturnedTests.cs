@@ -35,8 +35,8 @@ internal class OnReturnedTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(delivery?.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
-            Assert.That(delivery?.Failure?.Reason, Is.EqualTo(MessageDeliveryFailureReason.Unroutable));
+            Assert.That(delivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
+            Assert.That(delivery.Failure.Reason, Is.EqualTo(MessageDeliveryFailureReason.Unroutable));
         });
     }
 }

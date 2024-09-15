@@ -8,124 +8,196 @@ public class StatusTests
     [Test]
     public void NewMessageDelivery_HasPendingStatus()
     {
-        MessageDelivery delivery = new();
+        var delivery = MessageDelivery.Create();
 
         Assert.That(delivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Pending));
     }
 
     [Test]
-    public void Dispatched_ChangesStatusToDispatched()
+    public void TrySetDispatched_Does_Nothing_To_Empty_Delivery()
     {
-        var dispatchedDelivery = new MessageDelivery()
-            .Dispatched(DateTime.UtcNow);
+        var noDelivery = MessageDelivery.None;
+
+        var dispatchedDelivery = noDelivery.TrySetDispatched(DateTime.UtcNow);
+
+        Assert.That(dispatchedDelivery, Is.EqualTo(noDelivery));
+    }
+
+    [Test]
+    public void TrySetDispatched_ChangesStatusToDispatched_WhenPending()
+    {
+        var pendingDelivery = MessageDelivery.Create();
+
+        var dispatchedDelivery = pendingDelivery.TrySetDispatched(DateTime.UtcNow);
 
         Assert.That(dispatchedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Dispatched));
     }
 
     [Test]
-    public void Dispatched_ThrowsException_WhenAlreadyDispatched()
+    public void TrySetDispatched_Does_Nothing_WhenAlreadyDispatched()
     {
-        var dispatchedDelivery = new MessageDelivery()
-            .Dispatched(DateTime.UtcNow);
+        var dispatchedDelivery = MessageDelivery.Create()
+            .TrySetDispatched(DateTime.UtcNow);
 
-        Assert.Throws<InvalidOperationException>(() => dispatchedDelivery.Dispatched(DateTime.UtcNow));
+        var dispatchedDelivery2 = dispatchedDelivery.TrySetDispatched(DateTime.UtcNow);
+
+        Assert.That(dispatchedDelivery2, Is.EqualTo(dispatchedDelivery));
     }
 
     [Test]
-    public void Dispatched_ThrowsException_WhenReceived()
+    public void TrySetDispatched_Does_Nothing_WhenAlreadyReceived()
     {
-        var receivedDelivery = new MessageDelivery()
-            .Dispatched(DateTime.UtcNow)
-            .Received(DateTime.UtcNow);
+        var receivedDelivery = MessageDelivery.Create()
+            .TrySetDispatched(DateTime.UtcNow)
+            .TrySetReceived(DateTime.UtcNow);
 
-        Assert.Throws<InvalidOperationException>(() => receivedDelivery.Dispatched(DateTime.UtcNow));
+        var updatedDelivery = receivedDelivery.TrySetDispatched(DateTime.UtcNow);
+
+        Assert.That(updatedDelivery, Is.EqualTo(receivedDelivery));
     }
 
     [Test]
-    public void Dispatched_ThrowsException_WhenFailed()
+    public void TrySetDispatched_Does_Nothing_WhenAlreadyFailed()
     {
         var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
-        var failedDelivery = new MessageDelivery()
-            .Failed(failure);
+        var failedDelivery = MessageDelivery.Create()
+            .TrySetFailed(failure);
 
-        Assert.Throws<InvalidOperationException>(() => failedDelivery.Dispatched(DateTime.UtcNow));
+        var updatedDelivery = failedDelivery.TrySetDispatched(DateTime.UtcNow);
+
+        Assert.That(updatedDelivery, Is.EqualTo(failedDelivery));
     }
 
+
     [Test]
-    public void Received_ChangesStatusToReceived()
+    public void TrySetReceived_ChangesStatusToReceived()
     {
-        var receivedDelivery = new MessageDelivery()
-            .Dispatched(DateTime.UtcNow)
-            .Received(DateTime.UtcNow);
+        var receivedDelivery = MessageDelivery.Create()
+            .TrySetDispatched(DateTime.UtcNow)
+            .TrySetReceived(DateTime.UtcNow);
 
         Assert.That(receivedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Received));
     }
 
     [Test]
-    public void Received_ThrowsException_WhenAlreadyReceived()
+    public void TrySetReceived_Does_Nothing_WhenAlreadyReceived()
     {
-        var receivedDelivery = new MessageDelivery()
-            .Dispatched(DateTime.UtcNow)
-            .Received(DateTime.UtcNow);
+        var receivedDelivery = MessageDelivery.Create()
+            .TrySetDispatched(DateTime.UtcNow)
+            .TrySetReceived(DateTime.UtcNow);
 
-        Assert.Throws<InvalidOperationException>(() => receivedDelivery.Received(DateTime.UtcNow));
+        var updatedDelivery = receivedDelivery.TrySetReceived(DateTime.UtcNow);
+
+        Assert.That(updatedDelivery, Is.EqualTo(receivedDelivery));
     }
 
     [Test]
-    public void Received_ThrowsException_WhenNotDispatched()
-    {
-        MessageDelivery delivery = new();
-
-        Assert.Throws<InvalidOperationException>(() => delivery.Received(DateTime.UtcNow));
-    }
-
-    [Test]
-    public void Received_ThrowsException_WhenFailed()
+    public void TrySetReceived_Does_Nothing_WhenAlreadyFailed()
     {
         var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
-        var failedDelivery = new MessageDelivery().Failed(failure);
+        var failedDelivery = MessageDelivery.Create()
+            .TrySetFailed(failure);
 
-        Assert.Throws<InvalidOperationException>(() => failedDelivery.Received(DateTime.UtcNow));
+        var updatedDelivery = failedDelivery.TrySetReceived(DateTime.UtcNow);
+
+        Assert.That(updatedDelivery, Is.EqualTo(failedDelivery));
     }
 
     [Test]
-    public void Failed_ChangesStatusToFailed()
+    public void TrySetReceived_Does_Nothing_WhenNotDispatched()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
-        var failedDelivery = new MessageDelivery().Failed(failure);
+        var pendingDelivery = MessageDelivery.Create();
 
-        Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
+        var updatedDelivery = pendingDelivery.TrySetReceived(DateTime.UtcNow);
+
+        Assert.That(updatedDelivery, Is.EqualTo(pendingDelivery));
     }
 
     [Test]
-    public void Failed_ChangesStatusToFailed_WhenDispatched()
+    public void TrySetReceived_Does_Nothing_ToEmptyDelivery()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
-        var failedDelivery = new MessageDelivery()
-            .Dispatched(DateTime.UtcNow)
-            .Failed(failure);
+        var noDelivery = MessageDelivery.None;
 
-        Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
+        var updatedDelivery = noDelivery.TrySetReceived(DateTime.UtcNow);
+
+        Assert.That(updatedDelivery, Is.EqualTo(noDelivery));
     }
 
     [Test]
-    public void Failed_ChangesStatusToFailed_WhenReceived()
+    public void TrySetFailed_ChangesStatusToFailed()
     {
         var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
-        var failedDelivery = new MessageDelivery()
-            .Dispatched(DateTime.UtcNow)
-            .Received(DateTime.UtcNow)
-            .Failed(failure);
+        var failedDelivery = MessageDelivery.Create().TrySetFailed(failure);
 
-        Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
+        Assert.Multiple(() =>
+        {
+            Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
+            Assert.That(failedDelivery.Failure.IsEmpty, Is.False);
+        });
     }
 
     [Test]
-    public void Failed_ThrowsException_WhenAlreadyFailed()
+    public void TrySetFailed_ChangesStatusToFailed_WhenDispatched()
     {
         var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
-        var failedDelivery = new MessageDelivery().Failed(failure);
+        var failedDelivery = MessageDelivery.Create()
+            .TrySetDispatched(DateTime.UtcNow)
+            .TrySetFailed(failure);
 
-        Assert.Throws<InvalidOperationException>(() => failedDelivery.Failed(failure));
+        Assert.Multiple(() =>
+        {
+            Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
+            Assert.That(failedDelivery.Failure.IsEmpty, Is.False);
+        });
+    }
+
+    [Test]
+    public void TrySetFailed_ChangesStatusToFailed_WhenReceived()
+    {
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var failedDelivery = MessageDelivery.Create()
+            .TrySetDispatched(DateTime.UtcNow)
+            .TrySetReceived(DateTime.UtcNow)
+            .TrySetFailed(failure);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
+            Assert.That(failedDelivery.Failure.IsEmpty, Is.False);
+        });
+    }
+
+    [Test]
+    public void TrySetFailed_Does_Nothing_WhenEmptyFailure()
+    {
+        var emptyFailure = MessageDeliveryFailure.Empty;
+        var delivery = MessageDelivery.Create();
+
+        var updatedDelivery = delivery.TrySetFailed(emptyFailure);
+
+        Assert.That(updatedDelivery, Is.EqualTo(delivery));
+    }
+
+    [Test]
+    public void TrySetFailed_Does_Nothing_WhenAlreadyFailed()
+    {
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var originallyFailedDelivery = MessageDelivery.Create()
+            .TrySetFailed(failure);
+
+        var anotherFailure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.BrokerCustodyNotConfirmed);
+        var updatedDelivery = originallyFailedDelivery.TrySetFailed(anotherFailure);
+
+        Assert.That(updatedDelivery, Is.EqualTo(originallyFailedDelivery));
+    }
+
+    [Test]
+    public void TrySetFailed_Does_Nothing_ToEmptyDelivery()
+    {
+        var noDelivery = MessageDelivery.None;
+
+        var updatedDelivery = noDelivery.TrySetFailed(MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised));
+
+        Assert.That(updatedDelivery, Is.EqualTo(noDelivery));
     }
 }
