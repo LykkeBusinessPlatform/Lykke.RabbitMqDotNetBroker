@@ -25,7 +25,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
     {
         private readonly RabbitMqSubscriptionSettings _settings;
         private readonly ILogger<RabbitMqSubscriber<TTopicModel>> _logger;
-        private readonly MiddlewareQueue<TTopicModel> _middlewareQueue;
+        internal readonly MiddlewareQueue<TTopicModel> _middlewareQueue;
         private readonly List<Action<IDictionary<string, object>>> _readHeadersActions = [];
         private readonly IAutorecoveringConnection _connection;
 
@@ -88,7 +88,8 @@ namespace Lykke.RabbitMqBroker.Subscriber
             return this;
         }
 
-        public RabbitMqSubscriber<TTopicModel> UseMiddleware(IEventMiddleware<TTopicModel> middleware)
+        public RabbitMqSubscriber<TTopicModel> UseMiddleware<T>(T middleware)
+            where T : class, IEventMiddleware<TTopicModel>
         {
             if (middleware == null)
                 throw new ArgumentNullException(nameof(middleware));
@@ -96,7 +97,26 @@ namespace Lykke.RabbitMqBroker.Subscriber
             if (_consumer is { IsRunning: true })
                 throw new InvalidOperationException("New middleware can't be added after subscriber Start");
 
+            if (_middlewareQueue.HasMiddleware<T>())
+                throw new InvalidOperationException($"Middleware of type {typeof(T).Name} was already added");
+
             _middlewareQueue.AddMiddleware(middleware);
+            return this;
+        }
+
+        public RabbitMqSubscriber<TTopicModel> UseMiddlewareAt<T>(int index, T middleware)
+            where T : class, IEventMiddleware<TTopicModel>
+        {
+            if (middleware == null)
+                throw new ArgumentNullException(nameof(middleware));
+
+            if (_consumer is { IsRunning: true })
+                throw new InvalidOperationException("New middleware can't be added after subscriber Start");
+
+            if (_middlewareQueue.HasMiddleware<T>())
+                throw new InvalidOperationException($"Middleware of type {typeof(T).Name} was already added");
+
+            _middlewareQueue.AddMiddlewareAt(index, middleware);
             return this;
         }
 
