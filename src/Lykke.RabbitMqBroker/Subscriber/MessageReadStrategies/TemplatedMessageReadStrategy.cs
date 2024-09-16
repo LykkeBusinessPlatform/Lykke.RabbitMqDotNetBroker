@@ -8,11 +8,12 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 {
     private const string StrategyDefaultDeadLetterExchangeType = "direct";
-    
+
     private readonly string _routingKey;
-        
+
     protected bool Durable { get; init; }
     protected bool AutoDelete { get; init; }
+    protected QueueType QueueType { get; init; }
 
     protected TemplatedMessageReadStrategy(string routingKey = "")
     {
@@ -22,18 +23,19 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
     public string Configure(RabbitMqSubscriptionSettings settings, IModel channel)
     {
         var queueConfigurationResult = QueueConfigurator.Configure(
-            channel, 
+            channel,
             CreateQueueConfigurationOptions(settings));
-        
+
         return queueConfigurationResult.QueueName;
     }
-    
+
     private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)
     {
         var durabilityFromStrategy = Durable;
         var autoDeleteFromStrategy = AutoDelete;
         var routingKeyFromStrategy = _routingKey;
-        
+        var queueType = QueueType;
+
         var effectiveRoutingKey = string.IsNullOrWhiteSpace(routingKeyFromStrategy)
             ? settings.RoutingKey ?? string.Empty
             : routingKeyFromStrategy;
@@ -46,7 +48,8 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
             DeadLetterExchangeType = StrategyDefaultDeadLetterExchangeType,
             Durable = durabilityFromStrategy,
             AutoDelete = autoDeleteFromStrategy,
-            RoutingKey = effectiveRoutingKey
+            RoutingKey = effectiveRoutingKey,
+            QueueType = queueType
         };
     }
 }

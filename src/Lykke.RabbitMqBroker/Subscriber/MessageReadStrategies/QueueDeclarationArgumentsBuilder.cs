@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using JetBrains.Annotations;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
@@ -10,6 +11,12 @@ internal sealed class QueueDeclarationArgumentsBuilder
     public QueueDeclarationArgumentsBuilder WithDeadLetterExchange(string exchangeName)
     {
         _arguments.Add("x-dead-letter-exchange", exchangeName);
+        return this;
+    }
+
+    public QueueDeclarationArgumentsBuilder UseQuorumQueue()
+    {
+        _arguments.Add("x-queue-type", "quorum");
         return this;
     }
 

@@ -17,6 +17,11 @@ internal static class QueueConfigurator
             argumentsBuilder.WithDeadLetterExchange(deadLetteringConfigurationResult.ExchangeName);
         }
 
+        if (options.QueueType == QueueType.Quorum)
+        {
+            argumentsBuilder.UseQuorumQueue();
+        }
+
         var actualQueueName = channel.QueueDeclare(
             queue: options.QueueName,
             durable: options.Durable,
