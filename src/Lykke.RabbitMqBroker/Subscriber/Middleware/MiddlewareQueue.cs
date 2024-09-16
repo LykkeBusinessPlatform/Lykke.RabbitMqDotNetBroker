@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +10,7 @@ using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.Middleware
 {
-    internal class MiddlewareQueue<T> : IMiddlewareQueue<T>
+    internal class MiddlewareQueue<T> : IMiddlewareQueue<T>, IEnumerable<IEventMiddleware<T>>
     {
         private readonly List<IEventMiddleware<T>> _eventMiddlewares = [];
         private readonly RabbitMqSubscriptionSettings _settings;
@@ -23,6 +23,17 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
         public void AddMiddleware(IEventMiddleware<T> middleware)
         {
             _eventMiddlewares.Add(middleware);
+        }
+
+        public void AddMiddlewareAt(int index, IEventMiddleware<T> middleware)
+        {
+            if (index < 0)
+                throw new InvalidOperationException($"{nameof(index)} must be non-negative");
+
+            if (index > _eventMiddlewares.Count)
+                throw new InvalidOperationException($"{nameof(index)} must be less than or equal to the number of middlewares");
+
+            _eventMiddlewares.Insert(index, middleware);
         }
 
         public Task RunMiddlewaresAsync(
@@ -47,7 +58,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
         public IEventMiddleware<T> GetNext(int currentIndex)
         {
             if (currentIndex < 0)
-                throw new IndexOutOfRangeException($"{nameof(currentIndex)} must be non-negative");
+                throw new InvalidOperationException($"{nameof(currentIndex)} must be non-negative");
 
             if (currentIndex >= _eventMiddlewares.Count - 1)
                 return null;
@@ -58,7 +69,17 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
         public bool HasMiddleware<TMiddleware>()
         {
             var type = typeof(TMiddleware);
-            return _eventMiddlewares.Any(m => m.GetType() == type);
+            return _eventMiddlewares.Exists(m => m.GetType() == type);
+        }
+
+        public IEnumerator<IEventMiddleware<T>> GetEnumerator()
+        {
+            return _eventMiddlewares.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
