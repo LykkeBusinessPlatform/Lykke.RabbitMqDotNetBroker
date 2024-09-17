@@ -73,7 +73,7 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
     {
         properties.Headers ??= new Dictionary<string, object>();
         properties.Headers["Host"] = Environment.MachineName;
-        properties.Headers["DeliveryId"] = deliveryId.ToString();
+        properties.SetDeliveryId(deliveryId);
 
         properties.AppId = new HostAssemblyDisplayName();
         properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
