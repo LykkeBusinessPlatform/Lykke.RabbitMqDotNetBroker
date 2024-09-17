@@ -29,7 +29,7 @@ internal class OnReturnedTests
         var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), null, null, null);
 
         // wait for emulated I/O operation to complete
-        await Task.Delay(UnroutedMessagePurePublisher.IoEmulationDelayMs * 2);
+        await Task.Delay(UnroutedMessagePurePublisher.IoEmulationDelayMs * 3);
 
         var delivery = await _storage.Get(deliveryId);
 

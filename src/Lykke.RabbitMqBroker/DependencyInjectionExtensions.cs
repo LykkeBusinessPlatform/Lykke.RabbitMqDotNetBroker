@@ -64,6 +64,7 @@ namespace Lykke.RabbitMqBroker
             services.AddSingleton<IMessageProducer<MonitoringHeartbeat>, MonitoringHeartbeatPublisher>();
             services.AddSingleton<ITrackableMessagePublisher<MonitoringHeartbeat>, TrackableMessagePublisher<MonitoringHeartbeat>>();
             services.TryAddSingleton<IMessageDeliveryStorage, TMessageDeliveryStorage>();
+            services.AddSingleton<IMonitoringHeartbeatReceiver, MonitoringHeartbeatReceiver>();
             services.Configure<RabbitMqPublisherOptions<MonitoringHeartbeat>>(opt =>
                 opt.CopyFrom(MonitoringHeartbeatPublisherOptions.Create(
                     configuration.PublishConfirmationWaitTimeoutMs,
@@ -107,6 +108,10 @@ namespace Lykke.RabbitMqBroker
                 .As<IMessageDeliveryStorage>()
                 .SingleInstance()
                 .IfNotRegistered(typeof(IMessageDeliveryStorage));
+
+            builder.RegisterType<MonitoringHeartbeatReceiver>()
+                .As<IMonitoringHeartbeatReceiver>()
+                .SingleInstance();
 
             builder.Register(
                 _ => new ConfigureNamedOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>(
