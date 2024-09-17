@@ -38,7 +38,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly ILoggerFactory _loggerFactory;
         private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
-
         private readonly List<RabbitMqSubscriber<T>> _subscribers = [];
 
         /// <summary>
@@ -133,7 +132,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public void Stop()
         {
-            if (!_subscribers.Any()) return;
+            if (_subscribers.Count == 0) return;
 
             for (var i = _subscribers.Count - 1; i >= 0; i--)
             {

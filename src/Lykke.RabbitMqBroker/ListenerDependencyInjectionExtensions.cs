@@ -41,7 +41,9 @@ namespace Lykke.RabbitMqBroker
         /// </summary>
         /// <param name="services"></param>
         /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
-        /// <param name="configureSubscriber">Low-level subscriber configuration callback</param>
+        /// <param name="configureSubscriber">Low-level subscriber configuration callback
+        /// It is called after the subscriber is created and configured by the library.
+        /// Consider it as last chance to configure the subscriber before it starts listening.</param>
         /// <typeparam name="TModel"></typeparam>
         /// <typeparam name="THandler"></typeparam>
         /// <returns>Rabbit MQ listener registration builder</returns>
@@ -57,13 +59,21 @@ namespace Lykke.RabbitMqBroker
             services.AddSingleton(p =>
             {
                 var registry = p.GetService<IListenersRegistry>();
-                registry?.Add(new ListenerRegistration<TModel>(subscriptionSettings.ExchangeName, subscriptionSettings.QueueName, subscriptionSettings.RoutingKey));
+                registry?.Add(
+                    new ListenerRegistration<TModel>(
+                        subscriptionSettings.ExchangeName,
+                        subscriptionSettings.QueueName,
+                        subscriptionSettings.RoutingKey));
 
                 return new RabbitMqListener<TModel>(
                     p.GetRequiredService<IConnectionProvider>(),
                     subscriptionSettings,
                     p.GetRequiredService<IOptions<RabbitMqListenerOptions<TModel>>>(),
-                    s => configureSubscriber?.Invoke(s, p),
+                    s =>
+                    {
+                        configureSubscriber?.Invoke(s, p);
+                        s.UseMonitoringHeartbeatMiddleware(p);
+                    },
                     p.GetRequiredService<IEnumerable<IMessageHandler<TModel>>>(),
                     p.GetRequiredService<ILoggerFactory>());
             });
@@ -96,7 +106,9 @@ namespace Lykke.RabbitMqBroker
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
-        /// <param name="configureSubscriber">Low-level subscriber configuration callback</param>
+        /// <param name="configureSubscriber">Low-level subscriber configuration callback. 
+        /// It is called after the subscriber is created and configured by the library.
+        /// Consider it as last chance to configure the subscriber before it starts listening.</param>
         /// <typeparam name="TModel"></typeparam>
         /// <typeparam name="THandler"></typeparam>
         /// <returns>Rabbit MQ listener registration builder</returns>
@@ -118,13 +130,22 @@ namespace Lykke.RabbitMqBroker
                     // is invoked. So it is required to resolve a new IComponentContext which is LifetimeScope.
                     // see https://autofac.readthedocs.io/en/latest/register/registration.html#lambda-expression-components
                     var registry = ctx.ResolveOptional<IListenersRegistry>();
-                    registry?.Add(new ListenerRegistration<TModel>(subscriptionSettings.ExchangeName, subscriptionSettings.QueueName, subscriptionSettings.RoutingKey));
+                    registry?.Add(
+                        new ListenerRegistration<TModel>(
+                            subscriptionSettings.ExchangeName,
+                            subscriptionSettings.QueueName,
+                            subscriptionSettings.RoutingKey));
                     var ccLifetimeScope = ctx.Resolve<IComponentContext>();
+
                     return new RabbitMqListener<TModel>(
                         ctx.Resolve<IConnectionProvider>(),
                         subscriptionSettings,
                         ctx.Resolve<IOptions<RabbitMqListenerOptions<TModel>>>(),
-                        s => configureSubscriber?.Invoke(s, ccLifetimeScope),
+                        s =>
+                        {
+                            configureSubscriber?.Invoke(s, ccLifetimeScope);
+                            s.UseMonitoringHeartbeatMiddleware(ccLifetimeScope);
+                        },
                         ctx.Resolve<IEnumerable<IMessageHandler<TModel>>>(),
                         ctx.Resolve<ILoggerFactory>());
                 })

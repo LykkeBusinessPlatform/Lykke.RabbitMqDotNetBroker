@@ -31,38 +31,6 @@ namespace Lykke.RabbitMqBroker
         }
 
         /// <summary>
-        /// Adds a plethora of RabbitMq monitoring services to the service collection.
-        /// RabbitMQ connection provider and Listeners registry should be already 
-        /// registered in the container.
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="configuration"></param>
-        /// <param name="connectionString"></param>
-        /// <returns></returns>
-        public static IServiceCollection AddRabbitMqMonitoring<TMessageDeliveryStorage>(
-            this IServiceCollection services,
-            RabbitMqMonitoringConfiguration configuration,
-            string connectionString)
-            where TMessageDeliveryStorage : class, IMessageDeliveryStorage
-        {
-            services.AddSingleton<IListenerRegistrationHandler, MonitoringHandler>();
-            services.AddSingleton<IMessageProducer<MonitoringHeartbeat>, MonitoringHeartbeatPublisher>();
-            services.AddSingleton<ITrackableMessagePublisher<MonitoringHeartbeat>, TrackableMessagePublisher<MonitoringHeartbeat>>();
-            services.TryAddSingleton<IMessageDeliveryStorage, TMessageDeliveryStorage>();
-            services.Configure<RabbitMqPublisherOptions<MonitoringHeartbeat>>(opt =>
-                opt.CopyFrom(MonitoringHeartbeatPublisherOptions.Create(
-                    configuration.PublishConfirmationWaitTimeoutMs,
-                    configuration.MessageExpirationMs)));
-            services.AddSingleton<IPurePublisher<MonitoringHeartbeat>, ImmediatePublisher<MonitoringHeartbeat>>(p =>
-                new ImmediatePublisher<MonitoringHeartbeat>(
-                    p.GetRequiredService<IConnectionProvider>(),
-                    p.GetRequiredService<IOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>>(),
-                    MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
-
-            return services;
-        }
-
-        /// <summary>
         /// Adds RabbitMq infrastructure services to the container:
         /// - RabbitMq connection provider
         /// - Listeners registry
@@ -82,6 +50,38 @@ namespace Lykke.RabbitMqBroker
         /// RabbitMQ connection provider and Listeners registry should be already 
         /// registered in the container.
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddRabbitMqMonitoring<TMessageDeliveryStorage>(
+            this IServiceCollection services,
+            RabbitMqMonitoringConfiguration configuration,
+            string connectionString)
+            where TMessageDeliveryStorage : class, IMessageDeliveryStorage
+        {
+            services.AddSingleton<IListenerRegistrationHandler, ListenerRegistrationHandler>();
+            services.AddSingleton<IMessageProducer<MonitoringHeartbeat>, MonitoringHeartbeatPublisher>();
+            services.AddSingleton<ITrackableMessagePublisher<MonitoringHeartbeat>, TrackableMessagePublisher<MonitoringHeartbeat>>();
+            services.TryAddSingleton<IMessageDeliveryStorage, TMessageDeliveryStorage>();
+            services.Configure<RabbitMqPublisherOptions<MonitoringHeartbeat>>(opt =>
+                opt.CopyFrom(MonitoringHeartbeatPublisherOptions.Create(
+                    configuration.PublishConfirmationWaitTimeoutMs,
+                    configuration.MessageExpirationMs)));
+            services.AddSingleton<IPurePublisher<MonitoringHeartbeat>, ImmediatePublisher<MonitoringHeartbeat>>(p =>
+                new ImmediatePublisher<MonitoringHeartbeat>(
+                    p.GetRequiredService<IConnectionProvider>(),
+                    p.GetRequiredService<IOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>>(),
+                    MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds a plethora of RabbitMq monitoring services to the service collection.
+        /// RabbitMQ connection provider and Listeners registry should be already 
+        /// registered in the container.
+        /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
         /// <param name="connectionString"></param>
@@ -91,7 +91,7 @@ namespace Lykke.RabbitMqBroker
             RabbitMqMonitoringConfiguration configuration,
             string connectionString)
         {
-            builder.RegisterType<MonitoringHandler>()
+            builder.RegisterType<ListenerRegistrationHandler>()
                 .As<IListenerRegistrationHandler>()
                 .SingleInstance();
 
