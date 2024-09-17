@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Tests.MonitoringMessageSenderTests;
+using MonitoringListenerRegistrationHandler = Lykke.RabbitMqBroker.Monitoring.ListenerRegistrationHandler;
 
 using NUnit.Framework;
 
@@ -27,8 +28,8 @@ internal class HandleTests
         Assert.That(_fakeMonitoringMessagePublisher.PublicationsCount, Is.EqualTo(1));
     }
 
-    private MonitoringHandler CreateSut()
+    private MonitoringListenerRegistrationHandler CreateSut()
     {
-        return new MonitoringHandler(_fakeMonitoringMessagePublisher);
+        return new MonitoringListenerRegistrationHandler(_fakeMonitoringMessagePublisher);
     }
 }
