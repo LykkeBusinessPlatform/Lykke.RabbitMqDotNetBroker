@@ -26,7 +26,7 @@ await builder
     })
     .ConfigureServices((ctx, services) =>
     {
-        services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
+        services.AddLogging(lb => lb.ClearProviders().AddConsole().SetMinimumLevel(LogLevel.Debug));
         var configuration = new RabbitMqConfiguration();
         ctx.Configuration.GetSection("RabbitMq").Bind(configuration);
         services.AddRabbitMq(configuration);

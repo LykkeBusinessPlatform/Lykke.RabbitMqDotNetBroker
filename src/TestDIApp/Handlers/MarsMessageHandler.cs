@@ -1,6 +1,9 @@
 using System.Text.Json;
+
 using Lykke.RabbitMqBroker.Subscriber;
+
 using Microsoft.Extensions.Logging;
+
 using TestDIApp.Messages;
 
 namespace TestDIApp.Handlers;
@@ -17,8 +20,8 @@ public class MarsMessageHandler : IMessageHandler<MarsMessage>
     public Task Handle(MarsMessage marsMessage)
     {
         var messageJson = JsonSerializer.Serialize(marsMessage);
-        _logger.LogInformation("Received message: {message}", messageJson);
-        
+        _logger.LogInformation("Received message: {Message}", messageJson);
+
         return Task.CompletedTask;
     }
 }
