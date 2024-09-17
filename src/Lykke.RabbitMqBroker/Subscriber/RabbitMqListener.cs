@@ -39,7 +39,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly ILoggerFactory _loggerFactory;
         private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
-
         private readonly List<RabbitMqSubscriber<T>> _subscribers = [];
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -151,7 +150,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public void Stop()
         {
-            if (!_subscribers.Any()) return;
+            if (_subscribers.Count == 0) return;
 
             if (_cancellationTokenSource is { IsCancellationRequested: false })
             {

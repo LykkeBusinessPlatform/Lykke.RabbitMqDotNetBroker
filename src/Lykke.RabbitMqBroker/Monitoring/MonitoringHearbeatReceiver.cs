@@ -1,8 +1,12 @@
+using System;
+using System.Text;
 using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 using Microsoft.Extensions.Logging;
+
+using Newtonsoft.Json;
 
 namespace Lykke.RabbitMqBroker.Monitoring;
 
@@ -17,15 +21,14 @@ internal sealed class MonitoringHeartbeatReceiver : IMonitoringHeartbeatReceiver
         _logger = logger;
     }
 
-    public async Task Handle(MonitoringHeartbeat heartbeat, MessageDeliveryId deliveryId)
+    public async Task Handle(ReadOnlyMemory<byte> body, MessageDeliveryId deliveryId)
     {
-        _logger.LogDebug("Received heartbeat message: {heartbeat}", heartbeat);
+        var heartbeat = JsonConvert.DeserializeObject<MonitoringHeartbeat>(Encoding.UTF8.GetString(body.Span));
 
+        _logger.LogDebug("Received heartbeat message: {Heartbeat}", heartbeat);
 
-        if (!deliveryId.IsEmpty)
-        {
-            await _messageDeliveryStorage.TrySetReceived(deliveryId);
-            _logger.LogDebug("DeliveryId {deliveryId} marked as received", deliveryId);
-        }
+        var updated = await _messageDeliveryStorage.TrySetReceived(deliveryId);
+
+        _logger.LogDebug("DeliveryId {DeliveryId} marked as received: {Updated}", deliveryId, updated);
     }
 }
