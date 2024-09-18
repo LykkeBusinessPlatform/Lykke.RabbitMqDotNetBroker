@@ -9,7 +9,7 @@ namespace Lykke.RabbitMqBroker.Monitoring;
 
 public static class MonitoringMessageHeaders
 {
-    private const string DeliveryIdHeader = "DeliveryId";
+    internal const string DeliveryIdHeader = "DeliveryId";
 
     public static MessageDeliveryId GetDeliveryId(this IBasicProperties props)
     {
