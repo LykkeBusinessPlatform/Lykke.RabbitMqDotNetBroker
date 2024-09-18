@@ -1,3 +1,8 @@
+## [[tbd]] (2024-09-18)
+
+### Added
+- LT-5705: Add quorum queues basic support
+
 ## 14.0.0 (2024-08-23)
 
 ### Changed
