@@ -32,11 +32,11 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed;
         private ushort? _prefetchCount;
-        
+
         private IModel _channel;
         private EventingBasicConsumer _consumer;
         private string _consumerTag;
-        
+
         public IMessageDeserializer<TTopicModel> MessageDeserializer { get; private set; }
         public IMessageReadStrategy MessageReadStrategy { get; private set; }
         public Func<TTopicModel, Task> EventHandler { get; private set; }
@@ -81,7 +81,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             MessageReadStrategy = messageReadStrategy;
             return this;
         }
-        
+
         public RabbitMqSubscriber<TTopicModel> UseDefaultStrategy()
         {
             SetMessageReadStrategy(GetDefaultStrategy());
@@ -93,7 +93,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             if (middleware == null)
                 throw new ArgumentNullException(nameof(middleware));
 
-            if (_consumer is { IsRunning: true }) 
+            if (_consumer is { IsRunning: true })
                 throw new InvalidOperationException("New middleware can't be added after subscriber Start");
 
             _middlewareQueue.AddMiddleware(middleware);
@@ -105,7 +105,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _prefetchCount = prefetchCount;
             return this;
         }
-        
+
         public RabbitMqSubscriber<TTopicModel> SetReadHeadersAction(Action<IDictionary<string, object>> action)
         {
             if (action != null)
@@ -122,10 +122,10 @@ namespace Lykke.RabbitMqBroker.Subscriber
             // make a copy of the body, as it can be released at any time
             var bodyCopy = new byte[args.Body.Length];
             Buffer.BlockCopy(args.Body.ToArray(), 0, bodyCopy, 0, args.Body.Length);
-            
+
             var acceptor = new MessageAcceptor(_channel, args.DeliveryTag);
             _readHeadersActions.ForEach(x => x(args.BasicProperties?.Headers));
-            
+
             try
             {
                 var model = MessageDeserializer.Deserialize(bodyCopy);
@@ -171,7 +171,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _channel = GetOrCreateChannel();
 
             _consumer = GetOrCreateConsumer(_channel);
-            
+
             var queueName = MessageReadStrategy.Configure(_settings, _channel);
 
             _consumerTag = _channel.BasicConsume(queueName, false, _consumer);
@@ -206,7 +206,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
             _disposed = true;
         }
-        
+
         private void CheckStartPreConditionsOrThrow()
         {
             if (MessageDeserializer == null)
@@ -215,14 +215,14 @@ namespace Lykke.RabbitMqBroker.Subscriber
             if (EventHandler == null && CancellableEventHandler == null)
                 throw new InvalidOperationException("Please, specify message handler");
         }
-        
+
         private IModel GetOrCreateChannel()
         {
             if (_channel != null)
                 return _channel;
 
             _channel = _connection.CreateModel();
-            
+
             if (_prefetchCount.HasValue)
                 _channel.BasicQos(0, _prefetchCount.Value, false);
 
@@ -233,14 +233,14 @@ namespace Lykke.RabbitMqBroker.Subscriber
         {
             if (_consumer != null)
                 return _consumer;
-            
+
             _consumer = new EventingBasicConsumer(channel);
-            
+
             _consumer.Received += OnReceived;
-            
+
             return _consumer;
         }
-        
+
         private static IMessageReadStrategy GetDefaultStrategy()
         {
             return new MessageReadWithTemporaryQueueStrategy();

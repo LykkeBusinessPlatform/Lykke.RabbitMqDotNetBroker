@@ -14,18 +14,21 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
         {
             public const bool Durable = true;
             public const bool AutoDelete = false;
+            public const QueueType QType = QueueType.Quorum;
         }
-        
+
         public NoLossMessageReadStrategy() : base()
         {
             Durable = Const.Durable;
             AutoDelete = Const.AutoDelete;
+            QueueType = Const.QType;
         }
-        
+
         public NoLossMessageReadStrategy(string routingKey) : base(routingKey)
         {
             Durable = Const.Durable;
             AutoDelete = Const.AutoDelete;
+            QueueType = Const.QType;
         }
     }
 }
