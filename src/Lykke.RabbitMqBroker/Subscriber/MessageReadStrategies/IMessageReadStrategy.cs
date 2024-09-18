@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Lykke Corp.
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
+using System;
+
 using JetBrains.Annotations;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
@@ -10,13 +13,24 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
     public interface IMessageReadStrategy
     {
         /// <summary>
-        /// Configures the channel for the message reading
+        /// Configures the queue
         /// </summary>
         /// <param name="settings"></param>
         /// <param name="channel"></param>
-        /// <returns>
-        /// The name of the queue that was created
-        /// </returns>
+        /// <returns> The name of the queue </returns>
+        [Obsolete("Use Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory) instead")]
         string Configure(RabbitMqSubscriptionSettings settings, IModel channel);
+
+        /// <summary>
+        /// Configures the queue
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="channelFactory"></param>
+        /// <returns> The name of the queue </returns>
+        string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
+        {
+            using var channel = channelFactory();
+            return Configure(settings, channel);
+        }
     }
 }

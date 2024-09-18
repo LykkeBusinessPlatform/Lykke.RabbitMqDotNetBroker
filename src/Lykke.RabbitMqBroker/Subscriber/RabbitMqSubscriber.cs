@@ -168,11 +168,11 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 : new ActualHandlerMiddleware<TTopicModel>(CancellableEventHandler);
             _middlewareQueue.AddMiddleware(actualHandlerMiddleware);
 
-            _channel = GetOrCreateChannel();
+            _channel = GetOrCreateConsumerChannel();
 
             _consumer = GetOrCreateConsumer(_channel);
 
-            var queueName = MessageReadStrategy.Configure(_settings, _channel);
+            var queueName = MessageReadStrategy.Configure(_settings, CreateConfiguratorChannel);
 
             _consumerTag = _channel.BasicConsume(queueName, false, _consumer);
 
@@ -216,7 +216,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 throw new InvalidOperationException("Please, specify message handler");
         }
 
-        private IModel GetOrCreateChannel()
+        private IModel GetOrCreateConsumerChannel()
         {
             if (_channel != null)
                 return _channel;
@@ -227,6 +227,11 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _channel.BasicQos(0, _prefetchCount.Value, false);
 
             return _channel;
+        }
+
+        private IModel CreateConfiguratorChannel()
+        {
+            return _connection.CreateModel();
         }
 
         private EventingBasicConsumer GetOrCreateConsumer(IModel channel)
