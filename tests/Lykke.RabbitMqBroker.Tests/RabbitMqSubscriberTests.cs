@@ -111,7 +111,17 @@ namespace Lykke.RabbitMqBroker.Tests
 
             _subscriber.Start();
 
-            Assert.That(prefetchCount, Is.EqualTo(_connection.LatestChannel.PrefetchCount));
+            Assert.That(prefetchCount, Is.EqualTo(_connection.ConsumerChannel.PrefetchCount));
+        }
+
+
+        [TearDown]
+        public void TearDown()
+        {
+            _subscriber?.Stop();
+            _subscriber?.Dispose();
+            _connection?.Close();
+            _connection?.Dispose();
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -7,14 +8,21 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes;
 
 public class QueueConfiguratorFakeChannel : IModel
 {
-    private readonly HashSet<string> _declaredQueues = new();
-    private readonly HashSet<string> _declaredExchanges = new();
-    private readonly HashSet<string> _boundQueues = new();
-    private readonly Dictionary<string, IDictionary<string, object>> _declaredQueuesArguments = new();
-    
+    public static HashSet<string> DeclaredQueues { get; } = [];
+    public static HashSet<string> DeclaredExchanges { get; } = [];
+    public static HashSet<string> BoundQueues { get; } = [];
+    public static Dictionary<string, IDictionary<string, object>> DeclaredQueuesArguments { get; } = [];
+
+    public static void ResetCounters()
+    {
+        DeclaredQueues.Clear();
+        DeclaredExchanges.Clear();
+        BoundQueues.Clear();
+        DeclaredQueuesArguments.Clear();
+    }
+
     public void Dispose()
     {
-        throw new NotImplementedException();
     }
 
     public void Abort()
@@ -129,17 +137,17 @@ public class QueueConfiguratorFakeChannel : IModel
 
     public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
     {
-        _declaredExchanges.Add(exchange);
+        DeclaredExchanges.Add(exchange);
     }
 
     public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
     {
-        _declaredExchanges.Add(exchange);
+        DeclaredExchanges.Add(exchange);
     }
 
     public void ExchangeDeclarePassive(string exchange)
     {
-        _declaredExchanges.Add(exchange);
+        DeclaredExchanges.Add(exchange);
     }
 
     public void ExchangeDelete(string exchange, bool ifUnused)
@@ -164,30 +172,30 @@ public class QueueConfiguratorFakeChannel : IModel
 
     public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
     {
-        _boundQueues.Add(queue);
+        BoundQueues.Add(queue);
     }
 
     public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
     {
-        _boundQueues.Add(queue);
+        BoundQueues.Add(queue);
     }
 
     public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
-        _declaredQueues.Add(queue);
-        _declaredQueuesArguments.Add(queue, arguments);
+        DeclaredQueues.Add(queue);
+        DeclaredQueuesArguments.Add(queue, arguments);
         return new QueueDeclareOk(queue, 0, 0);
     }
 
     public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
-        _declaredQueues.Add(queue);
-        _declaredQueuesArguments.Add(queue, arguments);
+        DeclaredQueues.Add(queue);
+        DeclaredQueuesArguments.Add(queue, arguments);
     }
 
     public QueueDeclareOk QueueDeclarePassive(string queue)
     {
-        _declaredQueues.Add(queue);
+        DeclaredQueues.Add(queue);
         return new QueueDeclareOk(queue, 0, 0);
     }
 
@@ -275,9 +283,4 @@ public class QueueConfiguratorFakeChannel : IModel
     public event EventHandler<CallbackExceptionEventArgs> CallbackException;
     public event EventHandler<FlowControlEventArgs> FlowControl;
     public event EventHandler<ShutdownEventArgs> ModelShutdown;
-
-    public IReadOnlyCollection<string> DeclaredQueues => _declaredQueues;
-    public IReadOnlyCollection<string> DeclaredExchanges => _declaredExchanges;
-    public IReadOnlyCollection<string> BoundQueues => _boundQueues;
-    public IReadOnlyDictionary<string, IDictionary<string, object>> DeclaredQueuesArguments => _declaredQueuesArguments;
 }

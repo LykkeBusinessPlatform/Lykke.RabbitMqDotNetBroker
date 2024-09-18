@@ -1,3 +1,5 @@
+using System;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
@@ -5,9 +7,11 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 internal static class QueueConfigurator
 {
     public static QueueConfigurationResult Configure(
-        IModel channel,
+        Func<IModel> channelFactory,
         QueueConfigurationOptions options)
     {
+        using var channel = channelFactory();
+
         var argumentsBuilder = new QueueDeclarationArgumentsBuilder();
         if (options.ShouldConfigureDeadLettering())
         {

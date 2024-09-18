@@ -1,5 +1,3 @@
-using System.Runtime;
-
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 using Lykke.RabbitMqBroker.Tests.Fakes;
 
@@ -19,12 +17,11 @@ public class QueueConfiguratorTests
             QueueName = "q"
         };
 
-        var channel = new QueueConfiguratorFakeChannel();
-        var result = QueueConfigurator.Configure(channel, options);
+        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
         Assert.That(options.QueueName, Is.EqualTo(result.QueueName));
-        Assert.That(channel.DeclaredExchanges, Does.Not.Contain(options.ExchangeName));
-        Assert.That(channel.DeclaredQueues, Does.Contain(options.QueueName));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExchangeName));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName));
     }
 
     [Test]
@@ -37,11 +34,10 @@ public class QueueConfiguratorTests
             QueueName = "q"
         };
 
-        var channel = new QueueConfiguratorFakeChannel();
-        QueueConfigurator.Configure(channel, options);
+        QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
-        Assert.That(channel.DeclaredExchanges, Does.Contain(options.DeadLetterExchangeName));
-        Assert.That(channel.DeclaredQueues, Does.Contain(options.QueueName.GetPoisonQueueName()));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(options.DeadLetterExchangeName));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.GetPoisonQueueName()));
     }
 
     [TestCase("")]
@@ -56,11 +52,10 @@ public class QueueConfiguratorTests
             QueueName = "q"
         };
 
-        var channel = new QueueConfiguratorFakeChannel();
-        QueueConfigurator.Configure(channel, options);
+        QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
-        Assert.That(channel.DeclaredExchanges, Does.Not.Contain(options.DeadLetterExchangeName));
-        Assert.That(channel.DeclaredQueues, Does.Not.Contain(options.QueueName.GetPoisonQueueName()));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.DeadLetterExchangeName));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Not.Contain(options.QueueName.GetPoisonQueueName()));
     }
 
     [Test]
@@ -73,10 +68,15 @@ public class QueueConfiguratorTests
             QueueName = "q"
         };
 
-        var channel = new QueueConfiguratorFakeChannel();
-        var result = QueueConfigurator.Configure(channel, options);
+        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
-        channel.DeclaredQueuesArguments.TryGetValue(result.QueueName, out var args);
+        QueueConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.QueueName, out var args);
         Assert.That("dlx", Is.EqualTo(args?["x-dead-letter-exchange"]));
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        QueueConfiguratorFakeChannel.ResetCounters();
     }
 }

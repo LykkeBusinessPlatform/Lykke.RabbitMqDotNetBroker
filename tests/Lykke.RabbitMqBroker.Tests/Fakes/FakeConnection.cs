@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -40,28 +41,32 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
 
         public void Close()
         {
-            throw new NotImplementedException();
         }
 
         public void Close(ushort reasonCode, string reasonText)
         {
-            throw new NotImplementedException();
         }
 
         public void Close(TimeSpan timeout)
         {
-            throw new NotImplementedException();
         }
 
         public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            throw new NotImplementedException();
         }
 
         public IModel CreateModel()
         {
-            LatestChannel = new FakeChannel();
-            return LatestChannel;
+            // Consumer channel is the one requested first by subscriber
+            // so we have to capture only first call.
+            // Subsequent calls can happen to request separate configuration channels.
+            if (ConsumerChannel == null)
+            {
+                ConsumerChannel = new FakeChannel();
+                return ConsumerChannel;
+            }
+
+            return new FakeChannel();
         }
 
         public void HandleConnectionBlocked(string reason)
@@ -94,7 +99,7 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
         public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
         public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
-        
-        public FakeChannel LatestChannel { get; private set; }
+
+        public FakeChannel ConsumerChannel { get; private set; }
     }
 }

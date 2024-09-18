@@ -183,7 +183,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         {
             _cancellationTokenSource?.Cancel();
 
-            if (_consumer.IsRunning)
+            if (_consumer?.IsRunning ?? false)
             {
                 _channel.BasicCancel(_consumerTag);
                 _consumer.Received -= OnReceived;
