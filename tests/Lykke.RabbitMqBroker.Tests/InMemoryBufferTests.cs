@@ -12,34 +12,34 @@ namespace Lykke.RabbitMqBroker.Tests
     [TestFixture]
     public class InMemoryBufferTests
     {
-        private static object[] _allBufferTypes =
-        {
+        private static readonly object[] AllBufferTypes =
+        [
             new object[] { typeof(InMemoryBuffer) },
             new object[] { typeof(LockFreeBuffer) },
             new object[] { typeof(ExperimentalBuffer) }
-        };
+        ];
 
-        private static object[] _noLossBufferTypes =
-        {
+        private static readonly object[] NoLossBufferTypes =
+        [
             new object[] { typeof(InMemoryBuffer) },
             new object[] { typeof(ExperimentalBuffer) }
-        };
+        ];
 
-        [TestCaseSource(nameof(_allBufferTypes))]
+        [TestCaseSource(nameof(AllBufferTypes))]
         public async Task ShouldWaitForEnqueue(Type bufferType)
         {
             var buffer = (IPublisherBuffer)Activator.CreateInstance(bufferType);
             var cts = new CancellationTokenSource();
             var attemptsToRead = 0;
 
-            var thread = new Thread(() =>
+            var thread = new Thread(async () =>
             {
                 while (!cts.IsCancellationRequested)
                 {
                     try
                     {
                         var message = buffer.WaitOneAndPeek(cts.Token);
-                        Thread.Sleep(50);
+                        await Task.Delay(50);
                         attemptsToRead++;
                         if (message != null)
                         {
@@ -66,12 +66,13 @@ namespace Lykke.RabbitMqBroker.Tests
             await Task.WhenAll(writeTasks);
             await Task.Delay(TimeSpan.FromSeconds(2));
 
-            cts.Cancel();
+            await cts.CancelAsync();
+            cts.Dispose();
 
-            Assert.That(20, Is.EqualTo(attemptsToRead));
+            Assert.That(attemptsToRead, Is.EqualTo(20));
         }
 
-        [TestCaseSource(nameof(_noLossBufferTypes))]
+        [TestCaseSource(nameof(NoLossBufferTypes))]
         public void TestEnqueueAndDequeue(Type bufferType)
         {
             var buffer = (IPublisherBuffer)Activator.CreateInstance(bufferType);
@@ -81,19 +82,19 @@ namespace Lykke.RabbitMqBroker.Tests
             Assert.That(buffer, Is.Not.Null);
             buffer.Enqueue(message, CancellationToken.None);
 
-            Assert.That(1, Is.EqualTo(buffer.Count));
+            Assert.That(buffer, Has.Count.EqualTo(1));
 
             var peekedMessage = buffer.WaitOneAndPeek(CancellationToken.None);
 
             Assert.That(message, Is.EqualTo(peekedMessage));
-            Assert.That(1, Is.EqualTo(buffer.Count));
+            Assert.That(buffer, Has.Count.EqualTo(1));
 
             buffer.Dequeue(CancellationToken.None);
 
-            Assert.That(0, Is.EqualTo(buffer.Count));
+            Assert.That(buffer, Is.Empty);
         }
 
-        [TestCaseSource(nameof(_allBufferTypes))]
+        [TestCaseSource(nameof(AllBufferTypes))]
         public void TestConcurrentEnqueue(Type bufferType)
         {
             var buffer = (IPublisherBuffer)Activator.CreateInstance(bufferType);
@@ -109,10 +110,10 @@ namespace Lykke.RabbitMqBroker.Tests
 
             Task.WaitAll(tasks.ToArray());
 
-            Assert.That(itemsCount, Is.EqualTo(buffer.Count));
+            Assert.That(buffer, Has.Count.EqualTo(itemsCount));
         }
 
-        [TestCaseSource(nameof(_allBufferTypes))]
+        [TestCaseSource(nameof(AllBufferTypes))]
         public void TestSingleThreadedDequeue(Type bufferType)
         {
             var buffer = (IPublisherBuffer)Activator.CreateInstance(bufferType);
@@ -135,7 +136,7 @@ namespace Lykke.RabbitMqBroker.Tests
                 counter++;
             }
 
-            Assert.That(itemsCount, Is.EqualTo(counter));
+            Assert.That(counter, Is.EqualTo(itemsCount));
         }
 
         private static RawMessage CreateMessage(int bodySizeBytes = 100)
