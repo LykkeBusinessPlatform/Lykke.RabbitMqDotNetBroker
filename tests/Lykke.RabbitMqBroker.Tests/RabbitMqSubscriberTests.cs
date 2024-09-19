@@ -112,7 +112,7 @@ namespace Lykke.RabbitMqBroker.Tests
 
             _subscriber.Start();
 
-            var consumerChannel = _connection.Channels.SingleOrDefault(x => x.PrefetchCount == prefetchCount);
+            var consumerChannel = _connection.Channels.SingleOrDefault(x => x?.PrefetchCount == prefetchCount);
             Assert.That(consumerChannel, Is.Not.Null);
         }
 
