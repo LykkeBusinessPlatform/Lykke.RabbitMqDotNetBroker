@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -88,12 +89,10 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
 
         public void Close()
         {
-            throw new NotImplementedException();
         }
 
         public void Close(ushort replyCode, string replyText)
         {
-            throw new NotImplementedException();
         }
 
         public void ConfirmSelect()
@@ -263,7 +262,6 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
         public event EventHandler<CallbackExceptionEventArgs> CallbackException;
         public event EventHandler<FlowControlEventArgs> FlowControl;
         public event EventHandler<ShutdownEventArgs> ModelShutdown;
-        
         public ushort PrefetchCount { get; private set; }
     }
 }

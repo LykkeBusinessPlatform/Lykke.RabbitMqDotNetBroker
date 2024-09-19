@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Lykke Corp.
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
@@ -15,12 +17,14 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
             _routingKey = routingKey ?? string.Empty;
         }
 
-        public string Configure(RabbitMqSubscriptionSettings settings, IModel channel)
+        public string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
         {
+            using var channel = channelFactory();
+
             var queueName = settings.GetQueueName();
             var autodelete = !settings.IsDurable;
             IDictionary<string, object> args = null;
-            
+
             if (!string.IsNullOrEmpty(settings.DeadLetterExchangeName))
             {
                 var poisonQueueName = settings.GetPoisonQueueName();

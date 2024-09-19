@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2024 Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
@@ -20,10 +22,10 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
         _routingKey = routingKey ?? string.Empty;
     }
 
-    public string Configure(RabbitMqSubscriptionSettings settings, IModel channel)
+    public string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
     {
         var queueConfigurationResult = QueueConfigurator.Configure(
-            channel,
+            channelFactory,
             CreateQueueConfigurationOptions(settings));
 
         return queueConfigurationResult.QueueName;

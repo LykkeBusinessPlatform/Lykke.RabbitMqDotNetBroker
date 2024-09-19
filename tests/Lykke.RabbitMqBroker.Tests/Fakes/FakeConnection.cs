@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -7,6 +8,7 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
 {
     internal class FakeConnection : IAutorecoveringConnection
     {
+        public List<FakeChannel> Channels { get; } = [];
         public int LocalPort { get; }
         public int RemotePort { get; }
         public void Dispose()
@@ -40,28 +42,25 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
 
         public void Close()
         {
-            throw new NotImplementedException();
         }
 
         public void Close(ushort reasonCode, string reasonText)
         {
-            throw new NotImplementedException();
         }
 
         public void Close(TimeSpan timeout)
         {
-            throw new NotImplementedException();
         }
 
         public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            throw new NotImplementedException();
         }
 
         public IModel CreateModel()
         {
-            LatestChannel = new FakeChannel();
-            return LatestChannel;
+            var channel = new FakeChannel();
+            Channels.Add(channel);
+            return channel;
         }
 
         public void HandleConnectionBlocked(string reason)
@@ -94,7 +93,5 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
         public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
         public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
-        
-        public FakeChannel LatestChannel { get; private set; }
     }
 }
