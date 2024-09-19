@@ -8,6 +8,7 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
 {
     internal class FakeConnection : IAutorecoveringConnection
     {
+        public List<FakeChannel> Channels { get; } = [];
         public int LocalPort { get; }
         public int RemotePort { get; }
         public void Dispose()
@@ -57,16 +58,9 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
 
         public IModel CreateModel()
         {
-            // Consumer channel is the one requested first by subscriber
-            // so we have to capture only first call.
-            // Subsequent calls can happen to request separate configuration channels.
-            if (ConsumerChannel == null)
-            {
-                ConsumerChannel = new FakeChannel();
-                return ConsumerChannel;
-            }
-
-            return new FakeChannel();
+            var channel = new FakeChannel();
+            Channels.Add(channel);
+            return channel;
         }
 
         public void HandleConnectionBlocked(string reason)
@@ -99,7 +93,5 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
         public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
         public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
-
-        public FakeChannel ConsumerChannel { get; private set; }
     }
 }

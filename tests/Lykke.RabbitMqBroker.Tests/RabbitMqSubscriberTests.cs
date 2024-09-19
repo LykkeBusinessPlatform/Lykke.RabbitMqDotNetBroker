@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -111,7 +112,8 @@ namespace Lykke.RabbitMqBroker.Tests
 
             _subscriber.Start();
 
-            Assert.That(prefetchCount, Is.EqualTo(_connection.ConsumerChannel.PrefetchCount));
+            var consumerChannel = _connection.Channels.SingleOrDefault(x => x.PrefetchCount == prefetchCount);
+            Assert.That(consumerChannel, Is.Not.Null);
         }
 
 

@@ -262,7 +262,6 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
         public event EventHandler<CallbackExceptionEventArgs> CallbackException;
         public event EventHandler<FlowControlEventArgs> FlowControl;
         public event EventHandler<ShutdownEventArgs> ModelShutdown;
-
         public ushort PrefetchCount { get; private set; }
     }
 }
