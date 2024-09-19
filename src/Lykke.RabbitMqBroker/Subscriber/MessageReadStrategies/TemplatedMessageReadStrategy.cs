@@ -7,6 +7,9 @@ using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
+using Success = QueueConfigurationSuccess<string>;
+using Failure = QueueConfigurationPreconditionFailure;
+
 public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 {
     private const string StrategyDefaultDeadLetterExchangeType = "direct";
@@ -24,11 +27,20 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 
     public string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
     {
-        var queueConfigurationResult = QueueConfigurator.Configure(
-            channelFactory,
-            CreateQueueConfigurationOptions(settings));
+        var options = CreateQueueConfigurationOptions(settings);
 
-        return queueConfigurationResult.QueueName;
+        return Configure() switch
+        {
+            Success firstAttemptSuccess => firstAttemptSuccess.Response,
+            Failure => channelFactory.TryFixPreconditionFailureOrThrow(options, Configure) switch
+            {
+                Success secondAttemptSuccess => secondAttemptSuccess.Response,
+                _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")
+            },
+            _ => throw new InvalidOperationException("Unexpected queue configuration result"),
+        };
+
+        IQueueConfigurationResult Configure() => QueueConfigurator.Configure(channelFactory, options);
     }
 
     private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)
