@@ -6,7 +6,6 @@ using System;
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
-
 public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 {
     private const string StrategyDefaultDeadLetterExchangeType = "direct";
@@ -24,11 +23,29 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 
     public string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
     {
-        var queueConfigurationResult = QueueConfigurator.Configure(
-            channelFactory,
-            CreateQueueConfigurationOptions(settings));
+        var options = CreateQueueConfigurationOptions(settings);
 
-        return queueConfigurationResult.QueueName;
+        return TryConfigure(channelFactory, options)
+            .Match(
+                success => success.Response,
+                _ => RetryWithQueueRecreation(channelFactory, options)
+                    .Match<string>(
+                        success => success.Response,
+                        _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure"
+                    )
+            ));
+    }
+
+    private static IQueueConfigurationResult TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options) =>
+        QueueConfigurator.Configure(channelFactory, options);
+
+    private static IQueueConfigurationResult RetryWithQueueRecreation(Func<IModel> channelFactory, QueueConfigurationOptions options)
+    {
+        return channelFactory.SafeDeleteClassicQueue(options.QueueName)
+            .Match<IQueueConfigurationResult>(
+                onSuccess: _ => TryConfigure(channelFactory, options),
+                onFailure: _ => throw new InvalidOperationException($"Failed to delete queue [{options.QueueName}].")
+            );
     }
 
     private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)

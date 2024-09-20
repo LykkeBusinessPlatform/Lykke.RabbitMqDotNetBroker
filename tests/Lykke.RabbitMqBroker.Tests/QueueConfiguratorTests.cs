@@ -1,3 +1,4 @@
+using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 using Lykke.RabbitMqBroker.Tests.Fakes;
 
@@ -17,9 +18,9 @@ public class QueueConfiguratorTests
             QueueName = "q"
         };
 
-        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
+        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options) as QueueConfigurationSuccess<string>;
 
-        Assert.That(options.QueueName, Is.EqualTo(result.QueueName));
+        Assert.That(options.QueueName, Is.EqualTo(result.Response));
         Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExchangeName));
         Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName));
     }
@@ -68,9 +69,9 @@ public class QueueConfiguratorTests
             QueueName = "q"
         };
 
-        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
+        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options) as QueueConfigurationSuccess<string>;
 
-        QueueConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.QueueName, out var args);
+        QueueConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response, out var args);
         Assert.That("dlx", Is.EqualTo(args?["x-dead-letter-exchange"]));
     }
 
