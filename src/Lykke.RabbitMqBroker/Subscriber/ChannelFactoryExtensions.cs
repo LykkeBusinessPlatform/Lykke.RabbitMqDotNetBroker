@@ -8,7 +8,6 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Lykke.RabbitMqBroker.Subscriber;
 
-using Success = QueueConfigurationSuccess;
 using Failure = QueueConfigurationPreconditionFailure;
 
 internal static class ChannelFactoryExtensions
@@ -71,31 +70,4 @@ internal static class ChannelFactoryExtensions
             return queueName;
         });
     }
-
-    /// <summary>
-    /// Tries to fix precondition failure by deleting the queue.
-    /// Usually the one wants to run follow up action to configure new queue after that.
-    /// For this purpose, the nextAction is provided though it's optional.
-    /// Works only for classic queues.
-    /// </summary>
-    /// <param name="channelFactory"></param>
-    /// <param name="options"></param>
-    /// <param name="nextAction"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    public static Success TryFixPreconditionFailureOrThrow(
-        this Func<IModel> channelFactory,
-        QueueConfigurationOptions options,
-        Func<IQueueConfigurationResult> nextAction) =>
-        channelFactory.SafeDeleteClassicQueue(options.QueueName) switch
-        {
-            Success deleteSuccess => nextAction?.Invoke() switch
-            {
-                null => deleteSuccess,
-                Success nextActionSuccess => nextActionSuccess,
-                _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")
-            },
-            Failure failure => throw new InvalidOperationException($"Tried to safely delete queue [{options.QueueName}] due to configuration mismatch but failed: {failure.Message}"),
-            _ => throw new InvalidOperationException("Unexpected queue deletion result")
-        };
 }

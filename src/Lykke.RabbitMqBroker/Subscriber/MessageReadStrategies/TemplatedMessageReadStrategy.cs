@@ -6,10 +6,6 @@ using System;
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
-
-using Success = QueueConfigurationSuccess<string>;
-using Failure = QueueConfigurationPreconditionFailure;
-
 public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 {
     private const string StrategyDefaultDeadLetterExchangeType = "direct";
@@ -29,18 +25,27 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
     {
         var options = CreateQueueConfigurationOptions(settings);
 
-        return Configure() switch
-        {
-            Success firstAttemptSuccess => firstAttemptSuccess.Response,
-            Failure => channelFactory.TryFixPreconditionFailureOrThrow(options, Configure) switch
-            {
-                Success secondAttemptSuccess => secondAttemptSuccess.Response,
-                _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")
-            },
-            _ => throw new InvalidOperationException("Unexpected queue configuration result"),
-        };
+        return TryConfigure(channelFactory, options)
+            .Match(
+                success => success.Response,
+                _ => RetryButDeleteQueue(channelFactory, options)
+                    .Match<string>(
+                        success => success.Response,
+                        _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure"
+                    )
+            ));
+    }
 
-        IQueueConfigurationResult Configure() => QueueConfigurator.Configure(channelFactory, options);
+    private static IQueueConfigurationResult TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options) =>
+        QueueConfigurator.Configure(channelFactory, options);
+
+    private static IQueueConfigurationResult RetryButDeleteQueue(Func<IModel> channelFactory, QueueConfigurationOptions options)
+    {
+        return channelFactory.SafeDeleteClassicQueue(options.QueueName)
+            .Match<IQueueConfigurationResult>(
+                onSuccess: _ => TryConfigure(channelFactory, options),
+                onFailure: _ => throw new InvalidOperationException($"Failed to delete queue [{options.QueueName}].")
+            );
     }
 
     private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)
