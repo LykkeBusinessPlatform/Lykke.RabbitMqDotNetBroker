@@ -57,7 +57,7 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
         {
             QueueName = settings.GetQueueName(),
             ExchangeName = ExchangeName.Create(settings.ExchangeName),
-            DeadLetterExchangeName = settings.DeadLetterExchangeName,
+            DeadLetterExchangeName = DeadLetterExchangeName.Create(settings.DeadLetterExchangeName),
             DeadLetterExchangeType = StrategyDefaultDeadLetterExchangeType,
             Durable = durabilityFromStrategy,
             AutoDelete = autoDeleteFromStrategy,

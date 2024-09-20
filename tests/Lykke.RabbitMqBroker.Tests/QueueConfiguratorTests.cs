@@ -31,25 +31,22 @@ public class QueueConfiguratorTests
         var options = new QueueConfigurationOptions
         {
             ExchangeName = ExchangeName.Create("x"),
-            DeadLetterExchangeName = "dlx",
+            DeadLetterExchangeName = DeadLetterExchangeName.Create("dlx"),
             QueueName = QueueName.Create("q")
         };
 
         QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(options.DeadLetterExchangeName));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(options.DeadLetterExchangeName.ToString()));
         Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.AsPoison().ToString()));
     }
 
-    [TestCase("")]
-    [TestCase(" ")]
-    [TestCase(null)]
-    public void When_Dead_Letter_Exchange_Name_Is_Empty_Should_Not_Configure_Dead_Lettering(string empty_dlx)
+    public void When_Dead_Letter_Exchange_Name_Is_Empty_Should_Not_Configure_Dead_Lettering()
     {
         var options = new QueueConfigurationOptions
         {
             ExchangeName = ExchangeName.Create("x"),
-            DeadLetterExchangeName = empty_dlx,
+            DeadLetterExchangeName = null,
             QueueName = QueueName.Create("q")
         };
 
@@ -65,7 +62,7 @@ public class QueueConfiguratorTests
         var options = new QueueConfigurationOptions
         {
             ExchangeName = ExchangeName.Create("x"),
-            DeadLetterExchangeName = "dlx",
+            DeadLetterExchangeName = DeadLetterExchangeName.Create("dlx"),
             QueueName = QueueName.Create("q")
         };
 

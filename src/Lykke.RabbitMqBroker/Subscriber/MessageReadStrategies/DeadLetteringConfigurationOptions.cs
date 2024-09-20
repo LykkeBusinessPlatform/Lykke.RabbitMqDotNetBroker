@@ -2,8 +2,8 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 internal sealed class DeadLetteringConfigurationOptions
 {
-    public string QueueName { get; init; }
-    public string ExchangeName { get; init; }
+    public PoisonQueueName QueueName { get; init; }
+    public DeadLetterExchangeName ExchangeName { get; init; }
     public string ExchangeType { get; init; }
     public bool Durable { get; init; }
     public bool AutoDelete { get; init; }
@@ -13,7 +13,7 @@ internal sealed class DeadLetteringConfigurationOptions
     {
         return new DeadLetteringConfigurationOptions
         {
-            QueueName = options.QueueName.AsPoison().ToString(),
+            QueueName = options.QueueName.AsPoison(),
             ExchangeName = options.DeadLetterExchangeName,
             ExchangeType = options.DeadLetterExchangeType,
             Durable = options.Durable,

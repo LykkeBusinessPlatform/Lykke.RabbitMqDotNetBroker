@@ -1,3 +1,3 @@
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
-internal sealed record DeadLetteringConfigurationResult(string ExchangeName); 
+internal sealed record DeadLetteringConfigurationResult(DeadLetterExchangeName ExchangeName);

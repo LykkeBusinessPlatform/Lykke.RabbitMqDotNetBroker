@@ -6,11 +6,11 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 internal sealed class QueueDeclarationArgumentsBuilder
 {
-    private readonly Dictionary<string, object> _arguments = new();
+    private readonly Dictionary<string, object> _arguments = [];
 
-    public QueueDeclarationArgumentsBuilder WithDeadLetterExchange(string exchangeName)
+    public QueueDeclarationArgumentsBuilder WithDeadLetterExchange(DeadLetterExchangeName exchangeName)
     {
-        _arguments.Add("x-dead-letter-exchange", exchangeName);
+        _arguments.Add("x-dead-letter-exchange", exchangeName.ToString());
         return this;
     }
 

@@ -4,7 +4,7 @@ internal sealed class QueueConfigurationOptions
 {
     public QueueName QueueName { get; init; }
     public ExchangeName ExchangeName { get; init; }
-    public string DeadLetterExchangeName { get; init; }
+    public DeadLetterExchangeName DeadLetterExchangeName { get; init; }
     public string DeadLetterExchangeType { get; init; }
     public bool Durable { get; init; }
     public bool AutoDelete { get; init; }
@@ -18,6 +18,4 @@ internal sealed class QueueConfigurationOptions
     /// In particular: Durable, AutoDelete, DeadLetterExchangeName, DeadLetterExchangeType
     /// </summary>
     public QueueType QueueType { get; init; }
-
-    public bool ShouldConfigureDeadLettering() => !string.IsNullOrWhiteSpace(DeadLetterExchangeName);
 }

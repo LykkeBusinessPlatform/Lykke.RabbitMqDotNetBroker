@@ -13,7 +13,7 @@ internal static class QueueConfigurator
         using var channel = channelFactory();
 
         var argumentsBuilder = new QueueDeclarationArgumentsBuilder();
-        if (options.ShouldConfigureDeadLettering())
+        if (options.DeadLetterExchangeName is not null)
         {
             var deadLetteringConfigurationResult = ConfigureDeadLettering(
                 channel,
@@ -37,17 +37,17 @@ internal static class QueueConfigurator
         DeadLetteringConfigurationOptions options)
     {
         channel.ExchangeDeclare(
-            exchange: options.ExchangeName,
+            exchange: options.ExchangeName.ToString(),
             type: options.ExchangeType,
             durable: true);
         var actualQueueName = channel.QueueDeclare(
-            queue: options.QueueName,
+            queue: options.QueueName.ToString(),
             durable: options.Durable,
             exclusive: false,
             autoDelete: options.AutoDelete).QueueName;
         channel.QueueBind(
             queue: actualQueueName,
-            exchange: options.ExchangeName,
+            exchange: options.ExchangeName.ToString(),
             routingKey: options.RoutingKey);
 
         return new DeadLetteringConfigurationResult(options.ExchangeName);
