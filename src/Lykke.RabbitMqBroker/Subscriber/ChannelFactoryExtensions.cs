@@ -29,7 +29,19 @@ internal static class ChannelFactoryExtensions
         }
     }
 
-    public static IQueueConfigurationResult SafeDeleteQueue(this Func<IModel> channelFactory, string queueName) =>
+    /// <summary>
+    /// Safe deletion of classic queue meaning there are no consumers and 
+    /// no messages in the queue.
+    /// </summary>
+    /// <param name="channelFactory"></param>
+    /// <param name="queueName"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// This method is intended to be used in case of precondition failure.
+    /// It works only for classic queues since for quorum queues `ifUnused` 
+    /// and `ifEmpty` parameters are not supported so far.
+    /// </remarks>
+    public static IQueueConfigurationResult SafeDeleteClassicQueue(this Func<IModel> channelFactory, string queueName) =>
         channelFactory.Execute(ch => ch.QueueDelete(queueName, ifUnused: true, ifEmpty: true));
 
     public static IQueueConfigurationResult DeclareQueue(
@@ -64,6 +76,7 @@ internal static class ChannelFactoryExtensions
     /// Tries to fix precondition failure by deleting the queue.
     /// Usually the one wants to run follow up action to configure new queue after that.
     /// For this purpose, the nextAction is provided though it's optional.
+    /// Works only for classic queues.
     /// </summary>
     /// <param name="channelFactory"></param>
     /// <param name="options"></param>
@@ -74,7 +87,7 @@ internal static class ChannelFactoryExtensions
         this Func<IModel> channelFactory,
         QueueConfigurationOptions options,
         Func<IQueueConfigurationResult> nextAction) =>
-        channelFactory.SafeDeleteQueue(options.QueueName) switch
+        channelFactory.SafeDeleteClassicQueue(options.QueueName) switch
         {
             Success deleteSuccess => nextAction?.Invoke() switch
             {
