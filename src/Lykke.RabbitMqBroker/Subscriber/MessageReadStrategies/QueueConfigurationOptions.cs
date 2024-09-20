@@ -9,13 +9,40 @@ internal sealed class QueueConfigurationOptions
     public bool Durable { get; init; }
     public bool AutoDelete { get; init; }
     public RoutingKey RoutingKey { get; init; }
-
-    /// <summary>
-    /// The type of the queue. Depending on the type, 
-    /// some aforementioned options might be or might be not supported.
-    /// In case they are not supported, they will be ignored.
-    /// This has to be redesigned.
-    /// In particular: Durable, AutoDelete, DeadLetterExchangeName, DeadLetterExchangeType
-    /// </summary>
     public QueueType QueueType { get; init; }
+    internal QueueConfigurationOptions() { }
+    public static QueueConfigurationOptions ForClassicQueue(
+        QueueName queueName,
+        ExchangeName exchangeName,
+        DeadLetterExchangeName deadLetterExchangeName,
+        string deadLetterExchangeType,
+        bool durable,
+        bool autoDelete,
+        RoutingKey routingKey) => new()
+        {
+            QueueName = queueName,
+            ExchangeName = exchangeName,
+            DeadLetterExchangeName = deadLetterExchangeName,
+            DeadLetterExchangeType = deadLetterExchangeType,
+            Durable = durable,
+            AutoDelete = autoDelete,
+            RoutingKey = routingKey,
+            QueueType = QueueType.Classic
+        };
+    public static QueueConfigurationOptions ForQuorumQueue(
+        QueueName queueName,
+        ExchangeName exchangeName,
+        DeadLetterExchangeName deadLetterExchangeName,
+        string deadLetterExchangeType,
+        RoutingKey routingKey) => new()
+        {
+            QueueName = queueName,
+            ExchangeName = exchangeName,
+            DeadLetterExchangeName = deadLetterExchangeName,
+            DeadLetterExchangeType = deadLetterExchangeType,
+            Durable = true,
+            AutoDelete = false,
+            RoutingKey = routingKey,
+            QueueType = QueueType.Quorum
+        };
 }

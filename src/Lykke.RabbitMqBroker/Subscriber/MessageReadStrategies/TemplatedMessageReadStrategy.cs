@@ -44,24 +44,14 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 
     private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)
     {
-        var durabilityFromStrategy = Durable;
-        var autoDeleteFromStrategy = AutoDelete;
-        var queueType = QueueType;
-
         var effectiveRoutingKey = _routingKey == RoutingKey.Empty
             ? RoutingKey.Create(settings.RoutingKey)
             : _routingKey;
 
-        return new QueueConfigurationOptions
+        return QueueType switch
         {
-            QueueName = settings.GetQueueName(),
-            ExchangeName = ExchangeName.Create(settings.ExchangeName),
-            DeadLetterExchangeName = DeadLetterExchangeName.Create(settings.DeadLetterExchangeName),
-            DeadLetterExchangeType = StrategyDefaultDeadLetterExchangeType,
-            Durable = durabilityFromStrategy,
-            AutoDelete = autoDeleteFromStrategy,
-            RoutingKey = effectiveRoutingKey,
-            QueueType = queueType
+            QueueType.Classic => QueueConfigurationOptions.ForClassicQueue(settings.GetQueueName(), ExchangeName.Create(settings.ExchangeName), DeadLetterExchangeName.Create(settings.DeadLetterExchangeName), StrategyDefaultDeadLetterExchangeType, Durable, AutoDelete, effectiveRoutingKey),
+            QueueType.Quorum => QueueConfigurationOptions.ForQuorumQueue(settings.GetQueueName(), ExchangeName.Create(settings.ExchangeName), DeadLetterExchangeName.Create(settings.DeadLetterExchangeName), StrategyDefaultDeadLetterExchangeType, effectiveRoutingKey),
         };
     }
 }
