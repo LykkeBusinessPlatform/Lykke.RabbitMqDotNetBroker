@@ -18,7 +18,7 @@ public class QueueConfiguratorTests
             QueueName = "q"
         };
 
-        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options) as QueueConfigurationSuccess<string>;
+        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
         Assert.That(options.QueueName, Is.EqualTo(result.Response));
         Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExchangeName));
@@ -69,7 +69,7 @@ public class QueueConfiguratorTests
             QueueName = "q"
         };
 
-        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options) as QueueConfigurationSuccess<string>;
+        var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
         QueueConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response, out var args);
         Assert.That("dlx", Is.EqualTo(args?["x-dead-letter-exchange"]));

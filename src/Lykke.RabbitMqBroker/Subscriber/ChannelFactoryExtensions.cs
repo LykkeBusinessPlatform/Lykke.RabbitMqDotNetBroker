@@ -8,22 +8,24 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Lykke.RabbitMqBroker.Subscriber;
 
-using Failure = QueueConfigurationPreconditionFailure;
-
 internal static class ChannelFactoryExtensions
 {
-    private static IQueueConfigurationResult Execute<TResponse>(this Func<IModel> channelFactory, Func<IModel, TResponse> action)
+    private static QueueConfigurationResult<TResponse> Execute<TResponse>(this Func<IModel> channelFactory, Func<IModel, TResponse> action)
     {
         using var channel = channelFactory();
         try
         {
             var response = action(channel);
-            return new QueueConfigurationSuccess<TResponse>(response);
+            return QueueConfigurationResult<TResponse>.Success(response);
         }
         catch (OperationInterruptedException ex)
         {
-            if (ex.ShutdownReason is { ReplyCode: Constants.PreconditionFailed })
-                return new Failure(ex.ShutdownReason?.ReplyText ?? ex.Message);
+            if (ex.ShutdownReason is not null)
+            {
+                return QueueConfigurationResult<TResponse>.Failure(
+                    new QueueConfigurationError(ex.ShutdownReason.ReplyCode, ex.ShutdownReason.ReplyText));
+            }
+
             throw;
         }
     }
@@ -40,10 +42,10 @@ internal static class ChannelFactoryExtensions
     /// It works only for classic queues since for quorum queues `ifUnused` 
     /// and `ifEmpty` parameters are not supported so far.
     /// </remarks>
-    public static IQueueConfigurationResult SafeDeleteClassicQueue(this Func<IModel> channelFactory, string queueName) =>
+    public static QueueConfigurationResult<uint> SafeDeleteClassicQueue(this Func<IModel> channelFactory, string queueName) =>
         channelFactory.Execute(ch => ch.QueueDelete(queueName, ifUnused: true, ifEmpty: true));
 
-    public static IQueueConfigurationResult DeclareQueue(
+    public static QueueConfigurationResult<QueueDeclareOk> DeclareQueue(
         this Func<IModel> channelFactory,
         QueueConfigurationOptions options,
         Dictionary<string, object> args)
@@ -56,7 +58,7 @@ internal static class ChannelFactoryExtensions
             arguments: args));
     }
 
-    public static IQueueConfigurationResult BindQueue(
+    public static QueueConfigurationResult<string> BindQueue(
         this Func<IModel> channelFactory,
         string queueName,
         QueueConfigurationOptions options)

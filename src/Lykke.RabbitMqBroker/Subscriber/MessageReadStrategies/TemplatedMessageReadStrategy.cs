@@ -25,27 +25,21 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
     {
         var options = CreateQueueConfigurationOptions(settings);
 
-        return TryConfigure(channelFactory, options)
-            .Match(
-                success => success.Response,
-                _ => RetryWithQueueRecreation(channelFactory, options)
-                    .Match<string>(
-                        success => success.Response,
-                        _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure"
-                    )
-            ));
+        return TryConfigure(channelFactory, options).Match(
+            queueName => queueName,
+            _ => RetryWithQueueRecreation(channelFactory, options).Match(
+                queueName => queueName,
+                 _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")));
     }
 
-    private static IQueueConfigurationResult TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options) =>
+    private static QueueConfigurationResult<string> TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options) =>
         QueueConfigurator.Configure(channelFactory, options);
 
-    private static IQueueConfigurationResult RetryWithQueueRecreation(Func<IModel> channelFactory, QueueConfigurationOptions options)
+    private static QueueConfigurationResult<string> RetryWithQueueRecreation(Func<IModel> channelFactory, QueueConfigurationOptions options)
     {
-        return channelFactory.SafeDeleteClassicQueue(options.QueueName)
-            .Match<IQueueConfigurationResult>(
-                onSuccess: _ => TryConfigure(channelFactory, options),
-                onFailure: _ => throw new InvalidOperationException($"Failed to delete queue [{options.QueueName}].")
-            );
+        return channelFactory.SafeDeleteClassicQueue(options.QueueName).Match(
+            onSuccess: _ => TryConfigure(channelFactory, options),
+            onFailure: _ => throw new InvalidOperationException($"Failed to delete queue [{options.QueueName}]."));
     }
 
     private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)

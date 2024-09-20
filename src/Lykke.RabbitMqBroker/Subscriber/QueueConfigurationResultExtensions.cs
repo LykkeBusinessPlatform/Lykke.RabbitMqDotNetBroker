@@ -4,16 +4,19 @@ namespace Lykke.RabbitMqBroker.Subscriber;
 
 internal static class QueueConfigurationResultExtensions
 {
-    public static TResult Match<TResult>(
-        this IQueueConfigurationResult result,
-        Func<QueueConfigurationSuccess<TResult>, TResult> onSuccess,
-        Func<QueueConfigurationPreconditionFailure, TResult> onFailure)
+    public static T Match<T>(
+        this QueueConfigurationResult result,
+        Func<T> onSuccess,
+        Func<QueueConfigurationError, T> onFailure)
     {
-        return result switch
-        {
-            QueueConfigurationSuccess<TResult> success => onSuccess(success),
-            QueueConfigurationPreconditionFailure failure => onFailure(failure),
-            _ => throw new InvalidOperationException("Unexpected queue configuration result")
-        };
+        return result.IsSuccess ? onSuccess() : onFailure(result.Error);
+    }
+
+    public static T Match<T, TResponse>(
+        this QueueConfigurationResult<TResponse> result,
+        Func<TResponse, T> onSuccess,
+        Func<QueueConfigurationError, T> onFailure)
+    {
+        return result.IsSuccess ? onSuccess(result.Response) : onFailure(result.Error);
     }
 }

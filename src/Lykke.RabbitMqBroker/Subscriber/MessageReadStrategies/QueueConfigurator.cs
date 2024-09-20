@@ -4,11 +4,9 @@ using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
-using Success = QueueConfigurationSuccess<QueueDeclareOk>;
-
 internal static class QueueConfigurator
 {
-    public static IQueueConfigurationResult Configure(
+    public static QueueConfigurationResult<string> Configure(
         Func<IModel> channelFactory,
         QueueConfigurationOptions options)
     {
@@ -29,11 +27,9 @@ internal static class QueueConfigurator
         }
 
         var args = argumentsBuilder.Build();
-        return channelFactory.DeclareQueue(options, args) switch
-        {
-            Success success => channelFactory.BindQueue(success.Response.QueueName, options),
-            var failure => failure
-        };
+        return channelFactory.DeclareQueue(options, args).Match(
+            success => channelFactory.BindQueue(success.QueueName, options),
+            QueueConfigurationResult<string>.Failure);
     }
 
     private static DeadLetteringConfigurationResult ConfigureDeadLettering(
