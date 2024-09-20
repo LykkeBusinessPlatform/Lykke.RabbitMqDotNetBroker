@@ -15,7 +15,8 @@ public class QueueConfiguratorTests
         var options = new QueueConfigurationOptions
         {
             ExchangeName = ExchangeName.Create("x"),
-            QueueName = QueueName.Create("q")
+            QueueName = QueueName.Create("q"),
+            RoutingKey = RoutingKey.Empty
         };
 
         var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
@@ -32,7 +33,8 @@ public class QueueConfiguratorTests
         {
             ExchangeName = ExchangeName.Create("x"),
             DeadLetterExchangeName = DeadLetterExchangeName.Create("dlx"),
-            QueueName = QueueName.Create("q")
+            QueueName = QueueName.Create("q"),
+            RoutingKey = RoutingKey.Empty
         };
 
         QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
@@ -63,7 +65,8 @@ public class QueueConfiguratorTests
         {
             ExchangeName = ExchangeName.Create("x"),
             DeadLetterExchangeName = DeadLetterExchangeName.Create("dlx"),
-            QueueName = QueueName.Create("q")
+            QueueName = QueueName.Create("q"),
+            RoutingKey = RoutingKey.Empty
         };
 
         var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);

@@ -10,15 +10,15 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 {
     private const string StrategyDefaultDeadLetterExchangeType = "direct";
 
-    private readonly string _routingKey;
+    private readonly RoutingKey _routingKey;
 
     protected bool Durable { get; init; }
     protected bool AutoDelete { get; init; }
     protected QueueType QueueType { get; init; }
 
-    protected TemplatedMessageReadStrategy(string routingKey = "")
+    protected TemplatedMessageReadStrategy(RoutingKey routingKey)
     {
-        _routingKey = routingKey ?? string.Empty;
+        _routingKey = routingKey;
     }
 
     public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
@@ -46,12 +46,11 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
     {
         var durabilityFromStrategy = Durable;
         var autoDeleteFromStrategy = AutoDelete;
-        var routingKeyFromStrategy = _routingKey;
         var queueType = QueueType;
 
-        var effectiveRoutingKey = string.IsNullOrWhiteSpace(routingKeyFromStrategy)
-            ? settings.RoutingKey ?? string.Empty
-            : routingKeyFromStrategy;
+        var effectiveRoutingKey = _routingKey == RoutingKey.Empty
+            ? RoutingKey.Create(settings.RoutingKey)
+            : _routingKey;
 
         return new QueueConfigurationOptions
         {

@@ -8,7 +8,7 @@ internal sealed class QueueConfigurationOptions
     public string DeadLetterExchangeType { get; init; }
     public bool Durable { get; init; }
     public bool AutoDelete { get; init; }
-    public string RoutingKey { get; init; }
+    public RoutingKey RoutingKey { get; init; }
 
     /// <summary>
     /// The type of the queue. Depending on the type, 

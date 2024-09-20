@@ -48,7 +48,7 @@ internal static class QueueConfigurator
         channel.QueueBind(
             queue: actualQueueName,
             exchange: options.ExchangeName.ToString(),
-            routingKey: options.RoutingKey);
+            routingKey: options.RoutingKey.ToString());
 
         return new DeadLetteringConfigurationResult(options.ExchangeName);
     }

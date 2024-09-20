@@ -7,7 +7,7 @@ internal sealed class DeadLetteringConfigurationOptions
     public string ExchangeType { get; init; }
     public bool Durable { get; init; }
     public bool AutoDelete { get; init; }
-    public string RoutingKey { get; init; }
+    public RoutingKey RoutingKey { get; init; }
 
     public static DeadLetteringConfigurationOptions FromQueueConfigurationOptions(QueueConfigurationOptions options)
     {

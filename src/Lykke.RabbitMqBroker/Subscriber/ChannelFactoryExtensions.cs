@@ -68,7 +68,7 @@ internal static class ChannelFactoryExtensions
             ch.QueueBind(
                 queue: queueName.ToString(),
                 exchange: options.ExchangeName.ToString(),
-                routingKey: options.RoutingKey);
+                routingKey: options.RoutingKey.ToString());
             return queueName;
         });
     }
