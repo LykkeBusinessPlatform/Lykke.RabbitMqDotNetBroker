@@ -22,7 +22,7 @@ public class QueueConfiguratorTests
 
         Assert.That(options.QueueName, Is.EqualTo(result.Response));
         Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExchangeName));
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Contains.Item(options.QueueName));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.ToString()));
     }
 
     [Test]
@@ -38,7 +38,7 @@ public class QueueConfiguratorTests
         QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
         Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(options.DeadLetterExchangeName));
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Contains.Item(options.QueueName.CreatePoisonQueueName()));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.AsPoison().ToString()));
     }
 
     [TestCase("")]
@@ -56,7 +56,7 @@ public class QueueConfiguratorTests
         QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
         Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.DeadLetterExchangeName));
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Not.Contain(options.QueueName.CreatePoisonQueueName()));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Not.Contain(options.QueueName.AsPoison()));
     }
 
     [Test]

@@ -13,7 +13,7 @@ internal sealed class DeadLetteringConfigurationOptions
     {
         return new DeadLetteringConfigurationOptions
         {
-            QueueName = options.QueueName.CreatePoisonQueueName().ToString(),
+            QueueName = options.QueueName.AsPoison().ToString(),
             ExchangeName = options.DeadLetterExchangeName,
             ExchangeType = options.DeadLetterExchangeType,
             Durable = options.Durable,
