@@ -28,7 +28,7 @@ internal static class QueueConfigurator
 
         var args = argumentsBuilder.Build();
         return channelFactory.DeclareQueue(options, args).Match(
-            success => channelFactory.BindQueue(success.QueueName, options),
+            success => channelFactory.BindQueue(QueueName.Create(success.QueueName), options),
             QueueConfigurationResult<QueueName>.Failure);
     }
 

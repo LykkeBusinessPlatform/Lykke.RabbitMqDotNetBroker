@@ -14,7 +14,7 @@ public class QueueConfiguratorTests
     {
         var options = new QueueConfigurationOptions
         {
-            ExchangeName = "x",
+            ExchangeName = ExchangeName.Create("x"),
             QueueName = QueueName.Create("q")
         };
 
@@ -30,7 +30,7 @@ public class QueueConfiguratorTests
     {
         var options = new QueueConfigurationOptions
         {
-            ExchangeName = "x",
+            ExchangeName = ExchangeName.Create("x"),
             DeadLetterExchangeName = "dlx",
             QueueName = QueueName.Create("q")
         };
@@ -48,7 +48,7 @@ public class QueueConfiguratorTests
     {
         var options = new QueueConfigurationOptions
         {
-            ExchangeName = "x",
+            ExchangeName = ExchangeName.Create("x"),
             DeadLetterExchangeName = empty_dlx,
             QueueName = QueueName.Create("q")
         };
@@ -64,7 +64,7 @@ public class QueueConfiguratorTests
     {
         var options = new QueueConfigurationOptions
         {
-            ExchangeName = "x",
+            ExchangeName = ExchangeName.Create("x"),
             DeadLetterExchangeName = "dlx",
             QueueName = QueueName.Create("q")
         };

@@ -60,16 +60,16 @@ internal static class ChannelFactoryExtensions
 
     public static QueueConfigurationResult<QueueName> BindQueue(
         this Func<IModel> channelFactory,
-        string queueName,
+        QueueName queueName,
         QueueConfigurationOptions options)
     {
         return channelFactory.Execute(ch =>
         {
             ch.QueueBind(
-                queue: queueName,
-                exchange: options.ExchangeName,
+                queue: queueName.ToString(),
+                exchange: options.ExchangeName.ToString(),
                 routingKey: options.RoutingKey);
-            return QueueName.Create(queueName);
+            return queueName;
         });
     }
 }
