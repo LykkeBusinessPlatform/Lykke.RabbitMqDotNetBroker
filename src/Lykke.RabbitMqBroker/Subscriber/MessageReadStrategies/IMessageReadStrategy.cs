@@ -18,6 +18,6 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
         /// <param name="settings"></param>
         /// <param name="channelFactory"></param>
         /// <returns> The name of the queue </returns>
-        string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory);
+        QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory);
     }
 }

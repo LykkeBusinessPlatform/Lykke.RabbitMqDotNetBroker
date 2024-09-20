@@ -58,7 +58,7 @@ internal static class ChannelFactoryExtensions
             arguments: args));
     }
 
-    public static QueueConfigurationResult<string> BindQueue(
+    public static QueueConfigurationResult<QueueName> BindQueue(
         this Func<IModel> channelFactory,
         string queueName,
         QueueConfigurationOptions options)
@@ -69,7 +69,7 @@ internal static class ChannelFactoryExtensions
                 queue: queueName,
                 exchange: options.ExchangeName,
                 routingKey: options.RoutingKey);
-            return queueName;
+            return QueueName.Create(queueName);
         });
     }
 }

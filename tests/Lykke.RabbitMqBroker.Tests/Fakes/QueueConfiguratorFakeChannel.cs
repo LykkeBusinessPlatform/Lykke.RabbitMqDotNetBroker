@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using Lykke.RabbitMqBroker.Subscriber;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -8,7 +10,7 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes;
 
 public class QueueConfiguratorFakeChannel : IModel
 {
-    public static HashSet<string> DeclaredQueues { get; } = [];
+    public static HashSet<QueueName> DeclaredQueues { get; } = [];
     public static HashSet<string> DeclaredExchanges { get; } = [];
     public static HashSet<string> BoundQueues { get; } = [];
     public static Dictionary<string, IDictionary<string, object>> DeclaredQueuesArguments { get; } = [];

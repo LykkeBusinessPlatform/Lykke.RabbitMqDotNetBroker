@@ -6,7 +6,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 internal static class QueueConfigurator
 {
-    public static QueueConfigurationResult<string> Configure(
+    public static QueueConfigurationResult<QueueName> Configure(
         Func<IModel> channelFactory,
         QueueConfigurationOptions options)
     {
@@ -29,7 +29,7 @@ internal static class QueueConfigurator
         var args = argumentsBuilder.Build();
         return channelFactory.DeclareQueue(options, args).Match(
             success => channelFactory.BindQueue(success.QueueName, options),
-            QueueConfigurationResult<string>.Failure);
+            QueueConfigurationResult<QueueName>.Failure);
     }
 
     private static DeadLetteringConfigurationResult ConfigureDeadLettering(

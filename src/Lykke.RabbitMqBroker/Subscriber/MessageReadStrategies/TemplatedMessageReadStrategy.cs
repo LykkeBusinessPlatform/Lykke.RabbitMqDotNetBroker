@@ -21,7 +21,7 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
         _routingKey = routingKey ?? string.Empty;
     }
 
-    public string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
+    public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
     {
         var options = CreateQueueConfigurationOptions(settings);
 
@@ -32,10 +32,10 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
                  _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")));
     }
 
-    private static QueueConfigurationResult<string> TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options) =>
+    private static QueueConfigurationResult<QueueName> TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options) =>
         QueueConfigurator.Configure(channelFactory, options);
 
-    private static QueueConfigurationResult<string> RetryWithQueueRecreation(Func<IModel> channelFactory, QueueConfigurationOptions options)
+    private static QueueConfigurationResult<QueueName> RetryWithQueueRecreation(Func<IModel> channelFactory, QueueConfigurationOptions options)
     {
         return channelFactory.SafeDeleteClassicQueue(options.QueueName).Match(
             onSuccess: _ => TryConfigure(channelFactory, options),

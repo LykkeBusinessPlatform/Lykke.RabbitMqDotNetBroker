@@ -17,7 +17,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
             _routingKey = routingKey ?? string.Empty;
         }
 
-        public string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
+        public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
         {
             using var channel = channelFactory();
 
@@ -27,7 +27,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
 
             if (!string.IsNullOrEmpty(settings.DeadLetterExchangeName))
             {
-                var poisonQueueName = settings.GetPoisonQueueName();
+                var poisonQueueName = settings.GetQueueName().CreatePoisonQueueName();
                 args = new QueueDeclarationArgumentsBuilder().WithDeadLetterExchange(settings.DeadLetterExchangeName).Build();
                 channel.ExchangeDeclare(settings.DeadLetterExchangeName, "direct", durable: true);
                 channel.QueueDeclare(poisonQueueName, durable: settings.IsDurable, exclusive: false, autoDelete: false);
