@@ -30,11 +30,11 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
                 var poisonQueueName = settings.GetQueueName().CreatePoisonQueueName();
                 args = new QueueDeclarationArgumentsBuilder().WithDeadLetterExchange(settings.DeadLetterExchangeName).Build();
                 channel.ExchangeDeclare(settings.DeadLetterExchangeName, "direct", durable: true);
-                channel.QueueDeclare(poisonQueueName, durable: settings.IsDurable, exclusive: false, autoDelete: false);
-                channel.QueueBind(poisonQueueName, settings.DeadLetterExchangeName, settings.RoutingKey ?? string.Empty);
+                channel.QueueDeclare(poisonQueueName.ToString(), durable: settings.IsDurable, exclusive: false, autoDelete: false);
+                channel.QueueBind(poisonQueueName.ToString(), settings.DeadLetterExchangeName, settings.RoutingKey ?? string.Empty);
             }
 
-            settings.QueueName = channel.QueueDeclare(queueName, durable: settings.IsDurable, exclusive: false, autoDelete: autodelete, arguments: args).QueueName;
+            settings.QueueName = channel.QueueDeclare(queueName.ToString(), durable: settings.IsDurable, exclusive: false, autoDelete: autodelete, arguments: args).QueueName;
 
 
             channel.QueueBind(
@@ -42,7 +42,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
                 exchange: settings.ExchangeName,
                 routingKey: string.IsNullOrWhiteSpace(_routingKey) ? settings.RoutingKey ?? string.Empty : _routingKey);
 
-            return settings.QueueName;
+            return QueueName.Create(settings.QueueName);
         }
 
     }

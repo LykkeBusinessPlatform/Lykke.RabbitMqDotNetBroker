@@ -51,7 +51,7 @@ internal static class ChannelFactoryExtensions
         Dictionary<string, object> args)
     {
         return channelFactory.Execute(ch => ch.QueueDeclare(
-            queue: options.QueueName,
+            queue: options.QueueName.ToString(),
             durable: options.Durable,
             exclusive: false,
             autoDelete: options.AutoDelete,

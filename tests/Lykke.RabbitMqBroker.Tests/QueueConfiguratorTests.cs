@@ -1,3 +1,4 @@
+using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 using Lykke.RabbitMqBroker.Tests.Fakes;
 
@@ -14,7 +15,7 @@ public class QueueConfiguratorTests
         var options = new QueueConfigurationOptions
         {
             ExchangeName = "x",
-            QueueName = "q"
+            QueueName = QueueName.Create("q")
         };
 
         var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
@@ -31,7 +32,7 @@ public class QueueConfiguratorTests
         {
             ExchangeName = "x",
             DeadLetterExchangeName = "dlx",
-            QueueName = "q"
+            QueueName = QueueName.Create("q")
         };
 
         QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
@@ -49,7 +50,7 @@ public class QueueConfiguratorTests
         {
             ExchangeName = "x",
             DeadLetterExchangeName = empty_dlx,
-            QueueName = "q"
+            QueueName = QueueName.Create("q")
         };
 
         QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
@@ -65,12 +66,12 @@ public class QueueConfiguratorTests
         {
             ExchangeName = "x",
             DeadLetterExchangeName = "dlx",
-            QueueName = "q"
+            QueueName = QueueName.Create("q")
         };
 
         var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
-        QueueConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response, out var args);
+        QueueConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
         Assert.That("dlx", Is.EqualTo(args?["x-dead-letter-exchange"]));
     }
 

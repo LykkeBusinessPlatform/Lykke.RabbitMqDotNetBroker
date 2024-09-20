@@ -184,20 +184,20 @@ public class QueueConfiguratorFakeChannel : IModel
 
     public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
-        DeclaredQueues.Add(queue);
+        DeclaredQueues.Add(QueueName.Create(queue));
         DeclaredQueuesArguments.Add(queue, arguments);
         return new QueueDeclareOk(queue, 0, 0);
     }
 
     public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
-        DeclaredQueues.Add(queue);
+        DeclaredQueues.Add(QueueName.Create(queue));
         DeclaredQueuesArguments.Add(queue, arguments);
     }
 
     public QueueDeclareOk QueueDeclarePassive(string queue)
     {
-        DeclaredQueues.Add(queue);
+        DeclaredQueues.Add(QueueName.Create(queue));
         return new QueueDeclareOk(queue, 0, 0);
     }
 

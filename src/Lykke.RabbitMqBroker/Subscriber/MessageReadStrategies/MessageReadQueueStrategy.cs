@@ -11,7 +11,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
     {
         public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
         {
-            return settings.QueueName;
+            return QueueName.Create(settings.QueueName);
         }
     }
 }

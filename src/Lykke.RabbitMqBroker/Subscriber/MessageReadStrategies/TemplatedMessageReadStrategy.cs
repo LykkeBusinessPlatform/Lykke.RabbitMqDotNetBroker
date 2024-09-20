@@ -37,7 +37,7 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 
     private static QueueConfigurationResult<QueueName> RetryWithQueueRecreation(Func<IModel> channelFactory, QueueConfigurationOptions options)
     {
-        return channelFactory.SafeDeleteClassicQueue(options.QueueName).Match(
+        return channelFactory.SafeDeleteClassicQueue(options.QueueName.ToString()).Match(
             onSuccess: _ => TryConfigure(channelFactory, options),
             onFailure: _ => throw new InvalidOperationException($"Failed to delete queue [{options.QueueName}]."));
     }
