@@ -28,7 +28,7 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
         return TryConfigure(channelFactory, options)
             .Match(
                 success => success.Response,
-                _ => RetryButDeleteQueue(channelFactory, options)
+                _ => RetryWithQueueRecreation(channelFactory, options)
                     .Match<string>(
                         success => success.Response,
                         _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure"
@@ -39,7 +39,7 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
     private static IQueueConfigurationResult TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options) =>
         QueueConfigurator.Configure(channelFactory, options);
 
-    private static IQueueConfigurationResult RetryButDeleteQueue(Func<IModel> channelFactory, QueueConfigurationOptions options)
+    private static IQueueConfigurationResult RetryWithQueueRecreation(Func<IModel> channelFactory, QueueConfigurationOptions options)
     {
         return channelFactory.SafeDeleteClassicQueue(options.QueueName)
             .Match<IQueueConfigurationResult>(
