@@ -10,20 +10,46 @@ namespace Lykke.RabbitMqBroker.Subscriber;
 
 internal static class ChannelFactoryExtensions
 {
-    private static QueueConfigurationResult<TResponse> Execute<TResponse>(this Func<IModel> channelFactory, Func<IModel, TResponse> action)
+    private static IConfigurationResult Execute(
+        this Func<IModel> channelFactory,
+        Action<IModel> action)
     {
         using var channel = channelFactory();
         try
         {
-            var response = action(channel);
-            return QueueConfigurationResult<TResponse>.Success(response);
+            action(channel);
+            return ConfigurationResult.Success();
         }
         catch (OperationInterruptedException ex)
         {
             if (ex.ShutdownReason is not null)
             {
-                return QueueConfigurationResult<TResponse>.Failure(
-                    new QueueConfigurationError(ex.ShutdownReason.ReplyCode, ex.ShutdownReason.ReplyText));
+                var errorCode = new ConfigurationErrorCode(ex.ShutdownReason.ReplyCode);
+                return ConfigurationResult.Failure(
+                    new ConfigurationError(errorCode, ex.ShutdownReason.ReplyText));
+            }
+
+            throw;
+        }
+    }
+
+    private static IConfigurationResult<T> Execute<T>(
+        this Func<IModel> channelFactory,
+        Func<IModel, T> action)
+    {
+        using var channel = channelFactory();
+        try
+        {
+            var response = action(channel);
+            return ConfigurationResult<T>.Success(response);
+        }
+        catch (OperationInterruptedException ex)
+        {
+            if (ex.ShutdownReason is not null)
+            {
+                var errorCode = new ConfigurationErrorCode(ex.ShutdownReason.ReplyCode);
+                return ConfigurationResult<T>.Failure(
+                    new ConfigurationError(errorCode, ex.ShutdownReason.ReplyText));
             }
 
             throw;
@@ -42,10 +68,10 @@ internal static class ChannelFactoryExtensions
     /// It works only for classic queues since for quorum queues `ifUnused` 
     /// and `ifEmpty` parameters are not supported so far.
     /// </remarks>
-    public static QueueConfigurationResult<uint> SafeDeleteClassicQueue(this Func<IModel> channelFactory, string queueName) =>
+    public static IConfigurationResult<uint> SafeDeleteClassicQueue(this Func<IModel> channelFactory, string queueName) =>
         channelFactory.Execute(ch => ch.QueueDelete(queueName, ifUnused: true, ifEmpty: true));
 
-    public static QueueConfigurationResult<QueueDeclareOk> DeclareQueue(
+    public static IConfigurationResult<QueueDeclareOk> DeclareQueue(
         this Func<IModel> channelFactory,
         QueueConfigurationOptions options,
         Dictionary<string, object> args)
@@ -58,18 +84,30 @@ internal static class ChannelFactoryExtensions
             arguments: args));
     }
 
-    public static QueueConfigurationResult<QueueName> BindQueue(
+    public static IConfigurationResult DeclareExchange(
         this Func<IModel> channelFactory,
-        QueueName queueName,
+        ExchangeConfigurationOptions options)
+    {
+        return channelFactory.Execute(ch =>
+            ch.ExchangeDeclare(
+            exchange: options.ExchangeName.ToString(),
+            type: options.ExchangeType,
+            durable: options.Durable,
+            autoDelete: options.AutoDelete)
+        );
+    }
+
+    public static IConfigurationResult<QueueName> BindQueue(
+        this Func<IModel> channelFactory,
         QueueConfigurationOptions options)
     {
         return channelFactory.Execute(ch =>
         {
             ch.QueueBind(
-                queue: queueName.ToString(),
-                exchange: options.ExchangeName.ToString(),
+                queue: options.QueueName.ToString(),
+                exchange: options.ExistingExchangeName.ToString(),
                 routingKey: options.RoutingKey.ToString());
-            return queueName;
+            return options.QueueName;
         });
     }
 }

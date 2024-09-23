@@ -12,62 +12,28 @@ public class QueueConfiguratorTests
     [Test]
     public void Configurator_Should_Declare_Queue()
     {
-        var options = new QueueConfigurationOptions
-        {
-            ExchangeName = ExchangeName.Create("x"),
-            QueueName = QueueName.Create("q"),
-            RoutingKey = RoutingKey.Empty
-        };
+        var options = new QueueConfigurationOptions(
+            QueueName.Create("q"),
+            ExchangeName.Create("x"),
+            RoutingKey: RoutingKey.Empty
+        );
 
         var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 
         Assert.That(options.QueueName, Is.EqualTo(result.Response));
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExchangeName));
+        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExistingExchangeName));
         Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.ToString()));
-    }
-
-    [Test]
-    public void When_Dead_Letter_Exchange_Name_Is_Not_Empty_Should_Configure_Dead_Lettering()
-    {
-        var options = new QueueConfigurationOptions
-        {
-            ExchangeName = ExchangeName.Create("x"),
-            DeadLetterExchangeName = DeadLetterExchangeName.Create("dlx"),
-            QueueName = QueueName.Create("q"),
-            RoutingKey = RoutingKey.Empty
-        };
-
-        QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
-
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(options.DeadLetterExchangeName.ToString()));
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.AsPoison().ToString()));
-    }
-
-    public void When_Dead_Letter_Exchange_Name_Is_Empty_Should_Not_Configure_Dead_Lettering()
-    {
-        var options = new QueueConfigurationOptions
-        {
-            ExchangeName = ExchangeName.Create("x"),
-            DeadLetterExchangeName = null,
-            QueueName = QueueName.Create("q")
-        };
-
-        QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
-
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.DeadLetterExchangeName));
-        Assert.That(QueueConfiguratorFakeChannel.DeclaredQueues, Does.Not.Contain(options.QueueName.AsPoison()));
     }
 
     [Test]
     public void When_Dead_Letter_Exchange_Configured_Original_Queue_Should_Be_Declared_With_Dlx()
     {
-        var options = new QueueConfigurationOptions
-        {
-            ExchangeName = ExchangeName.Create("x"),
-            DeadLetterExchangeName = DeadLetterExchangeName.Create("dlx"),
-            QueueName = QueueName.Create("q"),
-            RoutingKey = RoutingKey.Empty
-        };
+        var options = new QueueConfigurationOptions(
+            QueueName.Create("q"),
+            ExchangeName.Create("x"),
+            DeadLetterExchangeName: DeadLetterExchangeName.Create("dlx"),
+            RoutingKey: RoutingKey.Empty
+        );
 
         var result = QueueConfigurator.Configure(() => new QueueConfiguratorFakeChannel(), options);
 

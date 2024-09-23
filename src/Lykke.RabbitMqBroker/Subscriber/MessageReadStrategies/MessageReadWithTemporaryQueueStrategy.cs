@@ -29,7 +29,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
             {
                 var poisonQueueName = settings.GetQueueName().AsPoison();
                 var deadLetterExchangeName = DeadLetterExchangeName.Create(settings.DeadLetterExchangeName);
-                args = new QueueDeclarationArgumentsBuilder().WithDeadLetterExchange(deadLetterExchangeName).Build();
+                args = new QueueDeclarationArgumentsBuilder().AddDeadLetterExchange(deadLetterExchangeName).Build();
                 channel.ExchangeDeclare(settings.DeadLetterExchangeName, "direct", durable: true);
                 channel.QueueDeclare(poisonQueueName.ToString(), durable: settings.IsDurable, exclusive: false, autoDelete: false);
                 channel.QueueBind(poisonQueueName.ToString(), settings.DeadLetterExchangeName, settings.RoutingKey ?? string.Empty);
