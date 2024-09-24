@@ -57,7 +57,7 @@ internal static class ChannelFactoryExtensions
     }
 
     /// <summary>
-    /// Safe deletion of classic queue meaning there are no consumers and 
+    /// Safe deletion of the queue meaning there are no consumers and 
     /// no messages in the queue.
     /// </summary>
     /// <param name="channelFactory"></param>
@@ -67,8 +67,11 @@ internal static class ChannelFactoryExtensions
     /// This method is intended to be used in case of precondition failure.
     /// It works only for classic queues since for quorum queues `ifUnused` 
     /// and `ifEmpty` parameters are not supported so far.
+    /// It can't be used conditionally since there is no information about
+    /// queue type about to be deleted. Thereore it will always fail
+    /// for quorum queues.
     /// </remarks>
-    public static IConfigurationResult<uint> SafeDeleteClassicQueue(this Func<IModel> channelFactory, string queueName) =>
+    public static IConfigurationResult<uint> SafeDeleteQueue(this Func<IModel> channelFactory, string queueName) =>
         channelFactory.Execute(ch => ch.QueueDelete(queueName, ifUnused: true, ifEmpty: true));
 
     public static IConfigurationResult<QueueDeclareOk> DeclareQueue(
@@ -97,6 +100,14 @@ internal static class ChannelFactoryExtensions
         );
     }
 
+    /// <summary>
+    /// Binds a queue to an exchange
+    /// </summary>
+    /// <param name="channelFactory"></param>
+    /// <param name="options"></param>
+    /// <returns>
+    /// The name of the bound queue
+    /// </returns>
     public static IConfigurationResult<QueueName> BindQueue(
         this Func<IModel> channelFactory,
         QueueConfigurationOptions options)

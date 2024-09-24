@@ -6,6 +6,12 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 internal static class QueueConfigurator
 {
+    /// <summary>
+    /// Declares and binds a queue
+    /// </summary>
+    /// <param name="channelFactory"></param>
+    /// <param name="options"></param>
+    /// <returns></returns>
     public static IConfigurationResult<QueueName> Configure(
         Func<IModel> channelFactory,
         QueueConfigurationOptions options)
@@ -20,6 +26,12 @@ internal static class QueueConfigurator
                 ConfigurationResult<QueueName>.Failure);
     }
 
+    /// <summary>
+    /// Declares and binds a poison queue based on the original queue options
+    /// </summary>
+    /// <param name="channelFactory"></param>
+    /// <param name="originalQueueOptions"></param>
+    /// <returns></returns>
     public static IConfigurationResult<PoisonQueueName> ConfigurePoison(
         Func<IModel> channelFactory,
         QueueConfigurationOptions originalQueueOptions)
