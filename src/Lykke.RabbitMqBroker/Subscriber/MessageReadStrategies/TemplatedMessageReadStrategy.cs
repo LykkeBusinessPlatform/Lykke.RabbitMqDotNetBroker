@@ -25,11 +25,11 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
     {
         var options = CreateQueueConfigurationOptions(settings);
 
-        return TryConfigure(channelFactory, options).Match(
-            queueName => queueName,
-            _ => RetryWithQueueRecreation(channelFactory, options).Match(
-                queueName => queueName,
-                 _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")));
+        var (queueName, _) = TryConfigure(channelFactory, options).Match(
+            onFailure: _ => RetryWithQueueRecreation(channelFactory, options).Match(
+                 onFailure: _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")));
+
+        return queueName;
     }
 
     private static IConfigurationResult<QueueName> TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options)
@@ -39,7 +39,7 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
         if (queueConfigurationResult.IsSuccess && options.DeadLetterExchangeName is not null)
         {
             var dlxConfigurationResult = ExchangeConfigurator.ConfigureDlx(channelFactory, options).Match(
-                () => QueueConfigurator.ConfigurePoison(channelFactory, options));
+                onSuccess: () => QueueConfigurator.ConfigurePoison(channelFactory, options));
 
             return dlxConfigurationResult.IsSuccess
                 ? queueConfigurationResult
@@ -64,8 +64,8 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 
         return QueueType switch
         {
-            QueueType.Classic => QueueConfigurationOptions.ForClassicQueue(settings.GetQueueName(), ExchangeName.Create(settings.ExchangeName), DeadLetterExchangeName.Create(settings.DeadLetterExchangeName), StrategyDefaultDeadLetterExchangeType, Durable, AutoDelete, effectiveRoutingKey),
-            QueueType.Quorum => QueueConfigurationOptions.ForQuorumQueue(settings.GetQueueName(), ExchangeName.Create(settings.ExchangeName), DeadLetterExchangeName.Create(settings.DeadLetterExchangeName), StrategyDefaultDeadLetterExchangeType, effectiveRoutingKey),
+            QueueType.Classic => QueueConfigurationOptions.ForClassicQueue(settings.GetQueueName(), ExchangeName.Create(settings.ExchangeName), string.IsNullOrWhiteSpace(settings.DeadLetterExchangeName) ? null : DeadLetterExchangeName.Create(settings.DeadLetterExchangeName), StrategyDefaultDeadLetterExchangeType, Durable, AutoDelete, effectiveRoutingKey),
+            QueueType.Quorum => QueueConfigurationOptions.ForQuorumQueue(settings.GetQueueName(), ExchangeName.Create(settings.ExchangeName), string.IsNullOrWhiteSpace(settings.DeadLetterExchangeName) ? null : DeadLetterExchangeName.Create(settings.DeadLetterExchangeName), StrategyDefaultDeadLetterExchangeType, effectiveRoutingKey),
             _ => throw new InvalidOperationException($"Unsupported queue type [{QueueType}]")
         };
     }

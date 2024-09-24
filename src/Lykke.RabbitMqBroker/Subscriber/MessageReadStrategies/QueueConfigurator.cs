@@ -29,7 +29,8 @@ internal static class QueueConfigurator
             originalQueueOptions.DeadLetterExchangeName,
             Durable: true,
             AutoDelete: false,
-            QueueType: originalQueueOptions.QueueType);
+            QueueType: originalQueueOptions.QueueType,
+            RoutingKey: RoutingKey.Empty);
 
         return Configure(channelFactory, configurationOptions).Match(
             queueName => ConfigurationResult<PoisonQueueName>.Success(queueName.AsPoison()),
