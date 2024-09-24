@@ -19,10 +19,10 @@ internal sealed class ExchangeConfiguratorTests
             AutoDelete: false
         );
 
-        var result = ExchangeConfigurator.Configure(() => new ConfiguratorFakeChannel(), options);
+        var result = ExchangeConfigurator.Configure(() => new PrimitivesConfiguratorFakeChannel(), options);
 
         Assert.That(result.IsSuccess);
-        Assert.That(ConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(options.ExchangeName.ToString()));
+        Assert.That(PrimitivesConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(options.ExchangeName.ToString()));
     }
 
     [Test]
@@ -35,9 +35,15 @@ internal sealed class ExchangeConfiguratorTests
             RoutingKey: RoutingKey.Empty
         );
 
-        var result = ExchangeConfigurator.ConfigureDlx(() => new ConfiguratorFakeChannel(), originalQueueOptions);
+        var result = ExchangeConfigurator.ConfigureDlx(() => new PrimitivesConfiguratorFakeChannel(), originalQueueOptions);
 
         Assert.That(result.IsSuccess);
-        Assert.That(ConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(originalQueueOptions.DeadLetterExchangeName.ToString()));
+        Assert.That(PrimitivesConfiguratorFakeChannel.DeclaredExchanges, Does.Contain(originalQueueOptions.DeadLetterExchangeName.ToString()));
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        PrimitivesConfiguratorFakeChannel.ResetCounters();
     }
 }

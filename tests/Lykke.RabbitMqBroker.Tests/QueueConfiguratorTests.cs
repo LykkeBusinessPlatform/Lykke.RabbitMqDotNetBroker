@@ -18,11 +18,11 @@ public class QueueConfiguratorTests
             RoutingKey: RoutingKey.Empty
         );
 
-        var result = QueueConfigurator.Configure(() => new ConfiguratorFakeChannel(), options);
+        var result = QueueConfigurator.Configure(() => new PrimitivesConfiguratorFakeChannel(), options);
 
         Assert.That(options.QueueName, Is.EqualTo(result.Response));
-        Assert.That(ConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExistingExchangeName));
-        Assert.That(ConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.ToString()));
+        Assert.That(PrimitivesConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExistingExchangeName));
+        Assert.That(PrimitivesConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.ToString()));
     }
 
     [Test]
@@ -35,15 +35,15 @@ public class QueueConfiguratorTests
             RoutingKey: RoutingKey.Empty
         );
 
-        var result = QueueConfigurator.Configure(() => new ConfiguratorFakeChannel(), options);
+        var result = QueueConfigurator.Configure(() => new PrimitivesConfiguratorFakeChannel(), options);
 
-        ConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
+        PrimitivesConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
         Assert.That("dlx", Is.EqualTo(args?["x-dead-letter-exchange"]));
     }
 
     [TearDown]
     public void TearDown()
     {
-        ConfiguratorFakeChannel.ResetCounters();
+        PrimitivesConfiguratorFakeChannel.ResetCounters();
     }
 }

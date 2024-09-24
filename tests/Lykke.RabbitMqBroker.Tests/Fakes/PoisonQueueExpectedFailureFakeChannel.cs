@@ -1,29 +1,37 @@
 using System;
 using System.Collections.Generic;
 
+using Lykke.RabbitMqBroker.Subscriber;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Lykke.RabbitMqBroker.Tests.Fakes;
 
-public class ConfiguratorFakeChannel : IModel
+public class PoisonQueueExpectedFailureFakeChannel : IModel
 {
-    public static HashSet<string> DeclaredQueues { get; } = [];
-    public static HashSet<string> DeclaredExchanges { get; } = [];
-    public static HashSet<string> BoundQueues { get; } = [];
-    public static Dictionary<string, IDictionary<string, object>> DeclaredQueuesArguments { get; } = [];
+    public int ChannelNumber => throw new NotImplementedException();
 
-    public static void ResetCounters()
-    {
-        DeclaredQueues.Clear();
-        DeclaredExchanges.Clear();
-        BoundQueues.Clear();
-        DeclaredQueuesArguments.Clear();
-    }
+    public ShutdownEventArgs CloseReason => throw new NotImplementedException();
 
-    public void Dispose()
-    {
-    }
+    public IBasicConsumer DefaultConsumer { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public bool IsClosed => throw new NotImplementedException();
+
+    public bool IsOpen => throw new NotImplementedException();
+
+    public ulong NextPublishSeqNo => throw new NotImplementedException();
+
+    public TimeSpan ContinuationTimeout { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public event EventHandler<BasicAckEventArgs> BasicAcks;
+    public event EventHandler<BasicNackEventArgs> BasicNacks;
+    public event EventHandler<EventArgs> BasicRecoverOk;
+    public event EventHandler<BasicReturnEventArgs> BasicReturn;
+    public event EventHandler<CallbackExceptionEventArgs> CallbackException;
+    public event EventHandler<FlowControlEventArgs> FlowControl;
+    public event EventHandler<ShutdownEventArgs> ModelShutdown;
 
     public void Abort()
     {
@@ -50,13 +58,7 @@ public class ConfiguratorFakeChannel : IModel
         throw new NotImplementedException();
     }
 
-    public string BasicConsume(string queue,
-                               bool autoAck,
-                               string consumerTag,
-                               bool noLocal,
-                               bool exclusive,
-                               IDictionary<string, object> arguments,
-                               IBasicConsumer consumer)
+    public string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer)
     {
         throw new NotImplementedException();
     }
@@ -71,11 +73,7 @@ public class ConfiguratorFakeChannel : IModel
         throw new NotImplementedException();
     }
 
-    public void BasicPublish(string exchange,
-                             string routingKey,
-                             bool mandatory,
-                             IBasicProperties basicProperties,
-                             ReadOnlyMemory<byte> body)
+    public void BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
     {
         throw new NotImplementedException();
     }
@@ -115,7 +113,7 @@ public class ConfiguratorFakeChannel : IModel
         throw new NotImplementedException();
     }
 
-    public IBasicPublishBatch CreateBasicPublishBatch()
+    public uint ConsumerCount(string queue)
     {
         throw new NotImplementedException();
     }
@@ -123,6 +121,15 @@ public class ConfiguratorFakeChannel : IModel
     public IBasicProperties CreateBasicProperties()
     {
         throw new NotImplementedException();
+    }
+
+    public IBasicPublishBatch CreateBasicPublishBatch()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Dispose()
+    {
     }
 
     public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
@@ -137,17 +144,14 @@ public class ConfiguratorFakeChannel : IModel
 
     public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
     {
-        DeclaredExchanges.Add(exchange);
     }
 
     public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
     {
-        DeclaredExchanges.Add(exchange);
     }
 
     public void ExchangeDeclarePassive(string exchange)
     {
-        DeclaredExchanges.Add(exchange);
     }
 
     public void ExchangeDelete(string exchange, bool ifUnused)
@@ -170,43 +174,53 @@ public class ConfiguratorFakeChannel : IModel
         throw new NotImplementedException();
     }
 
-    public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-    {
-        BoundQueues.Add(queue);
-    }
-
-    public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-    {
-        BoundQueues.Add(queue);
-    }
-
-    public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
-    {
-        DeclaredQueues.Add(queue);
-        DeclaredQueuesArguments.Add(queue, arguments);
-        return new QueueDeclareOk(queue, 0, 0);
-    }
-
-    public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
-    {
-        DeclaredQueues.Add(queue);
-        DeclaredQueuesArguments.Add(queue, arguments);
-    }
-
-    public QueueDeclareOk QueueDeclarePassive(string queue)
-    {
-        DeclaredQueues.Add(queue);
-        return new QueueDeclareOk(queue, 0, 0);
-    }
-
     public uint MessageCount(string queue)
     {
         throw new NotImplementedException();
     }
 
-    public uint ConsumerCount(string queue)
+    public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
     {
-        throw new NotImplementedException();
+        if (PoisonQueueName.IsValid(queue))
+        {
+            throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueBind)));
+        }
+    }
+
+    public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+    {
+        if (PoisonQueueName.IsValid(queue))
+        {
+            throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueBindNoWait)));
+        }
+    }
+
+    public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+    {
+        if (PoisonQueueName.IsValid(queue))
+        {
+            throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclare)));
+        }
+
+        return new QueueDeclareOk(queue, 0, 0);
+    }
+
+    public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+    {
+        if (PoisonQueueName.IsValid(queue))
+        {
+            throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclareNoWait)));
+        }
+    }
+
+    public QueueDeclareOk QueueDeclarePassive(string queue)
+    {
+        if (PoisonQueueName.IsValid(queue))
+        {
+            throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclarePassive)));
+        }
+
+        return new QueueDeclareOk(queue, 0, 0);
     }
 
     public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
@@ -268,19 +282,4 @@ public class ConfiguratorFakeChannel : IModel
     {
         throw new NotImplementedException();
     }
-
-    public int ChannelNumber { get; }
-    public ShutdownEventArgs CloseReason { get; }
-    public IBasicConsumer DefaultConsumer { get; set; }
-    public bool IsClosed { get; }
-    public bool IsOpen { get; }
-    public ulong NextPublishSeqNo { get; }
-    public TimeSpan ContinuationTimeout { get; set; }
-    public event EventHandler<BasicAckEventArgs> BasicAcks;
-    public event EventHandler<BasicNackEventArgs> BasicNacks;
-    public event EventHandler<EventArgs> BasicRecoverOk;
-    public event EventHandler<BasicReturnEventArgs> BasicReturn;
-    public event EventHandler<CallbackExceptionEventArgs> CallbackException;
-    public event EventHandler<FlowControlEventArgs> FlowControl;
-    public event EventHandler<ShutdownEventArgs> ModelShutdown;
 }
