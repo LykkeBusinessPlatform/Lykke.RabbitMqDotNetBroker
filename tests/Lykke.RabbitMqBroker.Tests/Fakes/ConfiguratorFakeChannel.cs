@@ -6,7 +6,7 @@ using RabbitMQ.Client.Events;
 
 namespace Lykke.RabbitMqBroker.Tests.Fakes;
 
-public class QueueConfiguratorFakeChannel : IModel
+public class ConfiguratorFakeChannel : IModel
 {
     public static HashSet<string> DeclaredQueues { get; } = [];
     public static HashSet<string> DeclaredExchanges { get; } = [];
