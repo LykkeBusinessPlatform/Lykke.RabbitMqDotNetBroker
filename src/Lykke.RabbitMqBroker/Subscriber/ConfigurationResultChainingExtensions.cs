@@ -17,4 +17,11 @@ internal static class ConfigurationResultChainingExtensions
     {
         return result.IsSuccess ? onSuccess(result.Response) : result;
     }
+
+    public static IConfigurationResult<TResponse> Match<TResponse>(
+        this IConfigurationResult<TResponse> result,
+        Func<ConfigurationError, IConfigurationResult<TResponse>> onFailure)
+    {
+        return result.IsSuccess ? result : onFailure(result.Error);
+    }
 }

@@ -20,9 +20,14 @@ internal interface IConfigurationResult
     ConfigurationError Error { get; }
 }
 
-internal interface IConfigurationResult<out T> : IConfigurationResult
+internal interface IConfigurationResult<T> : IConfigurationResult
 {
     T Response { get; }
+    public void Deconstruct(out T response, out ConfigurationError error)
+    {
+        response = Response;
+        error = Error;
+    }
 }
 
 internal abstract record ConfigurationResultBase(ConfigurationError Error) : IConfigurationResult;
@@ -33,10 +38,12 @@ internal record ConfigurationResult(ConfigurationError Error) : ConfigurationRes
 {
     public static IConfigurationResult Success() => new ConfigurationResult(ConfigurationError.None);
     public static IConfigurationResult Failure(ConfigurationError error) => new ConfigurationResult(error);
+    public static implicit operator ConfigurationResult(ConfigurationError error) => new(error);
 }
 
 internal record ConfigurationResult<T>(ConfigurationError Error, T Response) : ConfigurationResultBase<T>(Error, Response)
 {
     public static IConfigurationResult<T> Success(T response) => new ConfigurationResult<T>(ConfigurationError.None, response);
     public static IConfigurationResult<T> Failure(ConfigurationError error) => new ConfigurationResult<T>(error, default);
+    public static implicit operator ConfigurationResult<T>(ConfigurationError error) => new(error, default);
 }
