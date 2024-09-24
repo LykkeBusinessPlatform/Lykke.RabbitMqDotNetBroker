@@ -20,6 +20,14 @@ internal static class ExchangeConfigurator
     }
 
     /// <summary>
+    /// Checks if the dead-letter exchange is required
+    /// </summary>
+    /// <param name="options"></param>
+    /// <returns></returns>
+    public static bool DlxApplicable(QueueConfigurationOptions options) =>
+        options.DeadLetterExchangeName is not null;
+
+    /// <summary>
     /// Declares a dead-letter exchange based on the original queue options
     /// </summary>
     /// <param name="channelFactory"></param>

@@ -13,7 +13,7 @@ internal static class MessageReadStrategyConfigurationExtensions
     {
         var queueConfigurationResult = QueueConfigurator.Configure(channelFactory, options);
 
-        if (queueConfigurationResult.IsSuccess && options.DeadLetterExchangeName is not null)
+        if (queueConfigurationResult.IsSuccess && ExchangeConfigurator.DlxApplicable(options))
         {
             var dlxConfigurationResult = ExchangeConfigurator.ConfigureDlx(channelFactory, options).Match(
                 onSuccess: () => QueueConfigurator.ConfigurePoison(channelFactory, options));
