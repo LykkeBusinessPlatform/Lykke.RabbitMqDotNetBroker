@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
@@ -29,32 +30,35 @@ namespace Lykke.RabbitMqBroker
         {
             _handlers = handlers;
             _logger = logger;
-            _listenersRegistry = listenersRegistry;
+            _listenersRegistry = listenersRegistry ?? new ListenersRegistry();
         }
 
         public async Task Execute()
         {
-            if (_listenersRegistry == null)
-            {
-                return;
-            }
+            var tasks = from handler in _handlers
+                        from registration in _listenersRegistry
+                        select HandleRegistration(handler, registration);
 
-            foreach (var handler in _handlers)
-                foreach (var registration in _listenersRegistry)
-                {
-                    try
-                    {
-                        await handler.Handle(registration);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(
-                            ex,
-                            "Failed to handle listener registration {registration} by {handler}",
-                            registration,
-                            handler.Name);
-                    }
-                }
+            foreach (var task in tasks)
+            {
+                await task;
+            }
+        }
+
+        private async Task HandleRegistration(IListenerRegistrationHandler handler, IListenerRegistration registration)
+        {
+            try
+            {
+                await handler.Handle(registration);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to handle listener registration {registration} by {handler}",
+                    registration,
+                    handler.Name);
+            }
         }
     }
 }
