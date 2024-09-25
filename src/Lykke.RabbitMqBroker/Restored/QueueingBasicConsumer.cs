@@ -1,4 +1,5 @@
 using System;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -6,7 +7,7 @@ namespace Lykke.RabbitMqBroker.Restored
 {
     /// <summary>
     /// A <see cref="IBasicConsumer"/> implementation that
-    /// uses a <see cref="SharedQueue"/> to buffer incoming deliveries.
+    /// uses a <see cref="SharedQueue{T}"/> to buffer incoming deliveries.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -98,7 +99,7 @@ namespace Lykke.RabbitMqBroker.Restored
             // make a copy of the body, as it can be released at any time
             var bodyCopy = new byte[body.Length];
             Buffer.BlockCopy(body.ToArray(), 0, bodyCopy, 0, body.Length);
-            
+
             var eventArgs = new BasicDeliverEventArgs(consumerTag,
                 deliveryTag,
                 redelivered,
@@ -106,7 +107,7 @@ namespace Lykke.RabbitMqBroker.Restored
                 routingKey,
                 properties,
                 new ReadOnlyMemory<byte>(bodyCopy));
-            
+
             Queue.Enqueue(eventArgs);
         }
 
