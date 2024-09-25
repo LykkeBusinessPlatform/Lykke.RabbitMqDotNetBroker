@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Subscriber;
+
 using Microsoft.Extensions.Logging;
 
 namespace Lykke.RabbitMqBroker
@@ -33,16 +35,13 @@ namespace Lykke.RabbitMqBroker
             _listenersRegistry = listenersRegistry ?? new ListenersRegistry();
         }
 
-        public async Task Execute()
+        public Task Execute()
         {
             var tasks = from handler in _handlers
                         from registration in _listenersRegistry
                         select HandleRegistration(handler, registration);
 
-            foreach (var task in tasks)
-            {
-                await task;
-            }
+            return tasks.RunSequentially();
         }
 
         private async Task HandleRegistration(IListenerRegistrationHandler handler, IListenerRegistration registration)
