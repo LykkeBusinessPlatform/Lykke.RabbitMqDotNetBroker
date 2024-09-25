@@ -181,7 +181,7 @@ public class PoisonQueueExpectedFailureFakeChannel : IModel
 
     public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
     {
-        if (PoisonQueueName.IsValid(queue))
+        if (PoisonQueueName.Is(queue))
         {
             throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueBind)));
         }
@@ -189,7 +189,7 @@ public class PoisonQueueExpectedFailureFakeChannel : IModel
 
     public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
     {
-        if (PoisonQueueName.IsValid(queue))
+        if (PoisonQueueName.Is(queue))
         {
             throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueBindNoWait)));
         }
@@ -197,7 +197,7 @@ public class PoisonQueueExpectedFailureFakeChannel : IModel
 
     public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
-        if (PoisonQueueName.IsValid(queue))
+        if (PoisonQueueName.Is(queue))
         {
             throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclare)));
         }
@@ -207,7 +207,7 @@ public class PoisonQueueExpectedFailureFakeChannel : IModel
 
     public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
-        if (PoisonQueueName.IsValid(queue))
+        if (PoisonQueueName.Is(queue))
         {
             throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclareNoWait)));
         }
@@ -215,7 +215,7 @@ public class PoisonQueueExpectedFailureFakeChannel : IModel
 
     public QueueDeclareOk QueueDeclarePassive(string queue)
     {
-        if (PoisonQueueName.IsValid(queue))
+        if (PoisonQueueName.Is(queue))
         {
             throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclarePassive)));
         }
