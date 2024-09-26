@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 
 using RabbitMQ.Client;
@@ -8,7 +7,6 @@ namespace Lykke.RabbitMqBroker.Subscriber;
 [DebuggerDisplay("{Code}")]
 internal record ConfigurationErrorCode(ushort Code)
 {
-    public ushort Code { get; } = Code < 0 ? throw new ArgumentOutOfRangeException(nameof(Code)) : Code;
     public static ConfigurationErrorCode PreconditionsFailed => new(Constants.PreconditionFailed);
     public static ConfigurationErrorCode None => new(0);
 }
