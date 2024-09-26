@@ -1,3 +1,8 @@
+## 15.1.0 (2024-09-26)
+
+### Changed
+- LT-5705: Automatically create new quorum queue instead of classic queue
+
 ## 15.0.0 (2024-09-18)
 
 ### Added
