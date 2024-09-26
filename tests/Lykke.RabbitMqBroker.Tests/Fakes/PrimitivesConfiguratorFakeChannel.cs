@@ -6,7 +6,7 @@ using RabbitMQ.Client.Events;
 
 namespace Lykke.RabbitMqBroker.Tests.Fakes;
 
-public class QueueConfiguratorFakeChannel : IModel
+public class PrimitivesConfiguratorFakeChannel : IModel
 {
     public static HashSet<string> DeclaredQueues { get; } = [];
     public static HashSet<string> DeclaredExchanges { get; } = [];
@@ -211,12 +211,11 @@ public class QueueConfiguratorFakeChannel : IModel
 
     public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
     {
-        throw new NotImplementedException();
+        return 0;
     }
 
     public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
     {
-        throw new NotImplementedException();
     }
 
     public uint QueuePurge(string queue)

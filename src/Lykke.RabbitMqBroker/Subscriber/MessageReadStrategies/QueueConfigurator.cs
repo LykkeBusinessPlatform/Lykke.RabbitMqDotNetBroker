@@ -4,56 +4,48 @@ using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
-using Success = QueueConfigurationSuccess<QueueDeclareOk>;
-
 internal static class QueueConfigurator
 {
-    public static IQueueConfigurationResult Configure(
+    /// <summary>
+    /// Declares and binds a queue
+    /// </summary>
+    /// <param name="channelFactory"></param>
+    /// <param name="options"></param>
+    /// <returns></returns>
+    public static IConfigurationResult<QueueName> Configure(
         Func<IModel> channelFactory,
         QueueConfigurationOptions options)
     {
-        using var channel = channelFactory();
-
-        var argumentsBuilder = new QueueDeclarationArgumentsBuilder();
-        if (options.ShouldConfigureDeadLettering())
-        {
-            var deadLetteringConfigurationResult = ConfigureDeadLettering(
-                channel,
-                DeadLetteringConfigurationOptions.FromQueueConfigurationOptions(options));
-            argumentsBuilder.WithDeadLetterExchange(deadLetteringConfigurationResult.ExchangeName);
-        }
-
-        if (options.QueueType == QueueType.Quorum)
-        {
-            argumentsBuilder.UseQuorumQueue();
-        }
-
-        var args = argumentsBuilder.Build();
-        return channelFactory.DeclareQueue(options, args) switch
-        {
-            Success success => channelFactory.BindQueue(success.Response.QueueName, options),
-            var failure => failure
-        };
+        var args = options.BuildArguments();
+        return channelFactory.DeclareQueue(options, args)
+            .Match(
+                // Even if the declared queue name is defined (from options),
+                // strictly speaking, declaration operation returns the declared 
+                // queue name, so it should to be honored here
+                success => channelFactory.BindQueue(options with { QueueName = QueueName.Create(success.QueueName) }),
+                ConfigurationResult<QueueName>.Failure);
     }
 
-    private static DeadLetteringConfigurationResult ConfigureDeadLettering(
-        IModel channel,
-        DeadLetteringConfigurationOptions options)
+    /// <summary>
+    /// Declares and binds a poison queue based on the original queue options
+    /// </summary>
+    /// <param name="channelFactory"></param>
+    /// <param name="originalQueueOptions"></param>
+    /// <returns></returns>
+    public static IConfigurationResult<PoisonQueueName> ConfigurePoison(
+        Func<IModel> channelFactory,
+        QueueConfigurationOptions originalQueueOptions)
     {
-        channel.ExchangeDeclare(
-            exchange: options.ExchangeName,
-            type: options.ExchangeType,
-            durable: true);
-        var actualQueueName = channel.QueueDeclare(
-            queue: options.QueueName,
-            durable: options.Durable,
-            exclusive: false,
-            autoDelete: options.AutoDelete).QueueName;
-        channel.QueueBind(
-            queue: actualQueueName,
-            exchange: options.ExchangeName,
-            routingKey: options.RoutingKey);
+        var configurationOptions = new QueueConfigurationOptions(
+            originalQueueOptions.QueueName.AsPoison(),
+            originalQueueOptions.DeadLetterExchangeName,
+            Durable: true,
+            AutoDelete: false,
+            QueueType: originalQueueOptions.QueueType,
+            RoutingKey: RoutingKey.Empty);
 
-        return new DeadLetteringConfigurationResult(options.ExchangeName);
+        return Configure(channelFactory, configurationOptions).Match(
+            queueName => ConfigurationResult<PoisonQueueName>.Success(queueName.AsPoison()),
+            e => ConfigurationResult<PoisonQueueName>.Failure(e));
     }
 }

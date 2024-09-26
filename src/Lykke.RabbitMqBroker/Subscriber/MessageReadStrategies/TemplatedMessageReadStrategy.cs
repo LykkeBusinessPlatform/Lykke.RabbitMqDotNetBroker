@@ -10,65 +10,51 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
 {
     private const string StrategyDefaultDeadLetterExchangeType = "direct";
 
-    private readonly string _routingKey;
+    private readonly RoutingKey _routingKey;
 
     protected bool Durable { get; init; }
     protected bool AutoDelete { get; init; }
     protected QueueType QueueType { get; init; }
 
-    protected TemplatedMessageReadStrategy(string routingKey = "")
+    protected TemplatedMessageReadStrategy(RoutingKey routingKey)
     {
-        _routingKey = routingKey ?? string.Empty;
+        _routingKey = routingKey;
     }
 
-    public string Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
+    public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
     {
         var options = CreateQueueConfigurationOptions(settings);
 
-        return TryConfigure(channelFactory, options)
-            .Match(
-                success => success.Response,
-                _ => RetryWithQueueRecreation(channelFactory, options)
-                    .Match<string>(
-                        success => success.Response,
-                        _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure"
-                    )
-            ));
-    }
+        var (queueName, _) = channelFactory.StrategyTryConfigure(options).Match(
+            onFailure: _ => channelFactory.StrategyRetryWithQueueRecreation(options).Match(
+                 onFailure: _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")));
 
-    private static IQueueConfigurationResult TryConfigure(Func<IModel> channelFactory, QueueConfigurationOptions options) =>
-        QueueConfigurator.Configure(channelFactory, options);
-
-    private static IQueueConfigurationResult RetryWithQueueRecreation(Func<IModel> channelFactory, QueueConfigurationOptions options)
-    {
-        return channelFactory.SafeDeleteClassicQueue(options.QueueName)
-            .Match<IQueueConfigurationResult>(
-                onSuccess: _ => TryConfigure(channelFactory, options),
-                onFailure: _ => throw new InvalidOperationException($"Failed to delete queue [{options.QueueName}].")
-            );
+        return queueName;
     }
 
     private QueueConfigurationOptions CreateQueueConfigurationOptions(RabbitMqSubscriptionSettings settings)
     {
-        var durabilityFromStrategy = Durable;
-        var autoDeleteFromStrategy = AutoDelete;
-        var routingKeyFromStrategy = _routingKey;
-        var queueType = QueueType;
+        var effectiveRoutingKey = _routingKey == RoutingKey.Empty
+            ? RoutingKey.Create(settings.RoutingKey)
+            : _routingKey;
 
-        var effectiveRoutingKey = string.IsNullOrWhiteSpace(routingKeyFromStrategy)
-            ? settings.RoutingKey ?? string.Empty
-            : routingKeyFromStrategy;
-
-        return new QueueConfigurationOptions
+        return QueueType switch
         {
-            QueueName = settings.GetQueueName(),
-            ExchangeName = settings.ExchangeName,
-            DeadLetterExchangeName = settings.DeadLetterExchangeName,
-            DeadLetterExchangeType = StrategyDefaultDeadLetterExchangeType,
-            Durable = durabilityFromStrategy,
-            AutoDelete = autoDeleteFromStrategy,
-            RoutingKey = effectiveRoutingKey,
-            QueueType = queueType
+            QueueType.Classic => QueueConfigurationOptions.ForClassicQueue(
+                settings.GetQueueName(),
+                ExchangeName.Create(settings.ExchangeName),
+                string.IsNullOrWhiteSpace(settings.DeadLetterExchangeName) ? null : DeadLetterExchangeName.Create(settings.DeadLetterExchangeName),
+                StrategyDefaultDeadLetterExchangeType,
+                Durable,
+                AutoDelete,
+                effectiveRoutingKey),
+            QueueType.Quorum => QueueConfigurationOptions.ForQuorumQueue(
+                settings.GetQueueName(),
+                ExchangeName.Create(settings.ExchangeName),
+                string.IsNullOrWhiteSpace(settings.DeadLetterExchangeName) ? null : DeadLetterExchangeName.Create(settings.DeadLetterExchangeName),
+                StrategyDefaultDeadLetterExchangeType,
+                effectiveRoutingKey),
+            _ => throw new InvalidOperationException($"Unsupported queue type [{QueueType}]")
         };
     }
 }

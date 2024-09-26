@@ -174,7 +174,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
             var queueName = MessageReadStrategy.Configure(_settings, CreateConfiguratorChannel);
 
-            _consumerTag = _channel.BasicConsume(queueName, false, _consumer);
+            _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
 
             return this;
         }
