@@ -49,25 +49,23 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
                 exchangeName,
                 routingKey);
         }
-        catch (OperationInterruptedException ex)
-        {
-            // if publisher confirms enabled
-            await _storage.TrySetFailed(
-                deliveryId,
-                MessageDeliveryFailure.FromException(ex, FailureReason.BrokerCustodyNotConfirmed));
-            return deliveryId;
-        }
         catch (Exception ex)
         {
             await _storage.TrySetFailed(
                 deliveryId,
-                MessageDeliveryFailure.FromException(ex, FailureReason.DispatchError));
+                MessageDeliveryFailure.FromException(ex, GetFailureReason(ex)));
             return deliveryId;
         }
 
         await _storage.TrySetDispatched(deliveryId);
         return deliveryId;
     }
+
+    private static FailureReason GetFailureReason(Exception ex) => ex switch
+    {
+        OperationInterruptedException => FailureReason.BrokerCustodyNotConfirmed,
+        _ => FailureReason.DispatchError
+    };
 
     private static void ConfigureProperties(Action<IBasicProperties> configurator, IBasicProperties properties, MessageDeliveryId deliveryId)
     {
