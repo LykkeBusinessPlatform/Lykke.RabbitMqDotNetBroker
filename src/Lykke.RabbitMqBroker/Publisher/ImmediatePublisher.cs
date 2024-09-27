@@ -154,12 +154,9 @@ public sealed class ImmediatePublisher<T>(
         _channel.BasicReturn -= OnBasicReturn;
     }
 
-    private IAutorecoveringConnection CreateConnection()
+    private IAutorecoveringConnection CreateConnection() => _options.ShareConnection switch
     {
-        return _options.ShareConnection switch
-        {
-            true => _connectionProvider.GetOrCreateShared(_settings.ConnectionString),
-            false => _connectionProvider.GetExclusive(_settings.ConnectionString, _options.ConnectionNameWhenExclusive),
-        };
-    }
+        true => _connectionProvider.GetOrCreateShared(_settings.ConnectionString),
+        false => _connectionProvider.GetExclusive(_settings.ConnectionString, _options.ConnectionNameWhenExclusive),
+    };
 }
