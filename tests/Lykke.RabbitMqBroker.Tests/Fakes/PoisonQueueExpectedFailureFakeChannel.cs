@@ -11,6 +11,9 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes;
 
 public class PoisonQueueExpectedFailureFakeChannel : IModel
 {
+
+    static readonly List<string> _deletedQueues = [];
+    public static IReadOnlyList<string> DeletedQueues => _deletedQueues.AsReadOnly();
     public int ChannelNumber => throw new NotImplementedException();
 
     public ShutdownEventArgs CloseReason => throw new NotImplementedException();
@@ -225,12 +228,13 @@ public class PoisonQueueExpectedFailureFakeChannel : IModel
 
     public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
     {
-        throw new NotImplementedException();
+        _deletedQueues.Add(queue);
+        return 0;
     }
 
     public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
     {
-        throw new NotImplementedException();
+        _deletedQueues.Add(queue);
     }
 
     public uint QueuePurge(string queue)
@@ -281,5 +285,10 @@ public class PoisonQueueExpectedFailureFakeChannel : IModel
     public void WaitForConfirmsOrDie(TimeSpan timeout)
     {
         throw new NotImplementedException();
+    }
+
+    public static void ResetCounters()
+    {
+        _deletedQueues.Clear();
     }
 }

@@ -192,17 +192,17 @@ public class QueueDeletionExpectedFailureFakeChannel : IModel
 
     public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
-        throw new NotImplementedException();
+        throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclare)));
     }
 
     public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
-        throw new NotImplementedException();
+        throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclareNoWait)));
     }
 
     public QueueDeclareOk QueueDeclarePassive(string queue)
     {
-        throw new NotImplementedException();
+        throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclarePassive)));
     }
 
     public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)

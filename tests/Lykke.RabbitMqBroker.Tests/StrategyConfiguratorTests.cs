@@ -11,9 +11,9 @@ using RabbitMQ.Client;
 namespace Lykke.RabbitMqBroker.Tests;
 
 [TestFixture]
-internal sealed class MessageReadStrategyConfigurationTests
+internal sealed class StrategyConfiguratorTests
 {
-    private readonly Func<IModel> _queuePreconditionFailedChannel = () => new QueueDeclarationExpectedFailureFakeChannel();
+    private readonly Func<IModel> _queuePreconditionFailedChannel = () => new QueueDeclarationExpectedSingleFailureFakeChannel();
     private readonly Func<IModel> _queueUnexpectedFailureChannel = () => new QueueDeclarationUnexpectedFailureFakeChannel();
     private readonly Func<IModel> _exchangePreconditionFailedChannel = () => new ExchangeDeclarationExpectedFailureFakeChannel();
     private readonly Func<IModel> _poisonQueuePreconditionFailedChannel = () => new PoisonQueueExpectedFailureFakeChannel();
@@ -21,23 +21,52 @@ internal sealed class MessageReadStrategyConfigurationTests
     private readonly Func<IModel> _allSuccessChannel = () => new PrimitivesConfiguratorFakeChannel();
 
     [Test]
-    public void StrategyTryConfigure_WhenQueuePreconditionFailed_ReturnsFailureImmediately()
+    public void Configure_WhenQueuePreconditionFailed_DeletesQueueOnce()
     {
-        var result = _queuePreconditionFailedChannel.StrategyTryConfigure(
+        var queueName = QueueName.Create("q");
+        StrategyConfigurator.Configure(
+            _queuePreconditionFailedChannel,
+            new QueueConfigurationOptions(
+                queueName,
+                ExchangeName.Create("x"),
+                RoutingKey: RoutingKey.Empty));
+
+        Assert.That(QueueDeclarationExpectedSingleFailureFakeChannel.DeletedQueues, Has.One.EqualTo(queueName.ToString()));
+    }
+
+    [Test]
+    public void Configure_WhenQueuePreconditionFailed_Retries()
+    {
+        var result = StrategyConfigurator.Configure(
+            _queuePreconditionFailedChannel,
             new QueueConfigurationOptions(
                 QueueName.Create("q"),
                 ExchangeName.Create("x"),
                 RoutingKey: RoutingKey.Empty));
 
-        Assert.That(result.IsFailure);
-        Assert.That(result.Error.Code, Is.EqualTo(ConfigurationErrorCode.PreconditionsFailed));
+        Assert.That(result.IsSuccess);
     }
 
     [Test]
-    public void StrategyTryConfigure_WhenUnexpectedFailure_RaisesException()
+    public void Configure_WhenQueueNotDeleted_RaisesException()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            StrategyConfigurator.Configure(
+                _queueDeletionFailedChannel,
+                new QueueConfigurationOptions(
+                    QueueName.Create("q"),
+                    ExchangeName.Create("x"),
+                    RoutingKey: RoutingKey.Empty)));
+
+        Assert.That(ex.Message, Does.Contain("Failed to delete queue"));
+    }
+
+    [Test]
+    public void Configure_WhenUnexpectedFailure_RaisesException()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            _queueUnexpectedFailureChannel.StrategyTryConfigure(
+            StrategyConfigurator.Configure(
+                _queueUnexpectedFailureChannel,
                 new QueueConfigurationOptions(
                     QueueName.Create("q"),
                     ExchangeName.Create("x"),
@@ -45,9 +74,10 @@ internal sealed class MessageReadStrategyConfigurationTests
     }
 
     [Test]
-    public void StrategyTryConfigure_WhenDlxPreconditionFailed_ReturnsFailure()
+    public void Configure_WhenDlxPreconditionFailed_ReturnsFailure()
     {
-        var result = _exchangePreconditionFailedChannel.StrategyTryConfigure(
+        var result = StrategyConfigurator.Configure(
+            _exchangePreconditionFailedChannel,
             new QueueConfigurationOptions(
                 QueueName.Create("q"),
                 ExchangeName.Create("x"),
@@ -59,9 +89,10 @@ internal sealed class MessageReadStrategyConfigurationTests
     }
 
     [Test]
-    public void StrategyTryConfigure_WhenPoisonQueuePreconditionFailed_ReturnsFailure()
+    public void Configure_WhenPoisonQueuePreconditionFailed_ReturnsFailure()
     {
-        var result = _poisonQueuePreconditionFailedChannel.StrategyTryConfigure(
+        var result = StrategyConfigurator.Configure(
+            _poisonQueuePreconditionFailedChannel,
             new QueueConfigurationOptions(
                 QueueName.Create("q"),
                 ExchangeName.Create("x"),
@@ -73,46 +104,31 @@ internal sealed class MessageReadStrategyConfigurationTests
     }
 
     [Test]
-    public void StrategyTryConfigure_WhenAllSuccess_ReturnsQueueName()
+    public void Configure_WhenPoisonQueuePreconditionFailed_DeletesQueue()
     {
         var queueName = QueueName.Create("q");
-        var result = _allSuccessChannel.StrategyTryConfigure(
+        StrategyConfigurator.Configure(
+            _poisonQueuePreconditionFailedChannel,
             new QueueConfigurationOptions(
                 queueName,
                 ExchangeName.Create("x"),
                 DeadLetterExchangeName.Create("dlx"),
                 RoutingKey: RoutingKey.Empty));
 
-        Assert.That(result.IsSuccess);
-        Assert.That(result.Response, Is.EqualTo(queueName));
+        Assert.That(PoisonQueueExpectedFailureFakeChannel.DeletedQueues, Has.One.EqualTo(queueName.AsPoison().ToString()));
     }
 
     [Test]
-    public void StrategyRetryWithQueueRecreation_WhenQueueNotDeleted_RaisesException()
+    public void Configure_WhenAllSuccess_ReturnsQueueName()
     {
         var queueName = QueueName.Create("q");
-        var ex = Assert.Throws<InvalidOperationException>(() =>
-            _queueDeletionFailedChannel.StrategyRetryWithQueueRecreation(
-                new QueueConfigurationOptions(
-                    queueName,
-                    ExchangeName.Create("x"),
-                    RoutingKey: RoutingKey.Empty),
-                queueName));
-
-        Assert.That(ex.Message, Does.Contain("Failed to delete queue"));
-    }
-
-    [Test]
-    public void StrategyRetryWithQueueRecreation_WhenQueueDeleted_TriesToConfigureAgain()
-    {
-        var queueName = QueueName.Create("q");
-        var result = _allSuccessChannel.StrategyRetryWithQueueRecreation(
+        var result = StrategyConfigurator.Configure(
+            _allSuccessChannel,
             new QueueConfigurationOptions(
                 queueName,
                 ExchangeName.Create("x"),
                 DeadLetterExchangeName.Create("dlx"),
-                RoutingKey: RoutingKey.Empty),
-            queueName);
+                RoutingKey: RoutingKey.Empty));
 
         Assert.That(result.IsSuccess);
         Assert.That(result.Response, Is.EqualTo(queueName));
@@ -122,5 +138,7 @@ internal sealed class MessageReadStrategyConfigurationTests
     public void TearDown()
     {
         PrimitivesConfiguratorFakeChannel.ResetCounters();
+        PoisonQueueExpectedFailureFakeChannel.ResetCounters();
+        QueueDeclarationExpectedSingleFailureFakeChannel.ResetCounters();
     }
 }
