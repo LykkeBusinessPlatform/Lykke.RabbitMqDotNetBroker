@@ -26,7 +26,7 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
         var options = CreateQueueConfigurationOptions(settings);
 
         var (queueName, _) = channelFactory.StrategyTryConfigure(options).Match(
-            onFailure: _ => channelFactory.StrategyRetryWithQueueRecreation(options).Match(
+            onFailure: _ => channelFactory.StrategyRetryWithQueueRecreation(options, options.QueueName).Match(
                  onFailure: _ => throw new InvalidOperationException($"Failed to configure queue [{options.QueueName}] after precondition failure")));
 
         return queueName;

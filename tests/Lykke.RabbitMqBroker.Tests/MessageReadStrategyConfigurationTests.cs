@@ -90,12 +90,14 @@ internal sealed class MessageReadStrategyConfigurationTests
     [Test]
     public void StrategyRetryWithQueueRecreation_WhenQueueNotDeleted_RaisesException()
     {
+        var queueName = QueueName.Create("q");
         var ex = Assert.Throws<InvalidOperationException>(() =>
             _queueDeletionFailedChannel.StrategyRetryWithQueueRecreation(
                 new QueueConfigurationOptions(
-                    QueueName.Create("q"),
+                    queueName,
                     ExchangeName.Create("x"),
-                    RoutingKey: RoutingKey.Empty)));
+                    RoutingKey: RoutingKey.Empty),
+                queueName));
 
         Assert.That(ex.Message, Does.Contain("Failed to delete queue"));
     }
@@ -109,7 +111,8 @@ internal sealed class MessageReadStrategyConfigurationTests
                 queueName,
                 ExchangeName.Create("x"),
                 DeadLetterExchangeName.Create("dlx"),
-                RoutingKey: RoutingKey.Empty));
+                RoutingKey: RoutingKey.Empty),
+            queueName);
 
         Assert.That(result.IsSuccess);
         Assert.That(result.Response, Is.EqualTo(queueName));
