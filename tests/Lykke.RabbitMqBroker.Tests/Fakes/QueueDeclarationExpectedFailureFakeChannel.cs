@@ -7,8 +7,11 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Lykke.RabbitMqBroker.Tests.Fakes;
 
-public class QueueDeclarationExpectedFailureFakeChannel : IModel
+public class QueueDeclarationExpectedSingleFailureFakeChannel : IModel
 {
+    static readonly List<string> _deletedQueues = [];
+    public static IReadOnlyList<string> DeletedQueues => _deletedQueues.AsReadOnly();
+    static bool _alreadyFailedOnce = false;
     public int ChannelNumber => throw new NotImplementedException();
 
     public ShutdownEventArgs CloseReason => throw new NotImplementedException();
@@ -182,37 +185,54 @@ public class QueueDeclarationExpectedFailureFakeChannel : IModel
 
     public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
     {
-        throw new NotImplementedException();
     }
 
     public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
     {
-        throw new NotImplementedException();
     }
 
     public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
+        if (_alreadyFailedOnce)
+        {
+            return new QueueDeclareOk(queue, 0, 0);
+        }
+
+        _alreadyFailedOnce = true;
         throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclare)));
     }
 
     public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
     {
+        if (_alreadyFailedOnce)
+        {
+            return;
+        }
+
+        _alreadyFailedOnce = true;
         throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclareNoWait)));
     }
 
     public QueueDeclareOk QueueDeclarePassive(string queue)
     {
+        if (_alreadyFailedOnce)
+        {
+            return new QueueDeclareOk(queue, 0, 0);
+        }
+
+        _alreadyFailedOnce = true;
         throw new OperationInterruptedException(new ShutdownEventArgs(ShutdownInitiator.Application, Constants.PreconditionFailed, "Precondition failed", nameof(QueueDeclarePassive)));
     }
 
     public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
     {
-        throw new NotImplementedException();
+        _deletedQueues.Add(queue);
+        return 0;
     }
 
     public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
     {
-        throw new NotImplementedException();
+        _deletedQueues.Add(queue);
     }
 
     public uint QueuePurge(string queue)
@@ -263,5 +283,11 @@ public class QueueDeclarationExpectedFailureFakeChannel : IModel
     public void WaitForConfirmsOrDie(TimeSpan timeout)
     {
         throw new NotImplementedException();
+    }
+
+    public static void ResetCounters()
+    {
+        _alreadyFailedOnce = false;
+        _deletedQueues.Clear();
     }
 }
