@@ -1,16 +1,15 @@
 using System.Threading.Tasks;
 
-namespace Lykke.RabbitMqBroker
+namespace Lykke.RabbitMqBroker;
+
+/// <summary>
+/// The marker interface for the listeners registry worker.
+/// </summary>
+internal interface IListenersRegistryWorker
 {
     /// <summary>
-    /// The marker interface for the listeners registry worker.
+    /// Processes the listeners.
     /// </summary>
-    internal interface IListenersRegistryWorker
-    {
-        /// <summary>
-        /// Processes the listeners.
-        /// </summary>
-        /// <returns></returns>
-        Task Execute();
-    }
+    /// <returns></returns>
+    Task Execute();
 }
