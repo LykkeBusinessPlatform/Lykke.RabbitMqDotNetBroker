@@ -6,16 +6,13 @@ using Microsoft.Extensions.Hosting;
 
 namespace Lykke.RabbitMqBroker;
 
-/// <summary>
-/// Background service to run <see cref="IListenersRegistryWorker"/> at a specified interval.
-/// </summary>
-internal sealed class ListenersRegistryTimer : BackgroundService
+internal sealed class MessageDeliveryCleanupTimer : BackgroundService
 {
-    private readonly IListenersRegistryWorker _worker;
+    private readonly IMessageDeliveryCleanupWorker _worker;
     private readonly TimeSpan _interval;
     private readonly static TimeSpan DefaultInterval = TimeSpan.FromMinutes(1);
 
-    public ListenersRegistryTimer(IListenersRegistryWorker worker, TimeSpan? interval = null)
+    public MessageDeliveryCleanupTimer(IMessageDeliveryCleanupWorker worker, TimeSpan? interval = null)
     {
         _worker = worker;
         _interval = interval ?? DefaultInterval;

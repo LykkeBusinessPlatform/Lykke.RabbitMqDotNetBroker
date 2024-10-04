@@ -7,57 +7,55 @@ using Lykke.RabbitMqBroker.Subscriber;
 
 using Microsoft.Extensions.Logging;
 
-namespace Lykke.RabbitMqBroker
+namespace Lykke.RabbitMqBroker;
+
+/// <summary>
+/// The listeners registry worker.
+/// Iterates sequentially over all the registered 
+/// <see cref="IListenerRegistrationHandler"/> and calls 
+/// their <see cref="IListenerRegistrationHandler.Handle"/> method
+/// for every listener registration.
+/// Guarantees that all the handlers will be called for every registration,
+/// even if some of them throw an exception.
+/// </summary>
+internal sealed class ListenersRegistrySequentialWorker : IListenersRegistryWorker
 {
+    private readonly IListenersRegistry _listenersRegistry;
+    private readonly IEnumerable<IListenerRegistrationHandler> _handlers;
+    private readonly ILogger<ListenersRegistrySequentialWorker> _logger;
 
-    /// <summary>
-    /// The listeners registry worker.
-    /// Iterates sequentially over all the registered 
-    /// <see cref="IListenerRegistrationHandler"/> and calls 
-    /// their <see cref="IListenerRegistrationHandler.Handle"/> method
-    /// for every listener registration.
-    /// Guarantees that all the handlers will be called for every registration,
-    /// even if some of them throw an exception.
-    /// </summary>
-    internal sealed class ListenersRegistrySequentialWorker : IListenersRegistryWorker
+    public ListenersRegistrySequentialWorker(
+        IEnumerable<IListenerRegistrationHandler> handlers,
+        ILogger<ListenersRegistrySequentialWorker> logger,
+        IListenersRegistry listenersRegistry = null)
     {
-        private readonly IListenersRegistry _listenersRegistry;
-        private readonly IEnumerable<IListenerRegistrationHandler> _handlers;
-        private readonly ILogger<ListenersRegistrySequentialWorker> _logger;
+        _handlers = handlers;
+        _logger = logger;
+        _listenersRegistry = listenersRegistry ?? new ListenersRegistry();
+    }
 
-        public ListenersRegistrySequentialWorker(
-            IEnumerable<IListenerRegistrationHandler> handlers,
-            ILogger<ListenersRegistrySequentialWorker> logger,
-            IListenersRegistry listenersRegistry = null)
+    public Task Execute()
+    {
+        var tasks = from handler in _handlers
+                    from registration in _listenersRegistry
+                    select HandleRegistration(handler, registration);
+
+        return tasks.RunSequentially();
+    }
+
+    private async Task HandleRegistration(IListenerRegistrationHandler handler, IListenerRegistration registration)
+    {
+        try
         {
-            _handlers = handlers;
-            _logger = logger;
-            _listenersRegistry = listenersRegistry ?? new ListenersRegistry();
+            await handler.Handle(registration);
         }
-
-        public Task Execute()
+        catch (Exception ex)
         {
-            var tasks = from handler in _handlers
-                        from registration in _listenersRegistry
-                        select HandleRegistration(handler, registration);
-
-            return tasks.RunSequentially();
-        }
-
-        private async Task HandleRegistration(IListenerRegistrationHandler handler, IListenerRegistration registration)
-        {
-            try
-            {
-                await handler.Handle(registration);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Failed to handle listener registration {registration} by {handler}",
-                    registration,
-                    handler.Name);
-            }
+            _logger.LogError(
+                ex,
+                "Failed to handle listener registration {registration} by {handler}",
+                registration,
+                handler.Name);
         }
     }
 }
