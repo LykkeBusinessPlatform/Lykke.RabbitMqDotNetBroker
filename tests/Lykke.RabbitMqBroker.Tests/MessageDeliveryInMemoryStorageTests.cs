@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 using NUnit.Framework;
@@ -21,7 +22,7 @@ internal sealed class MessageDeliveryInMemoryStorageTests
     [Test]
     public async Task AddOrUpdate_WhenAdded_ShouldBeAbleToGetById()
     {
-        var messageDelivery = MessageDelivery.Create();
+        var messageDelivery = new MessageDeliveryWithDefaults();
 
         await _storage.AddOrUpdate(messageDelivery);
 
@@ -44,7 +45,7 @@ internal sealed class MessageDeliveryInMemoryStorageTests
     [Test]
     public async Task AddOrUpdate_WhenUpdated_ShouldBeAbleToGetById()
     {
-        var messageDelivery = MessageDelivery.Create();
+        var messageDelivery = new MessageDeliveryWithDefaults();
         await _storage.AddOrUpdate(messageDelivery);
 
         var updatedDelivery = messageDelivery.TrySetDispatched(DateTime.UtcNow);

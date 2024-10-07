@@ -8,9 +8,9 @@ namespace Lykke.RabbitMqBroker.Monitoring;
 
 public static class MessageDeliveryStorageExtensions
 {
-    public static async Task<MessageDeliveryId> Add(this IMessageDeliveryStorage storage)
+    public static async Task<MessageDeliveryId> Add(this IMessageDeliveryStorage storage, MessageRoute route)
     {
-        var delivery = MessageDelivery.Create();
+        var delivery = MessageDelivery.Create(route);
         await storage.AddOrUpdate(delivery);
 
         return delivery.Id;
