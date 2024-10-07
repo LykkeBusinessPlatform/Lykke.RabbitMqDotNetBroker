@@ -13,6 +13,8 @@ public sealed record NonEmptyString
         Value = value.Trim();
     }
 
+    public override string ToString() => Value;
+
     public static NonEmptyString Create(string value) => new(value);
 
     public static implicit operator string(NonEmptyString nonEmptyString) => nonEmptyString.Value;
