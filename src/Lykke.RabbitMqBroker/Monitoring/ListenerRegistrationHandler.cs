@@ -15,9 +15,9 @@ internal sealed class ListenerRegistrationHandler(
     {
         MonitoringHeartbeat heartbeatMessage = new(
             new MonitoringHeartbeatMetadata(
-                registration.ExchangeName,
-                registration.RoutingKey,
-                registration.MessageRoute));
+                registration.ListenerRoute.ExchangeName,
+                registration.ListenerRoute.RoutingKey,
+                registration.ListenerRoute.ToString()));
 
         await _monitoringMessagePublisher.ProduceAsync(heartbeatMessage);
     }

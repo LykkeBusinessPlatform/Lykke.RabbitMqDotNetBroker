@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Subscriber;
+
 using Microsoft.Extensions.Logging.Abstractions;
 
 using NUnit.Framework;
@@ -70,8 +72,8 @@ internal class ListenersRegistrySequentialWorkerTests
     {
         var nameTracingHandler = new FakeNameTracingListenerRegistrationHandler();
         var countingHandler = new FakeCountingListenerRegistrationHandler();
-        var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
-        var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
+        var registration1 = new ListenerRegistration<MessageModel1>(ListenerRoute.Create(new ExchangeName("ex1"), new QueueName("q1"), new RoutingKey("r1")));
+        var registration2 = new ListenerRegistration<MessageModel2>(ListenerRoute.Create(new ExchangeName("ex2"), new QueueName("q2"), new RoutingKey("r2")));
         var worker = new ListenersRegistrySequentialWorker(
             [nameTracingHandler, countingHandler],
             NullLogger<ListenersRegistrySequentialWorker>.Instance,
@@ -93,8 +95,8 @@ internal class ListenersRegistrySequentialWorkerTests
     {
         var failingHandler = new FakeFailingListenerRegistrationHandler();
         var countingHandler = new FakeCountingListenerRegistrationHandler();
-        var registration1 = new ListenerRegistration<MessageModel1>("ex1", "q1", "r1");
-        var registration2 = new ListenerRegistration<MessageModel2>("ex2", "q2", "r2");
+        var registration1 = new ListenerRegistration<MessageModel1>(ListenerRoute.Create(new ExchangeName("ex1"), new QueueName("q1"), new RoutingKey("r1")));
+        var registration2 = new ListenerRegistration<MessageModel2>(ListenerRoute.Create(new ExchangeName("ex2"), new QueueName("q2"), new RoutingKey("r2")));
         var worker = new ListenersRegistrySequentialWorker(
             [failingHandler, countingHandler],
             NullLogger<ListenersRegistrySequentialWorker>.Instance,
