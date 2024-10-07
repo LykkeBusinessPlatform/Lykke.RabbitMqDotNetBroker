@@ -61,9 +61,10 @@ namespace Lykke.RabbitMqBroker
                 var registry = p.GetService<IListenersRegistry>();
                 registry?.Add(
                     new ListenerRegistration<TModel>(
-                        subscriptionSettings.ExchangeName,
-                        subscriptionSettings.QueueName,
-                        subscriptionSettings.RoutingKey));
+                        ListenerRoute.Create(
+                            new ExchangeName(subscriptionSettings.ExchangeName),
+                            new QueueName(subscriptionSettings.QueueName),
+                            new RoutingKey(subscriptionSettings.RoutingKey))));
 
                 return new RabbitMqListener<TModel>(
                     p.GetRequiredService<IConnectionProvider>(),
@@ -132,9 +133,10 @@ namespace Lykke.RabbitMqBroker
                     var registry = ctx.ResolveOptional<IListenersRegistry>();
                     registry?.Add(
                         new ListenerRegistration<TModel>(
-                            subscriptionSettings.ExchangeName,
-                            subscriptionSettings.QueueName,
-                            subscriptionSettings.RoutingKey));
+                            ListenerRoute.Create(
+                                new ExchangeName(subscriptionSettings.ExchangeName),
+                                new QueueName(subscriptionSettings.QueueName),
+                                new RoutingKey(subscriptionSettings.RoutingKey))));
                     var ccLifetimeScope = ctx.Resolve<IComponentContext>();
 
                     return new RabbitMqListener<TModel>(
