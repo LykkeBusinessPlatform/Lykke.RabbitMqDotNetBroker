@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 using Lykke.RabbitMqBroker.Monitoring;
 
@@ -21,7 +22,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task Add_Creates_New_Message_Delivery_And_Adds_It_To_Storage()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var addedDelivery = await _storage.Get(id);
 
         Assert.Multiple(() =>
@@ -34,7 +35,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task Add_Creates_New_Message_Delivery_In_Pending_Status()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var addedDelivery = await _storage.Get(id);
 
         Assert.That(addedDelivery.GetStatus, Is.EqualTo(MessageDeliveryStatus.Pending));
@@ -43,7 +44,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetDispatched_Returns_False_If_There_Is_No_Message_Delivery()
     {
-        var messageDelivery = MessageDelivery.Create();
+        var messageDelivery = new MessageDeliveryWithDefaults();
 
         var updated = await _storage.TrySetDispatched(messageDelivery.Id);
 
@@ -53,7 +54,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetDispatched_Returns_True_If_Message_Delivery_Exists()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var updated = await _storage.TrySetDispatched(id);
         var updatedDelivery = await _storage.Get(id);
 
@@ -64,7 +65,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetDispatched_Returns_False_If_Status_Is_Wrong()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var dispatched = await _storage.TrySetDispatched(id);
         var dispatchedAgain = await _storage.TrySetDispatched(id);
         var dispatchedDelivery = await _storage.Get(id);
@@ -80,7 +81,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetReceived_Returns_False_If_There_Is_No_Message_Delivery()
     {
-        var messageDelivery = MessageDelivery.Create();
+        var messageDelivery = new MessageDeliveryWithDefaults();
 
         var updated = await _storage.TrySetReceived(messageDelivery.Id);
 
@@ -90,7 +91,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetReceived_Returns_True_If_Message_Delivery_Exists()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var dispatched = await _storage.TrySetDispatched(id);
         var received = await _storage.TrySetReceived(id);
         var receivedDelivery = await _storage.Get(id);
@@ -103,7 +104,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetReceived_Returns_False_If_Status_Is_Wrong()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var updated = await _storage.TrySetReceived(id);
         var updatedDelivery = await _storage.Get(id);
 
@@ -117,7 +118,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetFailed_Returns_False_If_There_Is_No_Message_Delivery()
     {
-        var messageDelivery = MessageDelivery.Create();
+        var messageDelivery = new MessageDeliveryWithDefaults();
 
         var updated = await _storage.TrySetFailed(messageDelivery.Id, MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised));
 
@@ -127,7 +128,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetFailed_Returns_True_If_Message_Delivery_Exists()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var failed = await _storage.TrySetFailed(id, MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised));
         var failedDelivery = await _storage.Get(id);
 
@@ -138,7 +139,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetFailed_Returns_False_When_Failure_Is_Empty()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var updated = await _storage.TrySetFailed(id, MessageDeliveryFailure.Empty);
         var updatedDelivery = await _storage.Get(id);
 
@@ -149,7 +150,7 @@ internal sealed class MessageDeliveryStorageExtensionsTests
     [Test]
     public async Task TrySetFailed_Returns_False_If_Status_Is_Wrong()
     {
-        var id = await _storage.Add();
+        var id = await _storage.Add(new MessageRouteWithDefaults());
         var failed = await _storage.TrySetFailed(id, MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised));
         var failedAgain = await _storage.TrySetFailed(id, MessageDeliveryFailure.Create(MessageDeliveryFailureReason.BrokerCustodyNotConfirmed));
         var failedDelivery = await _storage.Get(id);

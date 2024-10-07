@@ -23,15 +23,14 @@ internal sealed class MonitoringHeartbeatPublisher(
 
         await _publisher.Publish(
             messageBody,
-            props => ConfigureProperties(props, message),
-            message.Route.ExchangeName.ToString(),
-            message.Route.RoutingKey.ToString());
+            message.ListenerRoute.ToMessageRoute(),
+            props => ConfigureProperties(props, message));
     }
 
     private static void ConfigureProperties(IBasicProperties properties, MonitoringHeartbeat message)
     {
         properties.Headers ??= new Dictionary<string, object>();
-        properties.Headers["Route"] = message.Route.ToString();
+        properties.Headers["Route"] = message.ListenerRoute.ToString();
 
         properties.DeliveryMode = NonPersistentDeliveryMode;
         properties.Type = ServiceMessageType.Monitoring.ToString();
