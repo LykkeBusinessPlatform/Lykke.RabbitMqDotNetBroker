@@ -39,7 +39,7 @@ internal sealed class ListenerRegistryLogger : IHostedService
 
         foreach (var listener in _listenersRegistry)
         {
-            _logger.LogInformation($"Listener: exchange {listener.ExchangeName} -> queue {listener.QueueName} with routing key ({listener.RoutingKey}) registered");
+            _logger.LogInformation($"Listener: exchange {listener.ListenerRoute.ExchangeName} -> queue {listener.ListenerRoute.QueueName} with routing key ({listener.ListenerRoute.RoutingKey}) registered");
         }
     }
 }

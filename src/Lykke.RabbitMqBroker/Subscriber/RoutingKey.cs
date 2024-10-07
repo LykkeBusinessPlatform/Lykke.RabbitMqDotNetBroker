@@ -5,6 +5,7 @@ namespace Lykke.RabbitMqBroker.Subscriber;
 [DebuggerDisplay("{Value}")]
 public record RoutingKey(string Value)
 {
+    public bool IsEmpty => this == Empty;
     public static RoutingKey Create(string value) =>
         value switch
         {

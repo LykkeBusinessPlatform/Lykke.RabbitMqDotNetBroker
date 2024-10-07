@@ -24,8 +24,8 @@ internal sealed class MonitoringHeartbeatPublisher(
         await _publisher.Publish(
             messageBody,
             props => ConfigureProperties(props, message),
-            message.Metadata.ExchangeName,
-            message.Metadata.RoutingKey);
+            message.Metadata.ExchangeName.ToString(),
+            message.Metadata.RoutingKey.ToString());
     }
 
     private static void ConfigureProperties(IBasicProperties properties, MonitoringHeartbeat message)

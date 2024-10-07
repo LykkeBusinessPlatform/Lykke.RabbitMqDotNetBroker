@@ -1,10 +1,8 @@
 namespace Lykke.RabbitMqBroker
 {
+    // todo: do we need this interface?
     public interface IListenerRegistration
     {
-        string ExchangeName { get; }
-        string QueueName { get; }
-        string RoutingKey { get; }
-        string MessageRoute { get; }
+        ListenerRoute ListenerRoute { get; }
     }
 }

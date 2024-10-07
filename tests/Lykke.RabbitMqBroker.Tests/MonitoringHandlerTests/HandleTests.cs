@@ -4,6 +4,7 @@ using Lykke.RabbitMqBroker.Tests.MonitoringMessageSenderTests;
 using MonitoringListenerRegistrationHandler = Lykke.RabbitMqBroker.Monitoring.ListenerRegistrationHandler;
 
 using NUnit.Framework;
+using Lykke.RabbitMqBroker.Subscriber;
 
 namespace Lykke.RabbitMqBroker.Tests.MonitoringHandlerTests;
 
@@ -23,7 +24,7 @@ internal class HandleTests
     {
         var sut = CreateSut();
 
-        await sut.Handle(ListenerRegistration<MessageModel>.Create("exchange", "queue"));
+        await sut.Handle(new ListenerRegistration<MessageModel>(ListenerRoute.Create(new ExchangeName("exchange"), new QueueName("queue"))));
 
         Assert.That(_fakeMonitoringMessagePublisher.PublicationsCount, Is.EqualTo(1));
     }
