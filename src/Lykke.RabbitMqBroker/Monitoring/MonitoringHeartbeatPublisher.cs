@@ -23,7 +23,7 @@ internal sealed class MonitoringHeartbeatPublisher(
 
         await _publisher.Publish(
             messageBody,
-            message.ListenerRoute.ToMessageRoute(),
+            message.ListenerRoute,
             props => ConfigureProperties(props, message));
     }
 
