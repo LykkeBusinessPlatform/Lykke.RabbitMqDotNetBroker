@@ -13,11 +13,7 @@ internal sealed class ListenerRegistrationHandler(
 
     public async Task Handle(IListenerRegistration registration)
     {
-        MonitoringHeartbeat heartbeatMessage = new(
-            new MonitoringHeartbeatMetadata(
-                registration.ListenerRoute.ExchangeName,
-                registration.ListenerRoute.RoutingKey,
-                registration.ListenerRoute.ToString()));
+        MonitoringHeartbeat heartbeatMessage = new(registration.ListenerRoute);
 
         await _monitoringMessagePublisher.ProduceAsync(heartbeatMessage);
     }
