@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 using Lykke.RabbitMqBroker.Publisher;
 
@@ -27,7 +28,7 @@ internal class PublishTests
             new UnconfirmedMessagePurePublisher(),
             _storage);
 
-        var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), null, null, null);
+        var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), new MessageRouteWithDefaults(), null);
 
         var delivery = await _storage.Get(deliveryId);
 
@@ -45,7 +46,7 @@ internal class PublishTests
             new UnexpectedExceptionPurePublisher(),
             _storage);
 
-        var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), null, null, null);
+        var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), new MessageRouteWithDefaults(), null);
 
         var delivery = await _storage.Get(deliveryId);
 
@@ -63,7 +64,7 @@ internal class PublishTests
             new SuccessMessagePurePublisher(),
             _storage);
 
-        var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), null, null, null);
+        var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), new MessageRouteWithDefaults(), null);
 
         var delivery = await _storage.Get(deliveryId);
 

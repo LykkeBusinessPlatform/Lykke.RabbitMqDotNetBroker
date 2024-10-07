@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 using Lykke.RabbitMqBroker.Publisher;
 
@@ -26,7 +27,7 @@ internal class OnReturnedTests
             new UnroutedMessagePurePublisher(),
             _storage);
 
-        var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), null, null, null);
+        var deliveryId = await publisher.Publish(new ReadOnlyMemory<byte>(), new MessageRouteWithDefaults(), null);
 
         // wait for emulated I/O operation to complete
         await Task.Delay(UnroutedMessagePurePublisher.IoEmulationDelayMs * 3);

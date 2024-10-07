@@ -7,6 +7,7 @@ using Lykke.RabbitMqBroker.Abstractions.Tracking;
 using NUnit.Framework;
 
 using Microsoft.Extensions.Time.Testing;
+using Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 
 namespace Lykke.RabbitMqBroker.Tests;
 
@@ -26,7 +27,7 @@ internal sealed class MessageDeliveryMaintenanceTests
     [Test]
     public async Task Delete_WhenDeleted_ShouldNotBeAbleToGetById()
     {
-        var messageDelivery = MessageDelivery.Create();
+        var messageDelivery = new MessageDeliveryWithDefaults();
         await _storage.AddOrUpdate(messageDelivery);
 
         await _maintenance.Delete(messageDelivery.Id);
@@ -43,7 +44,7 @@ internal sealed class MessageDeliveryMaintenanceTests
     [Test]
     public async Task Delete_WhenMultipleDeleted_ShouldNotBeAbleToGetById()
     {
-        var messageDeliveries = Enumerable.Range(0, 10).Select(_ => MessageDelivery.Create());
+        var messageDeliveries = Enumerable.Range(0, 10).Select(_ => new MessageDeliveryWithDefaults());
         await Task.WhenAll(messageDeliveries.Select(_storage.AddOrUpdate));
 
         await _maintenance.Delete(messageDeliveries.Select(x => x.Id));
@@ -54,7 +55,7 @@ internal sealed class MessageDeliveryMaintenanceTests
     [Test]
     public async Task GetChangedSince_WhenNoChanges_ShouldReturnEmpty()
     {
-        var messageDelivery = MessageDelivery.Create();
+        var messageDelivery = new MessageDeliveryWithDefaults();
         await _storage.AddOrUpdate(messageDelivery);
 
         var result = _maintenance.GetChangedSince(DateTime.MinValue);
@@ -67,7 +68,7 @@ internal sealed class MessageDeliveryMaintenanceTests
     public async Task GetChangedSince_WhenDispatchedSince_ShouldReturn()
     {
         FakeTimeProvider timeProvider = new(DateTimeOffset.Now);
-        var messageDelivery = MessageDelivery.Create().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
+        var messageDelivery = new MessageDeliveryWithDefaults().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
         await _storage.AddOrUpdate(messageDelivery);
 
         var result = _maintenance.GetChangedSince(timeProvider.GetLocalNow().DateTime);
@@ -79,7 +80,7 @@ internal sealed class MessageDeliveryMaintenanceTests
     public async Task GetChangedSince_WhenReceivedSince_ShouldReturn()
     {
         FakeTimeProvider timeProvider = new(DateTimeOffset.Now);
-        var dispatchedDelivery = MessageDelivery.Create().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
+        var dispatchedDelivery = new MessageDeliveryWithDefaults().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
         timeProvider.Advance(TimeSpan.FromSeconds(1));
         var beforeReceivalTime = timeProvider.GetLocalNow().DateTime;
         timeProvider.Advance(TimeSpan.FromSeconds(1));
@@ -95,7 +96,7 @@ internal sealed class MessageDeliveryMaintenanceTests
     public async Task GetChangedSince_WhenFailedSince_ShouldReturn()
     {
         FakeTimeProvider timeProvider = new(DateTimeOffset.Now);
-        var dispatchedDelivery = MessageDelivery.Create().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
+        var dispatchedDelivery = new MessageDeliveryWithDefaults().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
         timeProvider.Advance(TimeSpan.FromSeconds(1));
         var beforeFailureTime = timeProvider.GetLocalNow().DateTime;
         timeProvider.Advance(TimeSpan.FromSeconds(1));
@@ -114,14 +115,14 @@ internal sealed class MessageDeliveryMaintenanceTests
     public async Task GetChangedSince_WhenMultipleMixedChangesSince_ShouldReturn()
     {
         FakeTimeProvider timeProvider = new(DateTimeOffset.Now);
-        var messagedelivery1 = MessageDelivery.Create().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
-        var messagedelivery2 = MessageDelivery.Create();
-        var messagedelivery3 = MessageDelivery.Create().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
+        var messagedelivery1 = new MessageDeliveryWithDefaults().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
+        var messagedelivery2 = new MessageDeliveryWithDefaults();
+        var messagedelivery3 = new MessageDeliveryWithDefaults().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
         timeProvider.Advance(TimeSpan.FromSeconds(1));
         var sinceTime = timeProvider.GetLocalNow().DateTime;
         timeProvider.Advance(TimeSpan.FromSeconds(1));
         messagedelivery1 = messagedelivery1.TrySetReceived(sinceTime);
-        messagedelivery2 = messagedelivery2.TrySetDispatched(sinceTime).TrySetFailed(
+        messagedelivery2 = (MessageDeliveryWithDefaults)messagedelivery2.TrySetDispatched(sinceTime).TrySetFailed(
             MessageDeliveryFailure.Create(
                 reason: MessageDeliveryFailureReason.Uncategorised,
                 dateTime: timeProvider.GetLocalNow().DateTime)
@@ -139,13 +140,13 @@ internal sealed class MessageDeliveryMaintenanceTests
     public async Task GetChangedSince_WhenEmptyTimestampsInvolved_ShouldIgnoreThem()
     {
         FakeTimeProvider timeProvider = new(DateTimeOffset.Now);
-        var messagedelivery1 = MessageDelivery.Create().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
-        var messagedelivery2 = MessageDelivery.Create(); // empty dates
+        var messagedelivery1 = new MessageDeliveryWithDefaults().TrySetDispatched(timeProvider.GetLocalNow().DateTime);
+        var messagedelivery2 = new MessageDeliveryWithDefaults(); // empty dates
         timeProvider.Advance(TimeSpan.FromSeconds(1));
         var sinceTime = timeProvider.GetLocalNow().DateTime;
         timeProvider.Advance(TimeSpan.FromSeconds(1));
         messagedelivery1 = messagedelivery1.TrySetReceived(sinceTime);
-        var messagedelivery3 = MessageDelivery.Create(); // empty dates
+        var messagedelivery3 = new MessageDeliveryWithDefaults(); // empty dates
         await _storage.AddOrUpdate(messagedelivery1);
         await _storage.AddOrUpdate(messagedelivery2);
         await _storage.AddOrUpdate(messagedelivery3);
@@ -161,8 +162,8 @@ internal sealed class MessageDeliveryMaintenanceTests
         FakeTimeProvider timeProvider = new(DateTimeOffset.Now);
         var sinceTime = timeProvider.GetLocalNow().DateTime;
         timeProvider.Advance(TimeSpan.FromSeconds(1));
-        var messagedelivery1 = MessageDelivery.Create(); // empty dates
-        var messagedelivery2 = MessageDelivery.Create(); // empty dates
+        var messagedelivery1 = new MessageDeliveryWithDefaults(); // empty dates
+        var messagedelivery2 = new MessageDeliveryWithDefaults(); // empty dates
         await _storage.AddOrUpdate(messagedelivery1);
         await _storage.AddOrUpdate(messagedelivery2);
 

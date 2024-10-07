@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 using Lykke.RabbitMqBroker.Monitoring;
 
@@ -32,5 +33,5 @@ internal sealed class FakeStorage : IMessageDeliveryStorage
     /// <param name="id"></param>
     /// <returns></returns>
     public Task<MessageDelivery> Get(MessageDeliveryId id) =>
-        Task.FromResult(MessageDelivery.Create(id).TrySetDispatched(DateTime.UtcNow));
+        Task.FromResult(MessageDelivery.Create(id, new MessageRouteWithDefaults()).TrySetDispatched(DateTime.UtcNow));
 }

@@ -22,14 +22,12 @@ namespace Lykke.RabbitMqBroker.Publisher
         /// Publish message with tracking delivery.
         /// </summary>
         /// <param name="body"></param>
+        /// <param name="route"></param>
         /// <param name="configurator"></param>
-        /// <param name="exchangeName"></param>
-        /// <param name="routingKey"></param>
         /// <returns>Delivery id</returns>
         Task<MessageDeliveryId> Publish(
             ReadOnlyMemory<byte> body,
-            Action<IBasicProperties> configurator = null,
-            string exchangeName = null,
-            string routingKey = null);
+            MessageRoute route,
+            Action<IBasicProperties> configurator = null);
     }
 }

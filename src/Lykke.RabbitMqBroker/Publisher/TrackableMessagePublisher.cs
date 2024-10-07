@@ -35,19 +35,18 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
 
     public async Task<MessageDeliveryId> Publish(
         ReadOnlyMemory<byte> body,
-        Action<IBasicProperties> configurator = null,
-        string exchangeName = null,
-        string routingKey = null)
+        MessageRoute route,
+        Action<IBasicProperties> configurator = null)
     {
-        var deliveryId = await _storage.Add();
+        var deliveryId = await _storage.Add(route);
 
         try
         {
             await _purePublisher.Publish(
                 body,
                 props => ConfigureProperties(configurator, props, deliveryId),
-                exchangeName,
-                routingKey);
+                route.ExchangeName,
+                route.RoutingKey);
         }
         catch (Exception ex)
         {
