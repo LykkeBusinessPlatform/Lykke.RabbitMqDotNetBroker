@@ -33,18 +33,12 @@ public sealed class MessageDeliveryInMemoryStorage : IMessageDeliveryStorage, IM
             ? Task.FromResult(messageDelivery)
             : Task.FromResult(MessageDelivery.None);
 
-    public IAsyncEnumerable<MessageDelivery> GetChangedSince(DateTime timestamp)
-    {
-        return _storage
+
+    public IAsyncEnumerable<MessageDelivery> GetBeforeMoment(DateTime moment) =>
+        _storage
             .Values
-            .Where(d => GetAllTimestamps(d).Max() >= timestamp)
+            .Where(delivery => delivery.IsOlderThan(moment))
             .ToAsyncEnumerable();
 
-        static DateTime?[] GetAllTimestamps(MessageDelivery messageDelivery) =>
-            [
-                messageDelivery.DispatchedTimestamp,
-                messageDelivery.ReceivedTimestamp,
-                messageDelivery.Failure == MessageDeliveryFailure.Empty ? null : messageDelivery.Failure.Timestamp
-            ];
-    }
+    internal bool IsEmpty => _storage.IsEmpty;
 }
