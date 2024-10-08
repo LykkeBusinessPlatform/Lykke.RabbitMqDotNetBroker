@@ -1,3 +1,5 @@
+using System;
+
 using Autofac;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
@@ -6,6 +8,7 @@ using Lykke.RabbitMqBroker.Publisher;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Lykke.RabbitMqBroker
@@ -58,12 +61,16 @@ namespace Lykke.RabbitMqBroker
             this IServiceCollection services,
             RabbitMqMonitoringConfiguration configuration,
             string connectionString)
-            where TMessageDeliveryStorage : class, IMessageDeliveryStorage
+            where TMessageDeliveryStorage : class, IMessageDeliveryStorage, IMessageDeliveryMaintenance
         {
             services.AddSingleton<IListenerRegistrationHandler, ListenerRegistrationHandler>();
             services.AddSingleton<IMessageProducer<MonitoringHeartbeat>, MonitoringHeartbeatPublisher>();
             services.AddSingleton<ITrackableMessagePublisher<MonitoringHeartbeat>, TrackableMessagePublisher<MonitoringHeartbeat>>();
-            services.TryAddSingleton<IMessageDeliveryStorage, TMessageDeliveryStorage>();
+
+            services.TryAddSingleton<TMessageDeliveryStorage>();
+            services.TryAddSingleton<IMessageDeliveryStorage>(p => p.GetRequiredService<TMessageDeliveryStorage>());
+            services.TryAddSingleton<IMessageDeliveryMaintenance>(p => p.GetRequiredService<TMessageDeliveryStorage>());
+
             services.AddSingleton<IMonitoringHeartbeatReceiver, MonitoringHeartbeatReceiver>();
             services.Configure<RabbitMqPublisherOptions<MonitoringHeartbeat>>(opt =>
                 opt.CopyFrom(MonitoringHeartbeatPublisherOptions.Create(
@@ -74,6 +81,17 @@ namespace Lykke.RabbitMqBroker
                     p.GetRequiredService<IConnectionProvider>(),
                     p.GetRequiredService<IOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>>(),
                     MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
+
+            services.AddSingleton(TimeProvider.System);
+            services.AddSingleton<IMessageDeliveryCleanupWorker>(p =>
+                new MessageDeliveryCleanupWorker(
+                    p.GetRequiredService<IMessageDeliveryMaintenance>(),
+                    p.GetRequiredService<TimeProvider>(),
+                    configuration.MessageRetentionPeriod));
+            services.AddHostedService(p =>
+                new MessageDeliveryCleanupTimer(
+                    p.GetRequiredService<IMessageDeliveryCleanupWorker>(),
+                    configuration.MessagesCleanupPeriod));
 
             return services;
         }
@@ -91,6 +109,7 @@ namespace Lykke.RabbitMqBroker
             this ContainerBuilder builder,
             RabbitMqMonitoringConfiguration configuration,
             string connectionString)
+            where TMessageDeliveryStorage : class, IMessageDeliveryStorage, IMessageDeliveryMaintenance
         {
             builder.RegisterType<ListenerRegistrationHandler>()
                 .As<IListenerRegistrationHandler>()
@@ -105,9 +124,10 @@ namespace Lykke.RabbitMqBroker
                 .SingleInstance();
 
             builder.RegisterType<TMessageDeliveryStorage>()
-                .As<IMessageDeliveryStorage>()
+                .AsSelf()
+                .AsImplementedInterfaces()
                 .SingleInstance()
-                .IfNotRegistered(typeof(IMessageDeliveryStorage));
+                .IfNotRegistered(typeof(TMessageDeliveryStorage));
 
             builder.RegisterType<MonitoringHeartbeatReceiver>()
                 .As<IMonitoringHeartbeatReceiver>()
@@ -127,6 +147,20 @@ namespace Lykke.RabbitMqBroker
                 .As<IPurePublisher<MonitoringHeartbeat>>()
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
+
+            builder.Register(_ => TimeProvider.System)
+                .AsSelf()
+                .SingleInstance();
+
+            builder.RegisterType<MessageDeliveryCleanupWorker>()
+                .As<IMessageDeliveryCleanupWorker>()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(configuration.MessageRetentionPeriod));
+
+            builder.RegisterType<MessageDeliveryCleanupTimer>()
+                .As<IHostedService>()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(configuration.MessagesCleanupPeriod));
         }
     }
 }
