@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using NUnit.Framework;
 
+using RabbitMQ.Client;
+
 namespace Lykke.RabbitMqBroker.Tests
 {
     [TestFixture]
@@ -57,6 +59,22 @@ namespace Lykke.RabbitMqBroker.Tests
             var exclusiveConnection2 = sut.GetExclusive(connectionString);
 
             Assert.That(exclusiveConnection1, Is.Not.EqualTo(exclusiveConnection2));
+        }
+
+        [Test]
+        public void Disposes_All_Connections()
+        {
+            IAutorecoveringConnection sharedConnection, exclusiveConnection;
+            using (var sut = CreateSut())
+            {
+                const string connectionString = "connectionString";
+
+                sharedConnection = sut.GetOrCreateShared(connectionString);
+                exclusiveConnection = sut.GetExclusive(connectionString);
+            }
+
+            Assert.That(sharedConnection is FakeConnection fakeSharedConnection && fakeSharedConnection.Disposed);
+            Assert.That(exclusiveConnection is FakeConnection fakeExclusiveConnection && fakeExclusiveConnection.Disposed);
         }
 
         private static IConnectionProvider CreateSut()

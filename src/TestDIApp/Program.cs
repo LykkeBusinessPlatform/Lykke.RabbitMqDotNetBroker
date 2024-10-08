@@ -1,4 +1,4 @@
-﻿using Autofac;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
 
 using Lykke.RabbitMqBroker;
@@ -26,8 +26,13 @@ await builder
     })
     .ConfigureServices((ctx, services) =>
     {
-        services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-        services.AddRabbitMqConnectionProvider();
+        services.AddLogging(lb => lb.ClearProviders().AddConsole().SetMinimumLevel(LogLevel.Debug));
+        var configuration = new RabbitMqConfiguration();
+        ctx.Configuration.GetSection("RabbitMq").Bind(configuration);
+        services.AddRabbitMq(configuration);
+
+        var connectionString = ctx.Configuration.GetConnectionString("RabbitMq");
+        services.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage>(configuration.Monitoring, connectionString);
         services.AddSingleton<RandomPrefetchCountGenerator>();
 
         // Add Mars messages listener
@@ -91,6 +96,8 @@ await builder
                     opt.ConsumerCount = 5;
                 })
             .AutoStart();
+
+        services.AddHostedService<ListenerRegistryLogger>();
     })
     .RunConsoleAsync();
 
@@ -98,7 +105,7 @@ await builder
 
 
 // # region Using Autofac as a container
-//
+
 // await builder
 //     .UseServiceProviderFactory(new AutofacServiceProviderFactory())
 //     .ConfigureAppConfiguration((_, configurationBuilder) =>
@@ -108,9 +115,15 @@ await builder
 //     })
 //     .ConfigureContainer<ContainerBuilder>((ctx, bld) =>
 //     {
-//         bld.AddRabbitMqConnectionProvider();
+//         var configuration = new RabbitMqConfiguration();
+//         ctx.Configuration.GetSection("RabbitMq").Bind(configuration);
+//         bld.AddRabbitMq(configuration);
+
+//         var connectionString = ctx.Configuration.GetConnectionString("RabbitMq");
+//         bld.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage>(configuration.Monitoring, connectionString);
+
 //         bld.RegisterType<RandomPrefetchCountGenerator>();
-//
+
 //         // Add Mars messages listener
 //         var marsSubscriptionSettings = ctx
 //             .Configuration
@@ -119,7 +132,7 @@ await builder
 //         bld.AddRabbitMqListener<MarsMessage, MarsMessageHandler>(marsSubscriptionSettings)
 //             .AddOptions(RabbitMqListenerOptions<MarsMessage>.Json.NoLoss)
 //             .AutoStart();
-//
+
 //         // Add Jupiter messages listener with additional messages handler
 //         var jupiterSubscriptionSettings = ctx
 //             .Configuration
@@ -129,7 +142,9 @@ await builder
 //             .AddMessageHandler<AnotherJupiterMessageHandler>()
 //             .AddOptions(RabbitMqListenerOptions<JupiterMessage>.Json.LossAcceptable)
 //             .AutoStart();
-//
+
+//         bld.RegisterType<ListenerRegistryLogger>().As<IHostedService>().SingleInstance();
+
 //     }).RunConsoleAsync();
-//
+
 // #endregion

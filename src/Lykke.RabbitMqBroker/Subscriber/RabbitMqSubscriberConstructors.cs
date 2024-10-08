@@ -1,9 +1,12 @@
 using System;
+
 using Lykke.RabbitMqBroker.Subscriber.Deserializers;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 using Lykke.RabbitMqBroker.Subscriber.Middleware.ErrorHandling;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber
@@ -21,7 +24,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             /// <param name="configure">Callback for additional configuration</param>
             /// <returns></returns>
             public static RabbitMqSubscriber<TTopicModel> CreateNoLossSubscriber(
-                IServiceProvider serviceProvider, 
+                IServiceProvider serviceProvider,
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
                 Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
@@ -55,7 +58,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             /// <param name="configure">Callback for additional configuration</param>
             /// <returns></returns>
             public static RabbitMqSubscriber<TTopicModel> CreateLossAcceptableSubscriber(
-                IServiceProvider serviceProvider, 
+                IServiceProvider serviceProvider,
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
                 Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
@@ -109,7 +112,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 var middlewareLogger = loggerFactory.CreateLogger<ExceptionSwallowMiddleware<TTopicModel>>();
 
                 var subscriber = CreateRawSubscriber<TStrategy>(settings, connection, logger, middlewareLogger);
-                
+
                 configure?.Invoke(subscriber);
 
                 return subscriber;
@@ -143,7 +146,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             /// <param name="configure">Callback for additional configuration</param>
             /// <returns></returns>
             public static RabbitMqSubscriber<TTopicModel> CreateNoLossSubscriber(
-                IServiceProvider serviceProvider, 
+                IServiceProvider serviceProvider,
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
                 Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
@@ -177,7 +180,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             /// <param name="configure">Callback for additional configuration</param>
             /// <returns></returns>
             public static RabbitMqSubscriber<TTopicModel> CreateLossAcceptableSubscriber(
-                IServiceProvider serviceProvider, 
+                IServiceProvider serviceProvider,
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
                 Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
@@ -201,12 +204,12 @@ namespace Lykke.RabbitMqBroker.Subscriber
             {
                 return Create<LossAcceptableMessageReadStrategy>(settings, connection, loggerFactory, configure);
             }
-            
+
             private static RabbitMqSubscriber<TTopicModel> Create<TStrategy>(
                 IServiceProvider serviceProvider,
                 RabbitMqSubscriptionSettings settings,
                 IAutorecoveringConnection connection,
-                Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null) 
+                Action<RabbitMqSubscriber<TTopicModel>, IServiceProvider> configure = null)
                 where TStrategy : IMessageReadStrategy, new()
             {
                 var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
@@ -231,7 +234,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 var middlewareLogger = loggerFactory.CreateLogger<ExceptionSwallowMiddleware<TTopicModel>>();
 
                 var subscriber = CreateRawSubscriber<TStrategy>(settings, connection, logger, middlewareLogger);
-                
+
                 configure?.Invoke(subscriber);
 
                 return subscriber;
