@@ -7,4 +7,5 @@ public interface IMessageDeliveryStorage
 {
     Task<bool> AddOrUpdate(MessageDelivery messageDelivery);
     Task<MessageDelivery> Get(MessageDeliveryId id);
+    IAsyncEnumerable<MessageDelivery> GetLatestForEveryRoute();
 }

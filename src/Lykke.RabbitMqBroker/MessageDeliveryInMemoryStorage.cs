@@ -37,7 +37,14 @@ public sealed class MessageDeliveryInMemoryStorage : IMessageDeliveryStorage, IM
     public IAsyncEnumerable<MessageDelivery> GetBeforeMoment(DateTime moment) =>
         _storage
             .Values
-            .Where(delivery => delivery.IsOlderThan(moment))
+            .Where(d => d.IsOlderThan(moment))
+            .ToAsyncEnumerable();
+
+    public IAsyncEnumerable<MessageDelivery> GetLatestForEveryRoute() =>
+        _storage
+            .Values
+            .GroupBy(d => d.Route)
+            .Select(g => g.OrderByDescending(d => d.GetLastActionTimestamp()).First())
             .ToAsyncEnumerable();
 
     internal bool IsEmpty => _storage.IsEmpty;

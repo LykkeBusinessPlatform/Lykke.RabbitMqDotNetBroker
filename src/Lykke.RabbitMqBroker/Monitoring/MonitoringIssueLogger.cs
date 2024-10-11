@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Lykke.RabbitMqBroker.Monitoring;
 
-internal sealed class MonitoringIssueLogger : IMonitoringIssueNotifier
+public sealed class MonitoringIssueLogger : IMonitoringIssueNotifier
 {
     private readonly ILogger<MonitoringIssueLogger> _logger;
 

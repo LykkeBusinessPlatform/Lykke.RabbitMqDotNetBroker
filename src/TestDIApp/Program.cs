@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 
 using Lykke.RabbitMqBroker;
+using Lykke.RabbitMqBroker.Monitoring;
 using Lykke.RabbitMqBroker.Subscriber;
 
 using Microsoft.Extensions.Configuration;
@@ -32,7 +33,7 @@ await builder
         services.AddRabbitMq(configuration);
 
         var connectionString = ctx.Configuration.GetConnectionString("RabbitMq");
-        services.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage>(configuration.Monitoring, connectionString);
+        services.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage, MonitoringIssueLogger>(configuration.Monitoring, connectionString);
         services.AddRabbitMqMonitoringRetentionPolicy<MessageDeliveryInMemoryStorage>(configuration.Monitoring);
         services.AddSingleton<RandomPrefetchCountGenerator>();
 

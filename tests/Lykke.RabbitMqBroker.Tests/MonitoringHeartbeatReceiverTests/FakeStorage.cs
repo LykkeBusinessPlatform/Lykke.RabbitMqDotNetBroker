@@ -34,4 +34,9 @@ internal sealed class FakeStorage : IMessageDeliveryStorage
     /// <returns></returns>
     public Task<MessageDelivery> Get(MessageDeliveryId id) =>
         Task.FromResult(MessageDelivery.Create(id, new MessageRouteWithDefaults()).TrySetDispatched(DateTime.UtcNow));
+
+    public IAsyncEnumerable<MessageDelivery> GetLatestForEveryRoute()
+    {
+        throw new NotImplementedException();
+    }
 }
