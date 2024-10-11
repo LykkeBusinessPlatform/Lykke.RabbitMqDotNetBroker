@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageId>LykkeBiz.RabbitMqBroker.Abstractions</PackageId>
+    <Version>1.0.0</Version>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lykke.RabbitMqBroker.Abstractions.Tests" />
+    <InternalsVisibleTo Include="Lykke.RabbitMqBroker.Tests" />
+  </ItemGroup>
+
+</Project>

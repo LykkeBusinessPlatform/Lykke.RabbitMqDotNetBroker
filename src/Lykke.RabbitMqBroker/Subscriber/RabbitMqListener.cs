@@ -38,15 +38,14 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly ILoggerFactory _loggerFactory;
         private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
-        
-        private List<RabbitMqSubscriber<T>> _subscribers = new ();
+        private readonly List<RabbitMqSubscriber<T>> _subscribers = [];
 
         /// <summary>
         /// Creates a new instance of <see cref="RabbitMqListener{T}"/>
         /// </summary>
         /// <param name="connectionProvider">Rabbit MQ connection provider</param>
         /// <param name="subscriptionSettings">Subscription configuration</param>
-        /// <param name="optionsAccessor">Subscription template configuration</param>
+        /// <param name="optionsAccessor">Listener options</param>
         /// <param name="configureSubscriber">Low-level subscriber configuration callback</param>
         /// <param name="handlers">Message handlers</param>
         /// <param name="loggerFactory"></param>
@@ -82,7 +81,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _subscribers.Add(subscriber);
             }
         }
-        
+
         private IAutorecoveringConnection CreateConnection()
         {
             return _options.ShareConnection switch
@@ -132,8 +131,8 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public void Stop()
         {
-            if (!_subscribers.Any()) return;
-            
+            if (_subscribers.Count == 0) return;
+
             for (var i = _subscribers.Count - 1; i >= 0; i--)
             {
                 _subscribers[i].Dispose();
