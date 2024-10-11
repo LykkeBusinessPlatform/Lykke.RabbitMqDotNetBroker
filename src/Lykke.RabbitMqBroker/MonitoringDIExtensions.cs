@@ -53,6 +53,12 @@ public static class MonitoringDIExtensions
                 p.GetRequiredService<IOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>>(),
                 MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
 
+        services.AddSingleton<IMessageDeliveryAnalysisWorker, MessageDeliveryAnalysisWorker>();
+        services.AddHostedService(p =>
+            new MessageDeliveryAnalysisTimer(
+                p.GetRequiredService<IMessageDeliveryAnalysisWorker>(),
+                configuration.AnalysisPeriod));
+
         return services;
     }
 
@@ -112,6 +118,15 @@ public static class MonitoringDIExtensions
             .As<IPurePublisher<MonitoringHeartbeat>>()
             .SingleInstance()
             .WithParameter(TypedParameter.From(MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
+
+        builder.RegisterType<MessageDeliveryAnalysisWorker>()
+            .As<IMessageDeliveryAnalysisWorker>()
+            .SingleInstance();
+
+        builder.RegisterType<MessageDeliveryAnalysisTimer>()
+            .As<IHostedService>()
+            .SingleInstance()
+            .WithParameter(TypedParameter.From(configuration.AnalysisPeriod));
     }
 
     /// <summary>
