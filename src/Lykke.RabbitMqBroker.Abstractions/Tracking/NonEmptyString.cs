@@ -6,10 +6,7 @@ public sealed record NonEmptyString
 
     public NonEmptyString(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new ArgumentException("Value cannot be null or empty.", nameof(value));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(value, nameof(value));
         Value = value.Trim();
     }
 
