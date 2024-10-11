@@ -26,11 +26,12 @@ public static class MonitoringDIExtensions
     /// <param name="configuration"></param>
     /// <param name="connectionString"></param>
     /// <returns></returns>
-    public static IServiceCollection AddRabbitMqMonitoring<TMessageDeliveryStorage>(
+    public static IServiceCollection AddRabbitMqMonitoring<TMessageDeliveryStorage, TIssueNotifier>(
         this IServiceCollection services,
         RabbitMqMonitoringConfiguration configuration,
         string connectionString)
         where TMessageDeliveryStorage : class, IMessageDeliveryStorage
+        where TIssueNotifier : class, IMonitoringIssueNotifier
     {
         services.AddSingleton<IListenerRegistrationHandler, ListenerRegistrationHandler>();
         services.AddSingleton<IMessageProducer<MonitoringHeartbeat>, MonitoringHeartbeatPublisher>();
@@ -38,6 +39,8 @@ public static class MonitoringDIExtensions
 
         services.TryAddSingleton<TMessageDeliveryStorage>();
         services.TryAddSingleton<IMessageDeliveryStorage>(p => p.GetRequiredService<TMessageDeliveryStorage>());
+
+        services.TryAddSingleton<IMonitoringIssueNotifier, TIssueNotifier>();
 
         services.AddSingleton<IMonitoringHeartbeatReceiver, MonitoringHeartbeatReceiver>();
         services.Configure<RabbitMqPublisherOptions<MonitoringHeartbeat>>(opt =>
@@ -62,11 +65,12 @@ public static class MonitoringDIExtensions
     /// <param name="configuration"></param>
     /// <param name="connectionString"></param>
     /// <returns></returns>
-    public static void AddRabbitMqMonitoring<TMessageDeliveryStorage>(
+    public static void AddRabbitMqMonitoring<TMessageDeliveryStorage, TIssueNotifier>(
         this ContainerBuilder builder,
         RabbitMqMonitoringConfiguration configuration,
         string connectionString)
         where TMessageDeliveryStorage : class, IMessageDeliveryStorage
+        where TIssueNotifier : class, IMonitoringIssueNotifier
     {
         builder.RegisterType<ListenerRegistrationHandler>()
             .As<IListenerRegistrationHandler>()
@@ -84,6 +88,11 @@ public static class MonitoringDIExtensions
             .AsSelf()
             .As<IMessageDeliveryStorage>()
             .SingleInstance();
+
+        builder.RegisterType<TIssueNotifier>()
+            .As<IMonitoringIssueNotifier>()
+            .SingleInstance()
+            .IfNotRegistered(typeof(IMonitoringIssueNotifier));
 
         builder.RegisterType<MonitoringHeartbeatReceiver>()
             .As<IMonitoringHeartbeatReceiver>()
