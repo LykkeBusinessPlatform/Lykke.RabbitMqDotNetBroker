@@ -33,6 +33,7 @@ await builder
 
         var connectionString = ctx.Configuration.GetConnectionString("RabbitMq");
         services.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage>(configuration.Monitoring, connectionString);
+        services.AddRabbitMqMonitoringRetentionPolicy<MessageDeliveryInMemoryStorage>(configuration.Monitoring);
         services.AddSingleton<RandomPrefetchCountGenerator>();
 
         // Add Mars messages listener
