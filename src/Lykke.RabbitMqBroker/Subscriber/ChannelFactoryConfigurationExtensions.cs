@@ -8,7 +8,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Lykke.RabbitMqBroker.Subscriber;
 
-internal static class ChannelFactoryExtensions
+internal static class ChannelFactoryConfigurationExtensions
 {
     private static IConfigurationResult Execute(
         this Func<IModel> channelFactory,
