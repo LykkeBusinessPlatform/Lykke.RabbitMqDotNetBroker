@@ -1,3 +1,8 @@
+## [[tbd]] (2024-10-18)
+
+### Added
+- LT-5705: Add quorum poison queues handler
+
 ## 15.1.1 (2024-10-03)
 
 ### Fixed
