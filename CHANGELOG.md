@@ -1,3 +1,8 @@
+## [[tbd]] (2024-10-18)
+
+### Changed
+- LT-5705: Expose exceptions to handle client side
+
 ## 15.2.0 (2024-10-18)
 
 ### Added
