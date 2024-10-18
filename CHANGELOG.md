@@ -1,4 +1,4 @@
-## [[tbd]] (2024-10-03)
+## 15.1.1 (2024-10-03)
 
 ### Fixed
 - LT-5705: Poison queue configuration mismath to result in queue deletion and recreation
