@@ -12,32 +12,25 @@ namespace Lykke.RabbitMqBroker;
 /// Checks if poison queue and exchange exists.
 /// Not thread safe.
 /// </summary>
-public class PoisonQueueHandler : IPoisonQueueHandler
+public class PoisonQueueHandler(
+    string connectionString,
+    IConnectionProvider connectionProvider,
+    PoisonQueueConsumerConfigurationOptions options,
+    ILoggerFactory loggerFactory
+) : IPoisonQueueHandler
 {
-    private readonly string _connectionString;
-    private readonly IConnectionProvider _connectionProvider;
-    private readonly PoisonQueueConsumerConfigurationOptions _options;
-    private readonly ILogger<PoisonQueueConsumer> _consumerLogger;
+    private readonly string _connectionString = string.IsNullOrEmpty(connectionString)
+        ? throw new ArgumentNullException(nameof(connectionString))
+        : connectionString;
+    private readonly IConnectionProvider _connectionProvider =
+        connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
+    private readonly PoisonQueueConsumerConfigurationOptions _options =
+        options ?? throw new ArgumentNullException(nameof(options));
+    private readonly ILogger<PoisonQueueConsumer> _consumerLogger =
+        loggerFactory?.CreateLogger<PoisonQueueConsumer>()
+        ?? throw new ArgumentNullException(nameof(loggerFactory));
     private uint _initialMessagesCount;
     private uint _messagesRequeued;
-
-    public PoisonQueueHandler(
-        string connectionString,
-        IConnectionProvider connectionProvider,
-        PoisonQueueConsumerConfigurationOptions options,
-        ILoggerFactory loggerFactory
-    )
-    {
-        _connectionString = string.IsNullOrEmpty(connectionString)
-            ? throw new ArgumentNullException(nameof(connectionString))
-            : connectionString;
-        _connectionProvider =
-            connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _consumerLogger =
-            loggerFactory?.CreateLogger<PoisonQueueConsumer>()
-            ?? throw new ArgumentNullException(nameof(loggerFactory));
-    }
 
     public string TryPutMessagesBack(CancellationToken cancellationToken = default)
     {

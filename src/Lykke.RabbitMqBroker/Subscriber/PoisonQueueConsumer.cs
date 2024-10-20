@@ -10,20 +10,16 @@ namespace Lykke.RabbitMqBroker.Subscriber;
 /// Consumer for poison queue to requeue messages back to the original exchange.
 /// Not thread safe.
 /// </summary>
-public class PoisonQueueConsumer
+public class PoisonQueueConsumer(
+    PoisonQueueConsumerConfigurationOptions options,
+    ILogger<PoisonQueueConsumer> logger
+)
 {
-    private readonly PoisonQueueConsumerConfigurationOptions _options;
+    private readonly PoisonQueueConsumerConfigurationOptions _options =
+        options ?? throw new ArgumentNullException(nameof(options));
+    private readonly ILogger<PoisonQueueConsumer> _logger =
+        logger ?? throw new ArgumentNullException(nameof(logger));
     private IModel _channel;
-    private readonly ILogger<PoisonQueueConsumer> _logger;
-
-    public PoisonQueueConsumer(
-        PoisonQueueConsumerConfigurationOptions options,
-        ILogger<PoisonQueueConsumer> logger
-    )
-    {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public uint Start(Func<IModel> channelFactory) => Start(channelFactory, CancellationToken.None);
 
