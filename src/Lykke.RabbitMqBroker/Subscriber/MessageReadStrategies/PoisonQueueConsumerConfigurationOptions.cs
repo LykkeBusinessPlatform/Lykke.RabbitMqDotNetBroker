@@ -1,5 +1,3 @@
-using System;
-
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 public sealed record PoisonQueueConsumerConfigurationOptions(

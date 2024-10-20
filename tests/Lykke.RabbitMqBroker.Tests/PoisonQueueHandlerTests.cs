@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
+using Microsoft.Extensions.Logging.Abstractions;
+
 using NUnit.Framework;
 
 using RabbitMQ.Client;
@@ -685,7 +687,8 @@ public class PoisonQueueHandlerTests
             new PoisonQueueConsumerConfigurationOptions(
                 PoisonQueueName.Create("queue"),
                 ExchangeName.Create("exchange"),
-                RoutingKey.Empty));
+                RoutingKey.Empty),
+            NullLoggerFactory.Instance);
 
         var result = sut.TryPutMessagesBack();
 
@@ -701,7 +704,8 @@ public class PoisonQueueHandlerTests
             new PoisonQueueConsumerConfigurationOptions(
                 PoisonQueueName.Create("queue"),
                 ExchangeName.Create("exchange"),
-                RoutingKey.Empty));
+                RoutingKey.Empty),
+                NullLoggerFactory.Instance);
 
         var result = sut.TryPutMessagesBack();
 
