@@ -1,29 +1,38 @@
+using System;
+using System.Threading;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
-
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker;
 
-public class PoisonQueueHandler : IPoisonQueueHandler
+/// <summary>
+/// Requees messages from poison queue back to its original exchange.
+/// Checks if poison queue and exchange exists.
+/// Not thread safe.
+/// </summary>
+public class PoisonQueueHandler(
+    string connectionString,
+    IConnectionProvider connectionProvider,
+    PoisonQueueConsumerConfigurationOptions options,
+    ILoggerFactory loggerFactory
+) : IPoisonQueueHandler
 {
-    private readonly string _connectionString;
-    private readonly IConnectionProvider _connectionProvider;
-    private readonly PoisonQueueConsumerConfigurationOptions _options;
+    private readonly string _connectionString = string.IsNullOrEmpty(connectionString)
+        ? throw new ArgumentNullException(nameof(connectionString))
+        : connectionString;
+    private readonly IConnectionProvider _connectionProvider =
+        connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
+    private readonly PoisonQueueConsumerConfigurationOptions _options =
+        options ?? throw new ArgumentNullException(nameof(options));
+    private readonly ILogger<PoisonQueueConsumer> _consumerLogger =
+        loggerFactory?.CreateLogger<PoisonQueueConsumer>()
+        ?? throw new ArgumentNullException(nameof(loggerFactory));
     private uint _initialMessagesCount;
     private uint _messagesRequeued;
 
-    public PoisonQueueHandler(
-        string connectionString,
-        IConnectionProvider connectionProvider,
-        PoisonQueueConsumerConfigurationOptions options)
-    {
-        _connectionString = connectionString;
-        _connectionProvider = connectionProvider;
-        _options = options;
-    }
-
-    public string TryPutMessagesBack()
+    public string TryPutMessagesBack(CancellationToken cancellationToken = default)
     {
         using var connection = _connectionProvider.GetExclusive(_connectionString);
         using var channel = connection.CreateModel();
@@ -32,22 +41,35 @@ public class PoisonQueueHandler : IPoisonQueueHandler
 
         _messagesRequeued = _initialMessagesCount switch
         {
-            > 0 => new PoisonQueueConsumer(_options).Start(connection.CreateModel),
-            _ => default
+            > 0 => CreateConsumer().Start(connection.CreateModel, cancellationToken),
+            _ => 0,
         };
 
         return BuildResultText();
     }
 
+    private PoisonQueueConsumer CreateConsumer() => new(_options, _consumerLogger);
+
     private void EnsureResourcesExistOrThrow(IModel channel, out uint messagesCount)
     {
-        messagesCount = channel.QueueDeclarePassive(_options.PoisonQueueName.ToString()).MessageCount;
-        channel.ExchangeDeclarePassive(_options.ExchangeName.ToString());
+        try
+        {
+            messagesCount = channel.QueueDeclarePassive(_options.PoisonQueueName).MessageCount;
+            channel.ExchangeDeclarePassive(_options.ExchangeName);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Required queue [{_options.PoisonQueueName}] or exchange [{_options.ExchangeName}] does not exist",
+                ex
+            );
+        }
     }
 
-    private string BuildResultText() => _messagesRequeued switch
-    {
-        0 => string.Empty,
-        _ => $"Messages requeue finished. Initial number of messages {_initialMessagesCount}. Processed number of messages {_messagesRequeued}"
-    };
+    private string BuildResultText() =>
+        _messagesRequeued switch
+        {
+            0 => string.Empty,
+            _ => $"Messages requeue finished. Initial number of messages {_initialMessagesCount}. Processed number of messages {_messagesRequeued}",
+        };
 }

@@ -13,4 +13,5 @@ public record PoisonQueueName(string Value) : QueueName(AddSuffix(Value))
 
     public static PoisonQueueName FromQueueName(QueueName queueName) => Create(queueName.Value);
     public override string ToString() => base.ToString();
+    public static implicit operator string(PoisonQueueName name) => name.ToString();
 }

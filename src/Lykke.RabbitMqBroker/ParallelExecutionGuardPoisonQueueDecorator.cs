@@ -14,5 +14,6 @@ public class ParallelExecutionGuardPoisonQueueDecorator : IPoisonQueueHandler
         _decoratee = decoratee ?? throw new ArgumentNullException(nameof(decoratee));
     }
 
-    public string TryPutMessagesBack() => _lock.Execute(_decoratee.TryPutMessagesBack, _timeout);
+    public string TryPutMessagesBack(CancellationToken cancellationToken = default) =>
+        _lock.Execute(() => _decoratee.TryPutMessagesBack(cancellationToken), _timeout);
 }
