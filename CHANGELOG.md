@@ -1,3 +1,8 @@
+## [[tbd]] (2024-10-21)
+
+### Changed
+- LT-5705: Add Cancellation Support and Logging to PoisonQueueHandler
+
 ## 15.3.0 (2024-10-18)
 
 ### Changed
