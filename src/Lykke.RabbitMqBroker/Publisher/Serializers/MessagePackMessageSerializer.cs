@@ -4,7 +4,6 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-
 using JetBrains.Annotations;
 using MessagePack;
 
@@ -19,22 +18,28 @@ public class MessagePackMessageSerializer<TMessage> : IRabbitMqSerializer<TMessa
     private readonly MessagePackSerializerOptions _options;
 
     /// <summary>
-    /// If resolver is not specified it uses <see cref="MessagePack.Resolvers.ContractlessStandardResolver.Options"/>.
+    /// Create an instance of <see cref="MessagePackMessageSerializer{TMessage}"/>.
+    /// Kept for backward compatibility.
     /// </summary>
-    /// <param name="formatResolver"></param>
+    /// <param name="formatResolver">
+    /// If resolver is not specified it uses 
+    /// <see cref="MessagePack.Resolvers.ContractlessStandardResolver.Options"/>.
+    /// </param>
     public MessagePackMessageSerializer(IFormatterResolver formatResolver = null)
     {
         _options = formatResolver switch
         {
             null => MessagePack.Resolvers.ContractlessStandardResolver.Options,
-            _ => MessagePackSerializerOptions.Standard.WithResolver(formatResolver)
+            _ => MessagePackSerializerOptions.Standard.WithResolver(formatResolver),
         };
     }
 
     /// <summary>
-    /// If options is not specified it uses <see cref="MessagePackSerializerOptions.Standard"/>.
+    /// Create an instance of <see cref="MessagePackMessageSerializer{TMessage}"/>.
     /// </summary>
-    /// <param name="options"></param>
+    /// <param name="options">
+    /// If options is not specified it uses <see cref="MessagePackSerializerOptions.Standard"/>.
+    /// </param>
     public MessagePackMessageSerializer(MessagePackSerializerOptions options = null)
     {
         _options = options ?? MessagePackSerializerOptions.Standard;
@@ -42,7 +47,10 @@ public class MessagePackMessageSerializer<TMessage> : IRabbitMqSerializer<TMessa
 
     public byte[] Serialize(TMessage model) => MessagePackSerializer.Serialize(model, _options);
 
-    public async Task<byte[]> SerializeAsync(TMessage model, CancellationToken cancellationToken = default)
+    public async Task<byte[]> SerializeAsync(
+        TMessage model,
+        CancellationToken cancellationToken = default
+    )
     {
         await using var stream = new MemoryStream();
         await MessagePackSerializer.SerializeAsync(stream, model, _options, cancellationToken);

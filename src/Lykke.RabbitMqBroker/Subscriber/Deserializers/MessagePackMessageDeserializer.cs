@@ -20,8 +20,13 @@ public class MessagePackMessageDeserializer<TMessage> : IMessageDeserializer<TMe
     private readonly MessagePackSerializerOptions _options;
 
     /// <summary>
-    /// If resolver is not specified it uses <see cref="MessagePack.Resolvers.ContractlessStandardResolver.Options"/>.
+    /// Create an instance of <see cref="MessagePackMessageDeserializer{TMessage}"/>.
+    /// Kept for backward compatibility.
     /// </summary>
+    /// <param name="formatterResolver">
+    /// If resolver is not specified it uses 
+    /// <see cref="MessagePack.Resolvers.ContractlessStandardResolver.Options"/>.
+    /// </param>
     public MessagePackMessageDeserializer(IFormatterResolver formatterResolver)
     {
         _options = formatterResolver switch
@@ -32,9 +37,11 @@ public class MessagePackMessageDeserializer<TMessage> : IMessageDeserializer<TMe
     }
 
     /// <summary>
-    /// If options is not specified it uses <see cref="MessagePackSerializerOptions.Standard"/>.
+    /// Create an instance of <see cref="MessagePackMessageDeserializer{TMessage}"/>.
     /// </summary>
-    /// <param name="options"></param>
+    /// <param name="options">
+    /// If options is not specified it uses <see cref="MessagePackSerializerOptions.Standard"/>.
+    /// </param>
     public MessagePackMessageDeserializer(MessagePackSerializerOptions options = null)
     {
         _options = options ?? MessagePackSerializerOptions.Standard;
