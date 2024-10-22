@@ -20,10 +20,5 @@ namespace Lykke.RabbitMqBroker.Subscriber.Deserializers
             using var stream = new MemoryStream(data);
             return ProtoBuf.Serializer.Deserialize<TMessage>(stream);
         }
-
-        public Task<TMessage> DeserializeAsync(
-            byte[] data,
-            CancellationToken cancellationToken = default
-        ) => Task.FromResult(Deserialize(data));
     }
 }

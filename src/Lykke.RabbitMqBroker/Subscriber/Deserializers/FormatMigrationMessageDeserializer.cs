@@ -59,10 +59,5 @@ namespace Lykke.RabbitMqBroker.Subscriber.Deserializers
                 return _primaryDeserializer.Deserialize(data);
             }
         }
-
-        public Task<TMessage> DeserializeAsync(byte[] data, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(Deserialize(data));
-        }
     }
 }

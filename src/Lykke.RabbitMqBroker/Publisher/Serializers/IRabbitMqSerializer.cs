@@ -10,7 +10,10 @@ namespace Lykke.RabbitMqBroker.Publisher.Serializers
     public interface IRabbitMqSerializer<in TMessageModel>
     {
         byte[] Serialize(TMessageModel model);
-        Task<byte[]> SerializeAsync(TMessageModel model, CancellationToken cancellationToken = default);
+        Task<byte[]> SerializeAsync(
+            TMessageModel model,
+            CancellationToken cancellationToken = default
+        ) => Task.FromResult(Serialize(model));
         SerializationFormat SerializationFormat { get; }
     }
 }

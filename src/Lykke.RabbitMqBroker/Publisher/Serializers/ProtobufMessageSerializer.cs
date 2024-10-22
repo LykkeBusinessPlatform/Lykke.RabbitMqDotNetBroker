@@ -22,11 +22,6 @@ namespace Lykke.RabbitMqBroker.Publisher.Serializers
             return stream.ToArray();
         }
 
-        public Task<byte[]> SerializeAsync(
-            TMessage model,
-            CancellationToken cancellationToken = default
-        ) => Task.FromResult(Serialize(model));
-
         public SerializationFormat SerializationFormat { get; } = SerializationFormat.Protobuf;
     }
 }

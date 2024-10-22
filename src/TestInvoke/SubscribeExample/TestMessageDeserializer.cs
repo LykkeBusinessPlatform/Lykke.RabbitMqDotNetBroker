@@ -15,11 +15,5 @@ namespace TestInvoke.SubscribeExample
         {
             return Encoding.UTF8.GetString(data);
         }
-
-        public Task<string> DeserializeAsync(byte[] data, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(Deserialize(data));
-        }
-
     }
 }
