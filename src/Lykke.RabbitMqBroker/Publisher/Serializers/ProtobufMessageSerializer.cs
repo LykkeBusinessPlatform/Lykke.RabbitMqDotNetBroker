@@ -2,8 +2,9 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Lykke.RabbitMqBroker.Logging;
 
 namespace Lykke.RabbitMqBroker.Publisher.Serializers
 {
@@ -16,13 +17,15 @@ namespace Lykke.RabbitMqBroker.Publisher.Serializers
         /// <inheritdoc />
         public byte[] Serialize(TMessage model)
         {
-            using (var stream = new MemoryStream())
-            {
-                ProtoBuf.Serializer.Serialize(stream, model);
-                stream.Flush();
-                return stream.ToArray();
-            }
+            using var stream = new MemoryStream();
+            ProtoBuf.Serializer.Serialize(stream, model);
+            return stream.ToArray();
         }
+
+        public Task<byte[]> SerializeAsync(
+            TMessage model,
+            CancellationToken cancellationToken = default
+        ) => Task.FromResult(Serialize(model));
 
         public SerializationFormat SerializationFormat { get; } = SerializationFormat.Protobuf;
     }

@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 using JetBrains.Annotations;
 
 namespace Lykke.RabbitMqBroker.Subscriber.Deserializers
@@ -55,6 +58,11 @@ namespace Lykke.RabbitMqBroker.Subscriber.Deserializers
 
                 return _primaryDeserializer.Deserialize(data);
             }
+        }
+
+        public Task<TMessage> DeserializeAsync(byte[] data, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Deserialize(data));
         }
     }
 }

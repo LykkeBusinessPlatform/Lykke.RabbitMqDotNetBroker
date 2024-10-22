@@ -2,8 +2,9 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Lykke.RabbitMqBroker.Logging;
 using Newtonsoft.Json;
 
 namespace Lykke.RabbitMqBroker.Publisher.Serializers
@@ -14,28 +15,21 @@ namespace Lykke.RabbitMqBroker.Publisher.Serializers
         private readonly Encoding _encoding;
         private readonly JsonSerializerSettings _settings;
 
-        public JsonMessageSerializer() :
-            this(null, null)
-        {
-        }
+        public JsonMessageSerializer()
+            : this(null, null) { }
 
-        public JsonMessageSerializer(Encoding encoding) :
-            this(encoding, null)
-        {
-        }
+        public JsonMessageSerializer(Encoding encoding)
+            : this(encoding, null) { }
 
-        public JsonMessageSerializer(JsonSerializerSettings settings) :
-            this(null, settings)
-        {
-        }
+        public JsonMessageSerializer(JsonSerializerSettings settings)
+            : this(null, settings) { }
 
         public JsonMessageSerializer(Encoding encoding, JsonSerializerSettings settings)
         {
             _encoding = encoding ?? Encoding.UTF8;
-            _settings = settings ?? new JsonSerializerSettings
-            {
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc
-            };
+            _settings =
+                settings
+                ?? new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc };
         }
 
         public byte[] Serialize(TMessage model)
@@ -44,6 +38,11 @@ namespace Lykke.RabbitMqBroker.Publisher.Serializers
 
             return _encoding.GetBytes(serialized);
         }
+
+        public Task<byte[]> SerializeAsync(
+            TMessage model,
+            CancellationToken cancellationToken = default
+        ) => Task.FromResult(Serialize(model));
 
         public SerializationFormat SerializationFormat { get; } = SerializationFormat.Json;
     }
