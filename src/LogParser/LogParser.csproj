@@ -6,7 +6,7 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <UserSecretsId>245f7fa5-d11e-4fdd-91d7-5c4a8180fc0f</UserSecretsId>
-    <Version>15.4.0</Version>
+    <Version>16.0.0</Version>
     <IsPackable>false</IsPackable>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>

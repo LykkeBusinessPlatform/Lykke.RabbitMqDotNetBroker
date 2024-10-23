@@ -1,4 +1,4 @@
-## [[tbd]] (2024-10-22)
+## 16.0.0 (2024-10-22)
 
 ### Changed
 - Upgraded MessagePack library to version 2.5.187, introducing BREAKING CHANGES that required adjustments in how MessagePack is utilized.
