@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 using JetBrains.Annotations;
 
 namespace Lykke.RabbitMqBroker.Subscriber.Deserializers

@@ -1,3 +1,12 @@
+## [[tbd]] (2024-10-22)
+
+### Changed
+- Upgraded MessagePack library to version 2.5.187, introducing BREAKING CHANGES that required adjustments in how MessagePack is utilized.
+- Added asynchronous methods to serilizer and deserializer interfaces.
+- Added serializer and desiializer constructors that accept `MessagePackSerializerOptions` instead of `IFormatterResolver`.
+
+This update covers MessagePack's breaking changes and encapsulates them in the library, so the library's users don't have to worry about them. However, if the deserilization was used before with `readStrict` option equal to `true`, the behavior will be different now. The option `readStrict` is not supported anymore, and the deserialization will be NOT strict by default. For strict deserialization implement custom deserializer.
+
 ## 15.4.0 (2024-10-21)
 
 ### Changed

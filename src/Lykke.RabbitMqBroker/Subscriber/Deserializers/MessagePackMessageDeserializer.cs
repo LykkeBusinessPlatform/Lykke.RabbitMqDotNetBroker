@@ -2,35 +2,59 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
 using JetBrains.Annotations;
+
 using MessagePack;
 
-namespace Lykke.RabbitMqBroker.Subscriber.Deserializers
+namespace Lykke.RabbitMqBroker.Subscriber.Deserializers;
+
+/// <summary>
+/// Uses MessagePack to deserialize the message
+/// </summary>
+[PublicAPI]
+public class MessagePackMessageDeserializer<TMessage> : IMessageDeserializer<TMessage>
 {
+    private readonly MessagePackSerializerOptions _options;
+
     /// <summary>
-    /// Uses MessagePack to deserialize the message
+    /// Create an instance of <see cref="MessagePackMessageDeserializer{TMessage}"/>.
+    /// Kept for backward compatibility.
     /// </summary>
-    [PublicAPI]
-    public class MessagePackMessageDeserializer<TMessage> : IMessageDeserializer<TMessage>
+    /// <param name="formatterResolver">
+    /// If resolver is not specified it uses 
+    /// <see cref="MessagePack.Resolvers.ContractlessStandardResolver.Options"/>.
+    /// </param>
+    public MessagePackMessageDeserializer(IFormatterResolver formatterResolver)
     {
-        private readonly IFormatterResolver _formatterResolver;
-        private readonly bool _readStrict;
-
-        /// <summary>
-        /// Uses MessagePack to deserialize the message
-        /// </summary>
-        public MessagePackMessageDeserializer(IFormatterResolver formatterResolver = null, bool readStrict = false)
+        _options = formatterResolver switch
         {
-            _formatterResolver = formatterResolver;
-            _readStrict = readStrict;
-        }
+            null => MessagePack.Resolvers.ContractlessStandardResolver.Options,
+            _ => MessagePackSerializerOptions.Standard.WithResolver(formatterResolver),
+        };
+    }
 
-        public TMessage Deserialize(byte[] data)
-        {
-            using (var stream = new MemoryStream(data))
-            {
-                return MessagePackSerializer.Deserialize<TMessage>(stream, _formatterResolver, _readStrict);
-            }
-        }
+    /// <summary>
+    /// Create an instance of <see cref="MessagePackMessageDeserializer{TMessage}"/>.
+    /// </summary>
+    /// <param name="options">
+    /// If options is not specified it uses <see cref="MessagePackSerializerOptions.Standard"/>.
+    /// </param>
+    public MessagePackMessageDeserializer(MessagePackSerializerOptions options = null)
+    {
+        _options = options ?? MessagePackSerializerOptions.Standard;
+    }
+
+    public TMessage Deserialize(byte[] data) => MessagePackSerializer.Deserialize<TMessage>(data, _options);
+
+    public async Task<TMessage> DeserializeAsync(
+        byte[] data,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await using var stream = new MemoryStream(data);
+        return await MessagePackSerializer.DeserializeAsync<TMessage>(stream, _options, cancellationToken);
     }
 }

@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 
 using JetBrains.Annotations;
@@ -40,7 +41,6 @@ namespace Lykke.RabbitMqBroker.Tests
             {
                 return Encoding.UTF8.GetBytes(model);
             }
-
             public SerializationFormat SerializationFormat { get; } = SerializationFormat.Unknown;
         }
 

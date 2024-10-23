@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
 using Lykke.RabbitMqBroker.Subscriber.Deserializers;
 
 namespace TestInvoke.SubscribeExample
