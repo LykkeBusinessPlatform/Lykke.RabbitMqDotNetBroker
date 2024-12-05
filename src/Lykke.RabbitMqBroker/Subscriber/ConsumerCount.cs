@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Lykke.RabbitMqBroker.Subscriber;
-
 public record ConsumerCount : IEnumerable<int>, IComparable<ConsumerCount>
 {
     private readonly byte _value = 1;

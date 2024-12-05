@@ -26,21 +26,25 @@ namespace Lykke.RabbitMqBroker.Subscriber
         /// </summary>
         public ConsumerCount ConsumerCount { get; set; } = ConsumerCount.Default;
 
+        /// <summary>
+        /// The time to live for the queue once there are no consumers.
+        /// Defaults to infinite.
+        /// </summary>
+        public TimeToLive QueueTimeToLive { get; set; } = TimeToLive.Infinite;
+
         public static class Json
         {
             public static RabbitMqListenerOptions<T> Default => NoLoss;
 
-            public static RabbitMqListenerOptions<T> NoLoss => new RabbitMqListenerOptions<T>
+            public static RabbitMqListenerOptions<T> NoLoss => new()
             {
-                ConsumerCount = ConsumerCount.Default,
                 SerializationFormat = SerializationFormat.Json,
                 ShareConnection = true,
                 SubscriptionTemplate = SubscriptionTemplate.NoLoss
             };
 
-            public static RabbitMqListenerOptions<T> LossAcceptable => new RabbitMqListenerOptions<T>
+            public static RabbitMqListenerOptions<T> LossAcceptable => new()
             {
-                ConsumerCount = ConsumerCount.Default,
                 SerializationFormat = SerializationFormat.Json,
                 ShareConnection = true,
                 SubscriptionTemplate = SubscriptionTemplate.LossAcceptable
@@ -51,17 +55,15 @@ namespace Lykke.RabbitMqBroker.Subscriber
         {
             public static RabbitMqListenerOptions<T> Default => NoLoss;
 
-            public static RabbitMqListenerOptions<T> NoLoss => new RabbitMqListenerOptions<T>
+            public static RabbitMqListenerOptions<T> NoLoss => new()
             {
-                ConsumerCount = ConsumerCount.Default,
                 SerializationFormat = SerializationFormat.Messagepack,
                 ShareConnection = true,
                 SubscriptionTemplate = SubscriptionTemplate.NoLoss
             };
 
-            public static RabbitMqListenerOptions<T> LossAcceptable => new RabbitMqListenerOptions<T>
+            public static RabbitMqListenerOptions<T> LossAcceptable => new()
             {
-                ConsumerCount = ConsumerCount.Default,
                 SerializationFormat = SerializationFormat.Messagepack,
                 ShareConnection = true,
                 SubscriptionTemplate = SubscriptionTemplate.LossAcceptable
@@ -74,6 +76,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             SerializationFormat = source.SerializationFormat;
             SubscriptionTemplate = source.SubscriptionTemplate;
             ConsumerCount = source.ConsumerCount;
+            QueueTimeToLive = source.QueueTimeToLive;
         }
     }
 }
