@@ -2,7 +2,7 @@ using System;
 
 namespace Lykke.RabbitMqBroker.Subscriber;
 
-internal static class TimteToLiveExtentions
+internal static class TimteToLiveExtensions
 {
     /// <summary>
     /// Converts the original time-to-live to a poison time-to-live
