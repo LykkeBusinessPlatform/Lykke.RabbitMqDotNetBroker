@@ -15,6 +15,7 @@ public class QueueConfiguratorTests
         var options = new QueueConfigurationOptions(
             QueueName.Create("q"),
             ExchangeName.Create("x"),
+            TimeToLive.Infinite,
             RoutingKey: RoutingKey.Empty
         );
 
@@ -31,6 +32,7 @@ public class QueueConfiguratorTests
         var options = new QueueConfigurationOptions(
             QueueName.Create("q"),
             ExchangeName.Create("x"),
+            TimeToLive.Infinite,
             DeadLetterExchangeName: DeadLetterExchangeName.Create("dlx"),
             RoutingKey: RoutingKey.Empty
         );

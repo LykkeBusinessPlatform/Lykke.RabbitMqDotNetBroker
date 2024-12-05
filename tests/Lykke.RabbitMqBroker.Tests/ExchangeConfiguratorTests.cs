@@ -31,6 +31,7 @@ internal sealed class ExchangeConfiguratorTests
         var originalQueueOptions = new QueueConfigurationOptions(
             QueueName.Create("q"),
             ExchangeName.Create("x"),
+            TimeToLive.Infinite,
             DeadLetterExchangeName: DeadLetterExchangeName.Create("dlx"),
             RoutingKey: RoutingKey.Empty
         );

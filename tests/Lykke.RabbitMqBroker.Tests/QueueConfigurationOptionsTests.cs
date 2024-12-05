@@ -16,6 +16,7 @@ internal sealed class QueueConfigurationOptionsTests
         var options = new QueueConfigurationOptions(
             QueueName.Create("queue"),
             ExchangeName.Create("exchange"),
+            TimeToLive.Infinite,
             QueueType: QueueType.Quorum
         );
 
@@ -32,6 +33,7 @@ internal sealed class QueueConfigurationOptionsTests
         var options = new QueueConfigurationOptions(
             QueueName.Create("queue"),
             ExchangeName.Create("exchange"),
+            TimeToLive.Infinite,
             deadLetterExchangeName
         );
 
@@ -47,6 +49,7 @@ internal sealed class QueueConfigurationOptionsTests
         var options = new QueueConfigurationOptions(
             QueueName.Create("queue"),
             ExchangeName.Create("exchange"),
+            TimeToLive.Infinite,
             DeadLetterExchangeName.Create("dlx"),
             QueueType: QueueType.Quorum
         );
@@ -68,6 +71,7 @@ internal sealed class QueueConfigurationOptionsTests
         var options = new QueueConfigurationOptions(
             QueueName.Create("queue"),
             ExchangeName.Create("exchange"),
+            TimeToLive.Infinite,
             DeadLetterExchangeName.Create("dlx"),
             QueueType: QueueType.Classic
         );
