@@ -3,6 +3,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 /// <param name="QueueName"> The name of the queue to be used when declaring it. </param>
 /// <param name="ExistingExchangeName"> The name of the exchange to be used when binding the queue.
 /// The exchange itself should already exist. </param>
+/// <param name="Ttl"> The time to live for the queue once there are no consumers. </param>
 /// <param name="DeadLetterExchangeName"> The name of the exchange to be used as a dead-letter exchange.
 /// The exchange will be created if it does not exist. </param>
 /// <param name="DeadLetterExchangeType"> The type of the exchange to be used as a dead-letter exchange. </param>
@@ -16,6 +17,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 internal sealed record QueueConfigurationOptions(
     QueueName QueueName,
     ExchangeName ExistingExchangeName,
+    TimeToLive Ttl,
     DeadLetterExchangeName DeadLetterExchangeName = null,
     string DeadLetterExchangeType = "",
     bool Durable = false,
@@ -34,6 +36,7 @@ internal sealed record QueueConfigurationOptions(
     /// <param name="durable"></param>
     /// <param name="autoDelete"></param>
     /// <param name="routingKey"></param>
+    /// <param name="ttl"></param>
     /// <returns></returns>
     public static QueueConfigurationOptions ForClassicQueue(
         QueueName queueName,
@@ -42,9 +45,11 @@ internal sealed record QueueConfigurationOptions(
         string deadLetterExchangeType,
         bool durable,
         bool autoDelete,
-        RoutingKey routingKey) => new(
+        RoutingKey routingKey,
+        TimeToLive ttl) => new(
             queueName,
             exchangeName,
+            ttl,
             deadLetterExchangeName,
             deadLetterExchangeType,
             durable,
@@ -62,15 +67,18 @@ internal sealed record QueueConfigurationOptions(
     /// <param name="deadLetterExchangeName"></param>
     /// <param name="deadLetterExchangeType"></param>
     /// <param name="routingKey"></param>
+    /// <param name="ttl"></param>
     /// <returns></returns>
     public static QueueConfigurationOptions ForQuorumQueue(
         QueueName queueName,
         ExchangeName exchangeName,
         DeadLetterExchangeName deadLetterExchangeName,
         string deadLetterExchangeType,
-        RoutingKey routingKey) => new(
+        RoutingKey routingKey,
+        TimeToLive ttl) => new(
             queueName,
             exchangeName,
+            ttl,
             deadLetterExchangeName,
             deadLetterExchangeType,
             true,
