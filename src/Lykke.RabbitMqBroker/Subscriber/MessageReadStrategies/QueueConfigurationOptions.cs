@@ -46,10 +46,10 @@ internal sealed record QueueConfigurationOptions(
         bool durable,
         bool autoDelete,
         RoutingKey routingKey,
-        TimeToLive ttl) => new(
+        TimeToLive ttl = null) => new(
             queueName,
             exchangeName,
-            autoDelete ? TimeToLive.Infinite : ttl,
+            (autoDelete || ttl is null) ? TimeToLive.Infinite : ttl,
             deadLetterExchangeName,
             deadLetterExchangeType,
             durable,
@@ -75,10 +75,10 @@ internal sealed record QueueConfigurationOptions(
         DeadLetterExchangeName deadLetterExchangeName,
         string deadLetterExchangeType,
         RoutingKey routingKey,
-        TimeToLive ttl) => new(
+        TimeToLive ttl = null) => new(
             queueName,
             exchangeName,
-            ttl,
+            ttl ?? TimeToLive.Infinite,
             deadLetterExchangeName,
             deadLetterExchangeType,
             true,
