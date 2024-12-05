@@ -26,6 +26,7 @@ namespace Lykke.RabbitMqBroker
         /// Defaults to infinite.
         /// </summary>
         public TimeToLive QueueTimeToLive { get; set; } = TimeToLive.Infinite;
+        public TimeToLive PoisonQueueTimeToLive { get; set; } = TimeToLive.Infinite;
         public string ExchangeName { get; set; }
         public bool IsDurable { get; set; }
         public string DeadLetterExchangeName { get; set; }
@@ -244,6 +245,18 @@ namespace Lykke.RabbitMqBroker
         public RabbitMqSubscriptionSettings UseTimeToLive(TimeToLive timeToLive)
         {
             QueueTimeToLive = timeToLive;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the time to live for the poison queue once there are no consumers.
+        /// </summary>
+        /// <param name="timeToLive"></param>
+        /// <returns></returns>
+        public RabbitMqSubscriptionSettings UsePoisonQueueTimeToLive(TimeToLive timeToLive)
+        {
+            PoisonQueueTimeToLive = timeToLive;
 
             return this;
         }
