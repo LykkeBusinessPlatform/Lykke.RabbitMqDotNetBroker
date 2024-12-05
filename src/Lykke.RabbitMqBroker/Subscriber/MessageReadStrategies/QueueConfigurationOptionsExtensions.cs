@@ -12,6 +12,11 @@ internal static class QueueConfigurationOptionsExtensions
             argsBuilder.UseQuorumQueue();
         }
 
+        if (!options.Ttl.IsInfinite)
+        {
+            argsBuilder.UseTimeToLive(options.Ttl);
+        }
+
         if (options.DeadLetterExchangeName is not null)
         {
             var dlxArgsBuilder = argsBuilder.AddDeadLetterExchange(options.DeadLetterExchangeName);
