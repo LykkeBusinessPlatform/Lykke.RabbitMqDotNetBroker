@@ -5,8 +5,6 @@ using System;
 
 using JetBrains.Annotations;
 
-using Lykke.RabbitMqBroker.Subscriber;
-
 namespace Lykke.RabbitMqBroker
 {
     // TODO: Hide setters, when next breaking changes release will be required
@@ -23,10 +21,8 @@ namespace Lykke.RabbitMqBroker
 
         /// <summary>
         /// The time to live for the queue once there are no consumers.
-        /// Defaults to infinite.
         /// </summary>
-        public TimeToLive QueueTimeToLive { get; set; } = TimeToLive.Infinite;
-        public TimeToLive PoisonQueueTimeToLive { get; set; } = TimeToLive.Infinite;
+        public TimeSpan QueueTimeToLive { get; set; } = TimeSpan.Zero;
         public string ExchangeName { get; set; }
         public bool IsDurable { get; set; }
         public string DeadLetterExchangeName { get; set; }
@@ -242,21 +238,9 @@ namespace Lykke.RabbitMqBroker
         /// </summary>
         /// <param name="timeToLive"></param>
         /// <returns></returns>
-        public RabbitMqSubscriptionSettings UseTimeToLive(TimeToLive timeToLive)
+        public RabbitMqSubscriptionSettings UseTimeToLive(TimeSpan timeToLive)
         {
             QueueTimeToLive = timeToLive;
-
-            return this;
-        }
-
-        /// <summary>
-        /// Sets the time to live for the poison queue once there are no consumers.
-        /// </summary>
-        /// <param name="timeToLive"></param>
-        /// <returns></returns>
-        public RabbitMqSubscriptionSettings UsePoisonQueueTimeToLive(TimeToLive timeToLive)
-        {
-            PoisonQueueTimeToLive = timeToLive;
 
             return this;
         }
