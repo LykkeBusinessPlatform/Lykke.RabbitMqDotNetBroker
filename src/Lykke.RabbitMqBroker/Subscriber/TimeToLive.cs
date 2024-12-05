@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 
 namespace Lykke.RabbitMqBroker.Subscriber;
 
+[DebuggerDisplay("{Value}")]
 public record TimeToLive(TimeSpan Value)
 {
     public static TimeToLive Infinite { get; } = new(TimeSpan.Zero);
