@@ -47,13 +47,15 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
                 StrategyDefaultDeadLetterExchangeType,
                 Durable,
                 AutoDelete,
-                effectiveRoutingKey),
+                effectiveRoutingKey,
+                AutoDelete ? TimeToLive.Infinite : TimeToLive.Create(settings.QueueTimeToLive)),
             QueueType.Quorum => QueueConfigurationOptions.ForQuorumQueue(
                 settings.GetQueueName(),
                 ExchangeName.Create(settings.ExchangeName),
                 string.IsNullOrWhiteSpace(settings.DeadLetterExchangeName) ? null : DeadLetterExchangeName.Create(settings.DeadLetterExchangeName),
                 StrategyDefaultDeadLetterExchangeType,
-                effectiveRoutingKey),
+                effectiveRoutingKey,
+                TimeToLive.Create(settings.QueueTimeToLive)),
             _ => throw new InvalidOperationException($"Unsupported queue type [{QueueType}]")
         };
     }
