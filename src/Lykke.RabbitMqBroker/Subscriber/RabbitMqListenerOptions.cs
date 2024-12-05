@@ -26,11 +26,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
         /// </summary>
         public ConsumerCount ConsumerCount { get; set; } = ConsumerCount.Default;
 
-        /// <summary>
-        /// The time to live for the queue once there are no consumers.
-        /// Defaults to infinite.
-        /// </summary>
-        public TimeToLive QueueTimeToLive { get; set; } = TimeToLive.Infinite;
 
         public static class Json
         {
@@ -76,7 +71,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
             SerializationFormat = source.SerializationFormat;
             SubscriptionTemplate = source.SubscriptionTemplate;
             ConsumerCount = source.ConsumerCount;
-            QueueTimeToLive = source.QueueTimeToLive;
         }
     }
 }

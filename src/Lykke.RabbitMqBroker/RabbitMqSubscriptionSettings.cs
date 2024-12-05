@@ -2,7 +2,10 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System;
+
 using JetBrains.Annotations;
+
+using Lykke.RabbitMqBroker.Subscriber;
 
 namespace Lykke.RabbitMqBroker
 {
@@ -17,6 +20,12 @@ namespace Lykke.RabbitMqBroker
 
         public string ConnectionString { get; set; }
         public string QueueName { get; set; }
+
+        /// <summary>
+        /// The time to live for the queue once there are no consumers.
+        /// Defaults to infinite.
+        /// </summary>
+        public TimeToLive QueueTimeToLive { get; set; } = TimeToLive.Infinite;
         public string ExchangeName { get; set; }
         public bool IsDurable { get; set; }
         public string DeadLetterExchangeName { get; set; }
@@ -197,7 +206,7 @@ namespace Lykke.RabbitMqBroker
 
             return this;
         }
-        
+
         public RabbitMqSubscriptionSettings MakeDurable()
         {
             IsDurable = true;
@@ -221,8 +230,20 @@ namespace Lykke.RabbitMqBroker
                 throw new ArgumentException(
                     $"Buffer type '{bufferType}' is not valid. Allowed values: {string.Join(", ", PublisherBufferTypes.All)}",
                     nameof(bufferType));
-            
+
             BufferType = bufferType;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the time to live for the queue once there are no consumers.
+        /// </summary>
+        /// <param name="timeToLive"></param>
+        /// <returns></returns>
+        public RabbitMqSubscriptionSettings UseTimeToLive(TimeToLive timeToLive)
+        {
+            QueueTimeToLive = timeToLive;
 
             return this;
         }
