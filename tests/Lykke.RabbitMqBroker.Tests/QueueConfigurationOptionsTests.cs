@@ -1,5 +1,3 @@
-using JetBrains.Annotations;
-
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
@@ -83,5 +81,39 @@ internal sealed class QueueConfigurationOptionsTests
 
         args.TryGetValue("overflow", out var overflow);
         Assert.That(overflow, Is.AnyOf(null, "drop-head"));
+    }
+
+    [Test]
+    public void BuildArguments_WhenTtlIsNotDefault_AddsExpirationArgument()
+    {
+        var options = new QueueConfigurationOptions(
+            QueueName.Create("queue"),
+            ExchangeName.Create("exchange"),
+            TimeToLive.OneMinute
+        );
+
+        var args = options.BuildArguments();
+
+        Assert.That(args, Does.ContainKey("x-expires"));
+        Assert.That(
+            args["x-expires"],
+            Is.EqualTo(TimeToLive.OneMinute.Value.TotalMilliseconds));
+    }
+
+    [Test]
+    public void ForClassicQueue_WhenAutoDeleteIsTrue_SetsTtlToInfinite()
+    {
+        var options = QueueConfigurationOptions.ForClassicQueue(
+            QueueName.Create("queue"),
+            ExchangeName.Create("exchange"),
+            null,
+            string.Empty,
+            false,
+            true,
+            RoutingKey.Empty,
+            TimeToLive.OneHour
+        );
+
+        Assert.That(options.Ttl, Is.EqualTo(TimeToLive.Infinite));
     }
 }

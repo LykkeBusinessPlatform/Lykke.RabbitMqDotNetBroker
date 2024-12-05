@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System;
+
+using NUnit.Framework;
 
 namespace Lykke.RabbitMqBroker.Tests
 {
@@ -159,6 +161,38 @@ namespace Lykke.RabbitMqBroker.Tests
             Assert.That($"{endpointNamespace}.{endPoint}.{source}.dlx", Is.EqualTo(shortPubSettings.DeadLetterExchangeName));
             Assert.That($"{sourceNamespace}.{source}", Is.EqualTo(shortPubSettings.ExchangeName));
             Assert.That($"{sourceNamespace}.{source}.{endPoint}", Is.EqualTo(shortPubSettings.QueueName));
+        }
+
+        [Test]
+        public void SubscriberSettings_DefaultTtl_IsZero()
+        {
+            var connString = "test.ConnString";
+            var source = "test.Source";
+            var endPoint = "test.Endpoint";
+
+            var settings = RabbitMqSubscriptionSettings.ForSubscriber(
+                connString,
+                source,
+                endPoint);
+
+            Assert.That(settings.QueueTimeToLive, Is.EqualTo(TimeSpan.Zero));
+        }
+
+        [Test]
+        public void SubscriberSettings_UseTimeToLive_IsSet()
+        {
+            var connString = "test.ConnString";
+            var source = "test.Source";
+            var endPoint = "test.Endpoint";
+            var ttl = TimeSpan.FromMinutes(5);
+
+            var settings = RabbitMqSubscriptionSettings.ForSubscriber(
+                connString,
+                source,
+                endPoint);
+            settings.UseTimeToLive(ttl);
+
+            Assert.That(settings.QueueTimeToLive, Is.EqualTo(ttl));
         }
     }
 }

@@ -49,7 +49,7 @@ internal sealed record QueueConfigurationOptions(
         TimeToLive ttl) => new(
             queueName,
             exchangeName,
-            ttl,
+            autoDelete ? TimeToLive.Infinite : ttl,
             deadLetterExchangeName,
             deadLetterExchangeType,
             durable,

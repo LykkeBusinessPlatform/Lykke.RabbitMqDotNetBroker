@@ -48,7 +48,7 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
                 Durable,
                 AutoDelete,
                 effectiveRoutingKey,
-                AutoDelete ? TimeToLive.Infinite : TimeToLive.Create(settings.QueueTimeToLive)),
+                TimeToLive.Create(settings.QueueTimeToLive)),
             QueueType.Quorum => QueueConfigurationOptions.ForQuorumQueue(
                 settings.GetQueueName(),
                 ExchangeName.Create(settings.ExchangeName),
