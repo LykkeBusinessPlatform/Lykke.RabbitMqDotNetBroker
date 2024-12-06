@@ -1,3 +1,8 @@
+## [[tbd]] ([[date]])
+
+### Fixed
+- LT-5967: Fix `x-expires` argument header conversions
+
 ## 16.1.0 (2024-12-06)
 
 ### Added

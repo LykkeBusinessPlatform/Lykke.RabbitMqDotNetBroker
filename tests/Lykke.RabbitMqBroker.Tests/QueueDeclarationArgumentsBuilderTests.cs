@@ -3,6 +3,8 @@ using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 using NUnit.Framework;
 
+using RabbitMQ.Client;
+
 namespace Lykke.RabbitMqBroker.Tests;
 
 [TestFixture]
@@ -17,8 +19,8 @@ internal sealed class QueueDeclarationArgumentsBuilderTests
 
         var args = argsBuilder.Build();
 
-        Assert.That(args, Does.ContainKey("x-queue-type"));
-        Assert.That(args["x-queue-type"], Is.EqualTo("quorum"));
+        Assert.That(args, Does.ContainKey(Headers.XQueueType));
+        Assert.That(args[Headers.XQueueType], Is.EqualTo("quorum"));
     }
 
     [Test]
@@ -45,7 +47,7 @@ internal sealed class QueueDeclarationArgumentsBuilderTests
 
         var args = argsBuilder.Build();
 
-        Assert.That(args, Does.ContainKey("x-dead-letter-exchange"));
-        Assert.That(args["x-dead-letter-exchange"], Is.EqualTo(dlxExchangeName.ToString()));
+        Assert.That(args, Does.ContainKey(Headers.XDeadLetterExchange));
+        Assert.That(args[Headers.XDeadLetterExchange], Is.EqualTo(dlxExchangeName.ToString()));
     }
 }

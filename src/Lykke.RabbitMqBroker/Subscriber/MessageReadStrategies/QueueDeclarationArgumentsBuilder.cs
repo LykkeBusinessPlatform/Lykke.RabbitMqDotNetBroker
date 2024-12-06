@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
+using RabbitMQ.Client;
+
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 internal sealed class QueueDeclarationArgumentsBuilder
@@ -10,19 +12,19 @@ internal sealed class QueueDeclarationArgumentsBuilder
 
     public QueueDeclarationArgumentsBuilder UseQuorumQueue()
     {
-        _arguments["x-queue-type"] = "quorum";
+        _arguments[Headers.XQueueType] = "quorum";
         return this;
     }
 
     public QueueDeclarationArgumentsBuilder UseClassicQueue()
     {
-        _arguments.Remove("x-queue-type"); // classic is default
+        _arguments.Remove(Headers.XQueueType); // classic is default
         return this;
     }
 
     public DealLetterExchangeArgumentsBuilder AddDeadLetterExchange(DeadLetterExchangeName exchangeName)
     {
-        _arguments["x-dead-letter-exchange"] = exchangeName.ToString();
+        _arguments[Headers.XDeadLetterExchange] = exchangeName.ToString();
         return new DealLetterExchangeArgumentsBuilder(this, _arguments);
     }
 
@@ -33,7 +35,7 @@ internal sealed class QueueDeclarationArgumentsBuilder
     /// <returns></returns>
     public QueueDeclarationArgumentsBuilder UseTimeToLive(TimeToLive ttl)
     {
-        _arguments["x-expires"] = ttl.Value.TotalMilliseconds;
+        _arguments[Headers.XExpires] = ttl.ToExpirationMilliseconds();
         return this;
     }
 
@@ -58,14 +60,14 @@ internal sealed class DealLetterExchangeArgumentsBuilder
     public DealLetterExchangeArgumentsBuilder WithAtLeastOnceStrategy()
     {
         _arguments["x-dead-letter-strategy"] = "at-least-once";
-        _arguments["overflow"] = "reject-publish";
+        _arguments[Headers.XOverflow] = "reject-publish";
         return this;
     }
 
     public DealLetterExchangeArgumentsBuilder WithAtMostOnceStrategy()
     {
         _arguments.Remove("x-dead-letter-strategy"); // at-most-once is default
-        _arguments.Remove("overflow"); // drop-head is default
+        _arguments.Remove(Headers.XOverflow); // drop-head is default
         return this;
     }
 

@@ -3,6 +3,8 @@ using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 using NUnit.Framework;
 
+using RabbitMQ.Client;
+
 namespace Lykke.RabbitMqBroker.Tests;
 
 [TestFixture]
@@ -20,8 +22,8 @@ internal sealed class DealLetterExchangeArgumentsBuilderTests
         Assert.That(args, Does.ContainKey("x-dead-letter-strategy"));
         Assert.That(args["x-dead-letter-strategy"], Is.EqualTo("at-least-once"));
 
-        Assert.That(args, Does.ContainKey("overflow"));
-        Assert.That(args["overflow"], Is.EqualTo("reject-publish"));
+        Assert.That(args, Does.ContainKey(Headers.XOverflow));
+        Assert.That(args[Headers.XOverflow], Is.EqualTo("reject-publish"));
     }
 
     [Test]
@@ -34,6 +36,6 @@ internal sealed class DealLetterExchangeArgumentsBuilderTests
         var args = argsBuilder.Build();
 
         Assert.That(args, Does.Not.ContainKey("x-dead-letter-strategy")); // using default
-        Assert.That(args, Does.Not.ContainKey("overflow")); // using default
+        Assert.That(args, Does.Not.ContainKey(Headers.XOverflow)); // using default
     }
 }
