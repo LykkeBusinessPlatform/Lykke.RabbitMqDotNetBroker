@@ -4,6 +4,8 @@ using Lykke.RabbitMqBroker.Tests.Fakes;
 
 using NUnit.Framework;
 
+using RabbitMQ.Client;
+
 namespace Lykke.RabbitMqBroker.Tests;
 
 [TestFixture]
@@ -40,7 +42,7 @@ public class QueueConfiguratorTests
         var result = QueueConfigurator.Configure(() => new PrimitivesConfiguratorFakeChannel(), options);
 
         PrimitivesConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
-        Assert.That("dlx", Is.EqualTo(args?["x-dead-letter-exchange"]));
+        Assert.That("dlx", Is.EqualTo(args?[Headers.XDeadLetterExchange]));
     }
 
     [Test]
@@ -60,8 +62,8 @@ public class QueueConfiguratorTests
         PrimitivesConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
         Assert.That(options.QueueName.AsPoison(), Is.EqualTo(result.Response));
         Assert.That(
-            (double)args["x-expires"],
-            Is.GreaterThan(originalQueueTtl.Value.TotalMilliseconds));
+            (uint)args[Headers.XExpires],
+            Is.GreaterThan(originalQueueTtl.ToExpirationMilliseconds()));
     }
 
     [TearDown]
