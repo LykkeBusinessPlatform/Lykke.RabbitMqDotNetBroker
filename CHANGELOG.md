@@ -1,3 +1,8 @@
+## [[tbd]] ([[date]])
+
+### Added
+- LT-5967: Introduce queue TTL configuration
+
 ## 16.0.0 (2024-10-22)
 
 ### Changed

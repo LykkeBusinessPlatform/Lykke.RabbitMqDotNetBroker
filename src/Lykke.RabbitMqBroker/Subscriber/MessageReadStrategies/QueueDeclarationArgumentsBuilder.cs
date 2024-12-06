@@ -26,6 +26,17 @@ internal sealed class QueueDeclarationArgumentsBuilder
         return new DealLetterExchangeArgumentsBuilder(this, _arguments);
     }
 
+    /// <summary>
+    /// Sets the time to live for the queue once there are no consumers.
+    /// </summary>
+    /// <param name="ttl"></param>
+    /// <returns></returns>
+    public QueueDeclarationArgumentsBuilder UseTimeToLive(TimeToLive ttl)
+    {
+        _arguments["x-expires"] = ttl.Value.TotalMilliseconds;
+        return this;
+    }
+
     [CanBeNull]
     public Dictionary<string, object> Build()
     {

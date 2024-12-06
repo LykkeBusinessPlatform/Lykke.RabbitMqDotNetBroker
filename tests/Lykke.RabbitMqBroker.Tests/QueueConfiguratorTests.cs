@@ -15,6 +15,7 @@ public class QueueConfiguratorTests
         var options = new QueueConfigurationOptions(
             QueueName.Create("q"),
             ExchangeName.Create("x"),
+            TimeToLive.Infinite,
             RoutingKey: RoutingKey.Empty
         );
 
@@ -31,7 +32,8 @@ public class QueueConfiguratorTests
         var options = new QueueConfigurationOptions(
             QueueName.Create("q"),
             ExchangeName.Create("x"),
-            DeadLetterExchangeName: DeadLetterExchangeName.Create("dlx"),
+            TimeToLive.Infinite,
+            DeadLetterExchangeName.Create("dlx"),
             RoutingKey: RoutingKey.Empty
         );
 
@@ -39,6 +41,27 @@ public class QueueConfiguratorTests
 
         PrimitivesConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
         Assert.That("dlx", Is.EqualTo(args?["x-dead-letter-exchange"]));
+    }
+
+    [Test]
+    public void ConfigurePoison_Ttl_Should_Be_Greater_Than_Original()
+    {
+        var originalQueueTtl = TimeToLive.OneMinute;
+        var options = new QueueConfigurationOptions(
+            QueueName.Create("q"),
+            ExchangeName.Create("x"),
+            originalQueueTtl,
+            DeadLetterExchangeName.Create("dlx"),
+            RoutingKey: RoutingKey.Empty
+        );
+
+        var result = QueueConfigurator.ConfigurePoison(() => new PrimitivesConfiguratorFakeChannel(), options);
+
+        PrimitivesConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
+        Assert.That(options.QueueName.AsPoison(), Is.EqualTo(result.Response));
+        Assert.That(
+            (double)args["x-expires"],
+            Is.GreaterThan(originalQueueTtl.Value.TotalMilliseconds));
     }
 
     [TearDown]

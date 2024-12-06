@@ -29,6 +29,7 @@ internal sealed class StrategyConfiguratorTests
             new QueueConfigurationOptions(
                 queueName,
                 ExchangeName.Create("x"),
+                TimeToLive.Infinite,
                 RoutingKey: RoutingKey.Empty));
 
         Assert.That(QueueDeclarationExpectedSingleFailureFakeChannel.DeletedQueues, Has.One.EqualTo(queueName.ToString()));
@@ -42,6 +43,7 @@ internal sealed class StrategyConfiguratorTests
             new QueueConfigurationOptions(
                 QueueName.Create("q"),
                 ExchangeName.Create("x"),
+                TimeToLive.Infinite,
                 RoutingKey: RoutingKey.Empty));
 
         Assert.That(result.IsSuccess);
@@ -56,6 +58,7 @@ internal sealed class StrategyConfiguratorTests
                 new QueueConfigurationOptions(
                     QueueName.Create("q"),
                     ExchangeName.Create("x"),
+                    TimeToLive.Infinite,
                     RoutingKey: RoutingKey.Empty)));
 
         Assert.That(ex.Message, Does.Contain("Failed to delete queue"));
@@ -70,6 +73,7 @@ internal sealed class StrategyConfiguratorTests
                 new QueueConfigurationOptions(
                     QueueName.Create("q"),
                     ExchangeName.Create("x"),
+                    TimeToLive.Infinite,
                     RoutingKey: RoutingKey.Empty)));
     }
 
@@ -81,6 +85,7 @@ internal sealed class StrategyConfiguratorTests
             new QueueConfigurationOptions(
                 QueueName.Create("q"),
                 ExchangeName.Create("x"),
+                TimeToLive.Infinite,
                 DeadLetterExchangeName.Create("dlx"),
                 RoutingKey: RoutingKey.Empty));
 
@@ -96,6 +101,7 @@ internal sealed class StrategyConfiguratorTests
             new QueueConfigurationOptions(
                 QueueName.Create("q"),
                 ExchangeName.Create("x"),
+                TimeToLive.Infinite,
                 DeadLetterExchangeName.Create("dlx"),
                 RoutingKey: RoutingKey.Empty));
 
@@ -112,6 +118,7 @@ internal sealed class StrategyConfiguratorTests
             new QueueConfigurationOptions(
                 queueName,
                 ExchangeName.Create("x"),
+                TimeToLive.Infinite,
                 DeadLetterExchangeName.Create("dlx"),
                 RoutingKey: RoutingKey.Empty));
 
@@ -127,6 +134,7 @@ internal sealed class StrategyConfiguratorTests
             new QueueConfigurationOptions(
                 queueName,
                 ExchangeName.Create("x"),
+                TimeToLive.Infinite,
                 DeadLetterExchangeName.Create("dlx"),
                 RoutingKey: RoutingKey.Empty));
 

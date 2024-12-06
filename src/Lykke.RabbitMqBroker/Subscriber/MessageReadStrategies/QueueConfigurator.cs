@@ -39,6 +39,7 @@ internal static class QueueConfigurator
         var configurationOptions = new QueueConfigurationOptions(
             originalQueueOptions.QueueName.AsPoison(),
             originalQueueOptions.DeadLetterExchangeName,
+            originalQueueOptions.Ttl.AsPoison(),
             Durable: true,
             AutoDelete: false,
             QueueType: originalQueueOptions.QueueType,

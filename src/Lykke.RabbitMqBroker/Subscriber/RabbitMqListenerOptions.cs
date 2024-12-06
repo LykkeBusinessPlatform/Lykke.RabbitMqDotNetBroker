@@ -26,21 +26,20 @@ namespace Lykke.RabbitMqBroker.Subscriber
         /// </summary>
         public ConsumerCount ConsumerCount { get; set; } = ConsumerCount.Default;
 
+
         public static class Json
         {
             public static RabbitMqListenerOptions<T> Default => NoLoss;
 
-            public static RabbitMqListenerOptions<T> NoLoss => new RabbitMqListenerOptions<T>
+            public static RabbitMqListenerOptions<T> NoLoss => new()
             {
-                ConsumerCount = ConsumerCount.Default,
                 SerializationFormat = SerializationFormat.Json,
                 ShareConnection = true,
                 SubscriptionTemplate = SubscriptionTemplate.NoLoss
             };
 
-            public static RabbitMqListenerOptions<T> LossAcceptable => new RabbitMqListenerOptions<T>
+            public static RabbitMqListenerOptions<T> LossAcceptable => new()
             {
-                ConsumerCount = ConsumerCount.Default,
                 SerializationFormat = SerializationFormat.Json,
                 ShareConnection = true,
                 SubscriptionTemplate = SubscriptionTemplate.LossAcceptable
@@ -51,17 +50,15 @@ namespace Lykke.RabbitMqBroker.Subscriber
         {
             public static RabbitMqListenerOptions<T> Default => NoLoss;
 
-            public static RabbitMqListenerOptions<T> NoLoss => new RabbitMqListenerOptions<T>
+            public static RabbitMqListenerOptions<T> NoLoss => new()
             {
-                ConsumerCount = ConsumerCount.Default,
                 SerializationFormat = SerializationFormat.Messagepack,
                 ShareConnection = true,
                 SubscriptionTemplate = SubscriptionTemplate.NoLoss
             };
 
-            public static RabbitMqListenerOptions<T> LossAcceptable => new RabbitMqListenerOptions<T>
+            public static RabbitMqListenerOptions<T> LossAcceptable => new()
             {
-                ConsumerCount = ConsumerCount.Default,
                 SerializationFormat = SerializationFormat.Messagepack,
                 ShareConnection = true,
                 SubscriptionTemplate = SubscriptionTemplate.LossAcceptable
