@@ -8,29 +8,29 @@ namespace Lykke.RabbitMqBroker.Tests;
 internal sealed class ExpirationHeaderConversionTests
 {
     [Test]
-    public void ToExpirationMilliseconds_ValidValueWithoutFraction_ReturnsUint()
+    public void ToExpirationMilliseconds_ValidValueWithoutFraction_ReturnsUlong()
     {
         double src = 12345;
 
         ulong result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(12345u));
+        Assert.That(result, Is.EqualTo(12345ul));
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValidValueWithFraction_ReturnsFlooredUint()
+    public void ToExpirationMilliseconds_ValidValueWithFraction_ReturnsFlooredUlong()
     {
         double src = 12345.67;
 
         ulong result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(12345u));
+        Assert.That(result, Is.EqualTo(12345ul));
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValueExceedsUIntMax_ThrowsArgumentOutOfRangeException()
+    public void ToExpirationMilliseconds_ValueExceedsULongMax_ThrowsArgumentOutOfRangeException()
     {
-        double src = ulong.MaxValue + 1.0;
+        double src = (double)2 * ulong.MaxValue;
 
         var ex = Assert.Throws<ArgumentOutOfRangeException>(() => src.ToExpirationMilliseconds());
 
@@ -38,7 +38,7 @@ internal sealed class ExpirationHeaderConversionTests
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValueBelowUIntMin_ThrowsArgumentOutOfRangeException()
+    public void ToExpirationMilliseconds_ValueBelowULongMin_ThrowsArgumentOutOfRangeException()
     {
         double src = ulong.MinValue - 1.0;
 
@@ -48,7 +48,7 @@ internal sealed class ExpirationHeaderConversionTests
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValueAtUIntMax_ReturnsUint()
+    public void ToExpirationMilliseconds_ValueAtULongMax_ReturnsUlong()
     {
         double src = ulong.MaxValue;
 
@@ -58,7 +58,7 @@ internal sealed class ExpirationHeaderConversionTests
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValueAtUIntMin_ReturnsUint()
+    public void ToExpirationMilliseconds_ValueAtULongMin_ReturnsUlong()
     {
         double src = ulong.MinValue;
 
