@@ -28,34 +28,33 @@ internal sealed class ExpirationHeaderConversionTests
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValueExceedsULongMax_ThrowsArgumentOutOfRangeException()
+    public void ToExpirationMilliseconds_ValueExceedsULongMax_ReturnsULongMax()
     {
         double src = (double)2 * ulong.MaxValue;
 
-        var ex = Assert.Throws<ArgumentOutOfRangeException>(() => src.ToExpirationMilliseconds());
+        ulong result = src.ToExpirationMilliseconds();
 
-        Assert.That(ex.Message, Does.Contain("too large"));
+        Assert.That(result, Is.EqualTo(ulong.MaxValue));
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValueBelowULongMin_ThrowsArgumentOutOfRangeException()
+    public void ToExpirationMilliseconds_ValueBelowULongMin_ReturnsULongMin()
     {
         double src = ulong.MinValue - 1.0;
 
-        var ex = Assert.Throws<ArgumentOutOfRangeException>(() => src.ToExpirationMilliseconds());
+        ulong result = src.ToExpirationMilliseconds();
 
-        Assert.That(ex.Message, Does.Contain("too small"));
+        Assert.That(result, Is.EqualTo(ulong.MinValue));
     }
 
     [Test]
-    [Repeat(100)]
     public void ToExpirationMilliseconds_ValueAtULongMax_ReturnsUlong()
     {
-        double src = ulong.MaxValue;
+        double src = Convert.ToDouble(ulong.MaxValue);
 
         ulong result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.InRange(ulong.MaxValue - 1, ulong.MaxValue));
+        Assert.That(result, Is.EqualTo(ulong.MaxValue));
     }
 
     [Test]
