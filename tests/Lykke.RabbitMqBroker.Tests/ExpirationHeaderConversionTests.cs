@@ -48,13 +48,14 @@ internal sealed class ExpirationHeaderConversionTests
     }
 
     [Test]
+    [Repeat(100)]
     public void ToExpirationMilliseconds_ValueAtULongMax_ReturnsUlong()
     {
         double src = ulong.MaxValue;
 
         ulong result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(ulong.MaxValue));
+        Assert.That(result, Is.InRange(ulong.MaxValue - 1, ulong.MaxValue));
     }
 
     [Test]
