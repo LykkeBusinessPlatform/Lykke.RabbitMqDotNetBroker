@@ -1,4 +1,4 @@
-## [[tbd]] ([[date]])
+## 16.1.1 (2024-12-09)
 
 ### Fixed
 - LT-5967: Fix `x-expires` argument header conversions. Fix `overflow` -> `x-overflow` argument usage.
