@@ -12,7 +12,7 @@ internal sealed class ExpirationHeaderConversionTests
     {
         double src = 12345;
 
-        uint result = src.ToExpirationMilliseconds();
+        ulong result = src.ToExpirationMilliseconds();
 
         Assert.That(result, Is.EqualTo(12345u));
     }
@@ -22,7 +22,7 @@ internal sealed class ExpirationHeaderConversionTests
     {
         double src = 12345.67;
 
-        uint result = src.ToExpirationMilliseconds();
+        ulong result = src.ToExpirationMilliseconds();
 
         Assert.That(result, Is.EqualTo(12345u));
     }
@@ -30,7 +30,7 @@ internal sealed class ExpirationHeaderConversionTests
     [Test]
     public void ToExpirationMilliseconds_ValueExceedsUIntMax_ThrowsArgumentOutOfRangeException()
     {
-        double src = uint.MaxValue + 1.0;
+        double src = ulong.MaxValue + 1.0;
 
         var ex = Assert.Throws<ArgumentOutOfRangeException>(() => src.ToExpirationMilliseconds());
 
@@ -40,7 +40,7 @@ internal sealed class ExpirationHeaderConversionTests
     [Test]
     public void ToExpirationMilliseconds_ValueBelowUIntMin_ThrowsArgumentOutOfRangeException()
     {
-        double src = uint.MinValue - 1.0;
+        double src = ulong.MinValue - 1.0;
 
         var ex = Assert.Throws<ArgumentOutOfRangeException>(() => src.ToExpirationMilliseconds());
 
@@ -50,20 +50,20 @@ internal sealed class ExpirationHeaderConversionTests
     [Test]
     public void ToExpirationMilliseconds_ValueAtUIntMax_ReturnsUint()
     {
-        double src = uint.MaxValue;
+        double src = ulong.MaxValue;
 
-        uint result = src.ToExpirationMilliseconds();
+        ulong result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(uint.MaxValue));
+        Assert.That(result, Is.EqualTo(ulong.MaxValue));
     }
 
     [Test]
     public void ToExpirationMilliseconds_ValueAtUIntMin_ReturnsUint()
     {
-        double src = uint.MinValue;
+        double src = ulong.MinValue;
 
-        uint result = src.ToExpirationMilliseconds();
+        ulong result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(uint.MinValue));
+        Assert.That(result, Is.EqualTo(ulong.MinValue));
     }
 }
