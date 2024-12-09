@@ -118,7 +118,7 @@ namespace Lykke.RabbitMqBroker.Tests
             {
                 var args = new Dictionary<string, object>
                 {
-                    {"x-dead-letter-exchange", DeadLetterExchangeName},
+                    {Headers.XDeadLetterExchange, DeadLetterExchangeName},
                 };
                 channel.ExchangeDeclare(ExchangeName, "fanout", true, false);
                 channel.QueueDeclare(QueueName, autoDelete: false, exclusive: false, durable: _settings.IsDurable, arguments: args);

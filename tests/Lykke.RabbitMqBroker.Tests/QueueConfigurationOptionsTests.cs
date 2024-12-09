@@ -3,6 +3,8 @@ using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 using NUnit.Framework;
 
+using RabbitMQ.Client;
+
 namespace Lykke.RabbitMqBroker.Tests;
 
 [TestFixture]
@@ -20,8 +22,8 @@ internal sealed class QueueConfigurationOptionsTests
 
         var args = options.BuildArguments();
 
-        Assert.That(args, Does.ContainKey("x-queue-type"));
-        Assert.That(args["x-queue-type"], Is.EqualTo("quorum"));
+        Assert.That(args, Does.ContainKey(Headers.XQueueType));
+        Assert.That(args[Headers.XQueueType], Is.EqualTo("quorum"));
     }
 
     [Test]
@@ -37,8 +39,8 @@ internal sealed class QueueConfigurationOptionsTests
 
         var args = options.BuildArguments();
 
-        Assert.That(args, Does.ContainKey("x-dead-letter-exchange"));
-        Assert.That(args["x-dead-letter-exchange"], Is.EqualTo(deadLetterExchangeName.ToString()));
+        Assert.That(args, Does.ContainKey(Headers.XDeadLetterExchange));
+        Assert.That(args[Headers.XDeadLetterExchange], Is.EqualTo(deadLetterExchangeName.ToString()));
     }
 
     [Test]
@@ -56,8 +58,8 @@ internal sealed class QueueConfigurationOptionsTests
 
         Assert.That(args, Does.ContainKey("x-dead-letter-strategy"));
         Assert.That(args["x-dead-letter-strategy"], Is.EqualTo("at-least-once"));
-        Assert.That(args, Does.ContainKey("overflow"));
-        Assert.That(args["overflow"], Is.EqualTo("reject-publish"));
+        Assert.That(args, Does.ContainKey(Headers.XOverflow));
+        Assert.That(args[Headers.XOverflow], Is.EqualTo("reject-publish"));
     }
 
     [Test]
@@ -79,7 +81,7 @@ internal sealed class QueueConfigurationOptionsTests
         args.TryGetValue("x-dead-letter-strategy", out var strategy);
         Assert.That(strategy, Is.AnyOf(null, "at-most-once"));
 
-        args.TryGetValue("overflow", out var overflow);
+        args.TryGetValue(Headers.XOverflow, out var overflow);
         Assert.That(overflow, Is.AnyOf(null, "drop-head"));
     }
 
@@ -94,10 +96,10 @@ internal sealed class QueueConfigurationOptionsTests
 
         var args = options.BuildArguments();
 
-        Assert.That(args, Does.ContainKey("x-expires"));
+        Assert.That(args, Does.ContainKey(Headers.XExpires));
         Assert.That(
-            args["x-expires"],
-            Is.EqualTo(TimeToLive.OneMinute.Value.TotalMilliseconds));
+            args[Headers.XExpires],
+            Is.EqualTo(TimeToLive.OneMinute.ToExpirationMilliseconds()));
     }
 
     [Test]
