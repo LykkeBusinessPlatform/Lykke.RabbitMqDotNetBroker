@@ -4,18 +4,18 @@ namespace Lykke.RabbitMqBroker;
 
 internal static class ArgumentsBuilderExtensions
 {
-    public static ulong ToExpirationMilliseconds(this double src)
+    public static long ToExpirationMilliseconds(this double src)
     {
         var decimalValue = (decimal)src;
 
         return decimalValue switch
         {
-            > ulong.MaxValue => ulong.MaxValue,
-            < ulong.MinValue => ulong.MinValue,
-            _ => (ulong)src
+            > long.MaxValue => long.MaxValue,
+            <= 0 => 0,
+            _ => (long)src
         };
     }
 
-    public static ulong ToExpirationMilliseconds(this TimeToLive src) =>
+    public static long ToExpirationMilliseconds(this TimeToLive src) =>
         src.Value.TotalMilliseconds.ToExpirationMilliseconds();
 }

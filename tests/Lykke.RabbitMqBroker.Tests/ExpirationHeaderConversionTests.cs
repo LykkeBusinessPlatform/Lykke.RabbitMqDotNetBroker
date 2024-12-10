@@ -8,62 +8,53 @@ namespace Lykke.RabbitMqBroker.Tests;
 internal sealed class ExpirationHeaderConversionTests
 {
     [Test]
-    public void ToExpirationMilliseconds_ValidValueWithoutFraction_ReturnsUlong()
+    public void ToExpirationMilliseconds_ValidValueWithoutFraction_ReturnsLong()
     {
         double src = 12345;
 
-        ulong result = src.ToExpirationMilliseconds();
+        long result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(12345ul));
+        Assert.That(result, Is.EqualTo(12345L));
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValidValueWithFraction_ReturnsFlooredUlong()
+    public void ToExpirationMilliseconds_ValidValueWithFraction_ReturnsFlooredLong()
     {
         double src = 12345.67;
 
-        ulong result = src.ToExpirationMilliseconds();
+        long result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(12345ul));
+        Assert.That(result, Is.EqualTo(12345L));
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValueExceedsULongMax_ReturnsULongMax()
+    public void ToExpirationMilliseconds_ValueExceedsLongMax_ReturnsLongMax()
     {
-        double src = (double)2 * ulong.MaxValue;
+        double src = (double)2 * long.MaxValue;
 
-        ulong result = src.ToExpirationMilliseconds();
+        long result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(ulong.MaxValue));
+        Assert.That(result, Is.EqualTo(long.MaxValue));
+    }
+
+    [TestCase(0d)]
+    [TestCase(-1d)]
+    public void ToExpirationMilliseconds_ValueBelowZero_ReturnsZero(double value)
+    {
+        double src = value;
+
+        long result = src.ToExpirationMilliseconds();
+
+        Assert.That(result, Is.EqualTo(0L));
     }
 
     [Test]
-    public void ToExpirationMilliseconds_ValueBelowULongMin_ReturnsULongMin()
+    public void ToExpirationMilliseconds_ValueAtLongMax_ReturnsLongMax()
     {
-        double src = ulong.MinValue - 1.0;
+        double src = Convert.ToDouble(long.MaxValue);
 
-        ulong result = src.ToExpirationMilliseconds();
+        long result = src.ToExpirationMilliseconds();
 
-        Assert.That(result, Is.EqualTo(ulong.MinValue));
-    }
-
-    [Test]
-    public void ToExpirationMilliseconds_ValueAtULongMax_ReturnsUlong()
-    {
-        double src = Convert.ToDouble(ulong.MaxValue);
-
-        ulong result = src.ToExpirationMilliseconds();
-
-        Assert.That(result, Is.EqualTo(ulong.MaxValue));
-    }
-
-    [Test]
-    public void ToExpirationMilliseconds_ValueAtULongMin_ReturnsUlong()
-    {
-        double src = ulong.MinValue;
-
-        ulong result = src.ToExpirationMilliseconds();
-
-        Assert.That(result, Is.EqualTo(ulong.MinValue));
+        Assert.That(result, Is.EqualTo(long.MaxValue));
     }
 }
