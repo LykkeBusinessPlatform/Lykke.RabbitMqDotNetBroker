@@ -1,4 +1,4 @@
-## [[tbd]] ([[date]])
+## 16.1.2 (2024-12-10)
 
 ### Fixed
 - LT-5967: Fix `x-expires` argument header conversions to use `long` instead `ulong`.
