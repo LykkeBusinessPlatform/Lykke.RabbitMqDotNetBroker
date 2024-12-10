@@ -62,7 +62,7 @@ public class QueueConfiguratorTests
         PrimitivesConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
         Assert.That(options.QueueName.AsPoison(), Is.EqualTo(result.Response));
         Assert.That(
-            (ulong)args[Headers.XExpires],
+            (long)args[Headers.XExpires],
             Is.GreaterThan(originalQueueTtl.ToExpirationMilliseconds()));
     }
 
