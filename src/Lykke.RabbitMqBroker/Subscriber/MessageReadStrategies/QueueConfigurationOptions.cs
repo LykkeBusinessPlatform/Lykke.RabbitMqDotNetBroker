@@ -1,3 +1,5 @@
+using System;
+
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 /// <param name="QueueName"> The name of the queue to be used when declaring it. </param>
@@ -23,7 +25,9 @@ internal sealed record QueueConfigurationOptions(
     bool Durable = false,
     bool AutoDelete = true,
     RoutingKey RoutingKey = null,
-    QueueType QueueType = QueueType.Classic)
+    QueueType QueueType = QueueType.Classic,
+    int MaxRetryCount = 200,
+    int RetryDelay = 3)
 {
     /// <summary>
     /// Creates a new instance of the <see cref="QueueConfigurationOptions"/> class
@@ -36,6 +40,7 @@ internal sealed record QueueConfigurationOptions(
     /// <param name="durable"></param>
     /// <param name="autoDelete"></param>
     /// <param name="routingKey"></param>
+    /// <param name="retryDelay"></param>
     /// <param name="ttl"></param>
     /// <returns></returns>
     public static QueueConfigurationOptions ForClassicQueue(
@@ -46,7 +51,8 @@ internal sealed record QueueConfigurationOptions(
         bool durable,
         bool autoDelete,
         RoutingKey routingKey,
-        TimeToLive ttl = null) => new(
+        TimeToLive ttl = null,
+        int retryDelay = 3) => new(
             queueName,
             exchangeName,
             (autoDelete || ttl is null) ? TimeToLive.Infinite : ttl,
@@ -55,7 +61,8 @@ internal sealed record QueueConfigurationOptions(
             durable,
             autoDelete,
             routingKey,
-            QueueType.Classic
+            QueueType.Classic,
+            RetryDelay: retryDelay
         );
 
     /// <summary>
@@ -67,6 +74,7 @@ internal sealed record QueueConfigurationOptions(
     /// <param name="deadLetterExchangeName"></param>
     /// <param name="deadLetterExchangeType"></param>
     /// <param name="routingKey"></param>
+    /// <param name="retryDelay"></param>
     /// <param name="ttl"></param>
     /// <returns></returns>
     public static QueueConfigurationOptions ForQuorumQueue(
@@ -75,7 +83,8 @@ internal sealed record QueueConfigurationOptions(
         DeadLetterExchangeName deadLetterExchangeName,
         string deadLetterExchangeType,
         RoutingKey routingKey,
-        TimeToLive ttl = null) => new(
+        TimeToLive ttl = null,
+        int retryDelay = 3) => new(
             queueName,
             exchangeName,
             ttl ?? TimeToLive.Infinite,
@@ -84,6 +93,7 @@ internal sealed record QueueConfigurationOptions(
             true,
             false,
             routingKey,
-            QueueType.Quorum
+            QueueType.Quorum,
+            RetryDelay: retryDelay
         );
 }

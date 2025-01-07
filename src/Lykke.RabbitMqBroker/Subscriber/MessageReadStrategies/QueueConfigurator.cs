@@ -1,5 +1,7 @@
 using System;
 
+using Microsoft.Extensions.Logging;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
@@ -17,13 +19,23 @@ internal static class QueueConfigurator
         QueueConfigurationOptions options)
     {
         var args = options.BuildArguments();
+        var logger = LoggerFactoryContainer.Instance.CreateLogger(nameof(QueueConfigurator));
         return channelFactory.DeclareQueue(options, args)
             .Match(
                 // Even if the declared queue name is defined (from options),
                 // strictly speaking, declaration operation returns the declared 
                 // queue name, so it should to be honored here
-                success => channelFactory.BindQueue(options with { QueueName = QueueName.Create(success.QueueName) }),
-                ConfigurationResult<QueueName>.Failure);
+                success => channelFactory.BindQueue(options with { QueueName = QueueName.Create(success.QueueName) })
+                    .Match(ConfigurationResult<QueueName>.Success,
+                        error => {
+                            logger.LogWarning($"Failure during binding of the queue {options.QueueName} to exchange {options.ExistingExchangeName} because of {error.Code}:{error.Message}");
+                            return ConfigurationResult<QueueName>.Failure(error);
+                        }),
+                error =>
+                {
+                    logger.LogWarning($"Failure during declaration of the queue {options.QueueName} because of {error.Code}:{error.Message}");
+                    return ConfigurationResult<QueueName>.Failure(error);
+                });
     }
 
     /// <summary>
