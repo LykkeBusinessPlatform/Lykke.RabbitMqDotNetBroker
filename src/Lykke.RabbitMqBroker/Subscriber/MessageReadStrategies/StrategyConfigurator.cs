@@ -71,7 +71,7 @@ internal static class StrategyConfigurator
             if (tryNumber++ < tryCount)
             {
                 logger.LogWarning($"Queue `{options.QueueName}` declaration OR binding has failed. Reason: {result.Error.Message}. Code: {result.Error.Code}." + Environment.NewLine +
-                                  $"Try #{tryNumber} out of {tryCount} total is coming in {timeoutMs} seconds." + Environment.NewLine +
+                                  $"Try #{tryNumber} out of {tryCount} total is coming in {timeoutMs} milliseconds." + Environment.NewLine +
                                   $"Please make sure that " + Environment.NewLine +
                                   $"- queue parameters in service configuration matches queue real state from RabbitMQ. If is an intentional upgrade, workaround is to delete the queue manually." + Environment.NewLine +
                                   $"- exchange {options.ExistingExchangeName} exists. Check responsible service.");

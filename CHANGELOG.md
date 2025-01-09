@@ -1,5 +1,10 @@
 ## 16.2.0 (2025-09-01)
 
+### Changed
+- LT-5980: Fix typo
+
+## 16.2.0 (2025-09-01)
+
 ### Fixed
 - LT-5980: added retries for the case when binding to unexisting exchange was causing services to hang
 
