@@ -25,9 +25,7 @@ internal sealed record QueueConfigurationOptions(
     bool Durable = false,
     bool AutoDelete = true,
     RoutingKey RoutingKey = null,
-    QueueType QueueType = QueueType.Classic,
-    int MaxRetryCount = 200,
-    int RetryDelay = 3)
+    QueueType QueueType = QueueType.Classic)
 {
     /// <summary>
     /// Creates a new instance of the <see cref="QueueConfigurationOptions"/> class
@@ -40,7 +38,6 @@ internal sealed record QueueConfigurationOptions(
     /// <param name="durable"></param>
     /// <param name="autoDelete"></param>
     /// <param name="routingKey"></param>
-    /// <param name="retryDelay"></param>
     /// <param name="ttl"></param>
     /// <returns></returns>
     public static QueueConfigurationOptions ForClassicQueue(
@@ -51,8 +48,7 @@ internal sealed record QueueConfigurationOptions(
         bool durable,
         bool autoDelete,
         RoutingKey routingKey,
-        TimeToLive ttl = null,
-        int retryDelay = 3) => new(
+        TimeToLive ttl = null) => new(
             queueName,
             exchangeName,
             (autoDelete || ttl is null) ? TimeToLive.Infinite : ttl,
@@ -61,8 +57,7 @@ internal sealed record QueueConfigurationOptions(
             durable,
             autoDelete,
             routingKey,
-            QueueType.Classic,
-            RetryDelay: retryDelay
+            QueueType.Classic
         );
 
     /// <summary>
@@ -83,8 +78,8 @@ internal sealed record QueueConfigurationOptions(
         DeadLetterExchangeName deadLetterExchangeName,
         string deadLetterExchangeType,
         RoutingKey routingKey,
-        TimeToLive ttl = null,
-        int retryDelay = 3) => new(
+        TimeToLive ttl = null
+        ) => new(
             queueName,
             exchangeName,
             ttl ?? TimeToLive.Infinite,
@@ -93,7 +88,6 @@ internal sealed record QueueConfigurationOptions(
             true,
             false,
             routingKey,
-            QueueType.Quorum,
-            RetryDelay: retryDelay
+            QueueType.Quorum
         );
 }

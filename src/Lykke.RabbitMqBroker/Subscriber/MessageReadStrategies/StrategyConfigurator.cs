@@ -9,6 +9,9 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 internal static class StrategyConfigurator
 {
+    private const int ConfigurationTriesMaxCount = 300;
+    private const int ConfigurationTriesDelayMs = 3000;
+        
     /// <summary>
     /// Configures the whole strategy including queue, DLX and poison queue
     /// according to the provided options.
@@ -20,19 +23,18 @@ internal static class StrategyConfigurator
     /// </summary>
     /// <param name="channelFactory"></param>
     /// <param name="options"></param>
-    /// <param name="retryNumber">Technical trick for retry organization</param>
+    /// <param name="tryNumber">Technical trick for retry organization</param>
+    /// <param name="timeoutMs">Technical trick for retry organization</param>
+    /// <param name="tryCount">Technical trick for retry organization</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
     public static IConfigurationResult<QueueName> Configure(
         Func<IModel> channelFactory,
         QueueConfigurationOptions options,
-        int retryNumber = 0)
+        int tryNumber = 1,
+        int timeoutMs = ConfigurationTriesDelayMs,
+        int tryCount = ConfigurationTriesMaxCount)
     {
-        if (retryNumber++ > options.MaxRetryCount)
-        {
-            throw new Exception($"Circuit breaker: queue configuration failed after {retryNumber} retries.");
-        }
-        
         var result = QueueConfigurator.Configure(channelFactory, options);
         if (result.IsFailure)
         {
@@ -41,9 +43,10 @@ internal static class StrategyConfigurator
             if (result.Error.Code.Code.Equals(Constants.PreconditionFailed))
                 switch (options.QueueType)
                 {
+                    // NOTE: case with migration from classic queue to quorum WILL fail. however, it is not considered as real need
                     case QueueType.Classic:
                         return channelFactory.SafeDeleteQueue(options.QueueName.ToString()).Match(
-                            onSuccess: _ => Configure(channelFactory, options, retryNumber),
+                            onSuccess: _ => Configure(channelFactory, options, tryNumber),
                             onFailure: _ => throw new InvalidOperationException($"Failed to delete queue: precondition failed for queue '[{options.QueueName}]'.")
                         );
                     case QueueType.Quorum:
@@ -53,7 +56,7 @@ internal static class StrategyConfigurator
                             if (channelFactory.DeclareQueue(options, optionsForRegularQueue.BuildArguments()).IsSuccess)
                             {
                                 return channelFactory.SafeDeleteQueue(options.QueueName.ToString()).Match(
-                                    onSuccess: _ => Configure(channelFactory, options, retryNumber),
+                                    onSuccess: _ => Configure(channelFactory, options, tryNumber, timeoutMs, tryCount),
                                     onFailure: _ => throw new InvalidOperationException($"Failed to delete queue: precondition failed for queue '[{options.QueueName}]'.")
                                 );
                             }
@@ -65,13 +68,19 @@ internal static class StrategyConfigurator
 
             // Otherwise we just keep retrying hoping service operator will notice this and will deal with the queue manually
             var logger = LoggerFactoryContainer.Instance.CreateLogger(nameof(StrategyConfigurator));
-            logger.LogWarning($"Queue `{options.QueueName}` declaration OR binding has failed. Reason: {result.Error.Message}. Code: {result.Error.Code}." + Environment.NewLine +
-                              $"Retry #{retryNumber} out of {options.MaxRetryCount} total is coming in {options.RetryDelay} seconds." + Environment.NewLine +
-                              $"Please make sure that " + Environment.NewLine +
-                              $"- queue parameters in service configuration matches queue real state from RabbitMQ. If that is an intention, workaround is to delete the queue manually." + Environment.NewLine +
-                              $"- exchange {options.ExistingExchangeName} exists. Check responsible service.");
-            Thread.Sleep(options.RetryDelay * 1000);
-            return Configure(channelFactory, options, retryNumber);
+            if (tryNumber++ < tryCount)
+            {
+                logger.LogWarning($"Queue `{options.QueueName}` declaration OR binding has failed. Reason: {result.Error.Message}. Code: {result.Error.Code}." + Environment.NewLine +
+                                  $"Try #{tryNumber} out of {tryCount} total is coming in {timeoutMs} seconds." + Environment.NewLine +
+                                  $"Please make sure that " + Environment.NewLine +
+                                  $"- queue parameters in service configuration matches queue real state from RabbitMQ. If is an intentional upgrade, workaround is to delete the queue manually." + Environment.NewLine +
+                                  $"- exchange {options.ExistingExchangeName} exists. Check responsible service.");
+                Thread.Sleep(timeoutMs);
+                return Configure(channelFactory, options, tryNumber, timeoutMs, tryCount);
+            }
+
+            logger.LogCritical($"Configuration of the queue {options.QueueName} failed after {tryNumber} attempts. Please fix problems from above and restart the service.");
+            return ConfigurationResult<QueueName>.Failure(result.Error);
         }
 
         if (ExchangeConfigurator.DlxApplicable(options))
