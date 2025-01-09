@@ -48,14 +48,16 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
                 Durable,
                 AutoDelete,
                 effectiveRoutingKey,
-                TimeToLive.Create(settings.QueueTimeToLive)),
+                TimeToLive.Create(settings.QueueTimeToLive)
+                ),
             QueueType.Quorum => QueueConfigurationOptions.ForQuorumQueue(
                 settings.GetQueueName(),
                 ExchangeName.Create(settings.ExchangeName),
                 string.IsNullOrWhiteSpace(settings.DeadLetterExchangeName) ? null : DeadLetterExchangeName.Create(settings.DeadLetterExchangeName),
                 StrategyDefaultDeadLetterExchangeType,
                 effectiveRoutingKey,
-                TimeToLive.Create(settings.QueueTimeToLive)),
+                TimeToLive.Create(settings.QueueTimeToLive)
+                ),
             _ => throw new InvalidOperationException($"Unsupported queue type [{QueueType}]")
         };
     }

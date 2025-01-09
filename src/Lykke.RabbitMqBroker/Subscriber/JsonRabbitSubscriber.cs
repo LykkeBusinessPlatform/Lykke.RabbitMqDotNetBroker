@@ -83,6 +83,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _settings = _settings.MakeDurable();
             _prefetchCount = prefetchCount;
             _loggerFactory = logFactory ?? throw new ArgumentNullException(nameof(logFactory));
+            LoggerFactoryContainer.Instance = _loggerFactory;
             _sendTelemetry = sendTelemetry;
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         }

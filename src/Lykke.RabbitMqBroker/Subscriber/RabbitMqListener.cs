@@ -63,6 +63,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _subscriptionSettings = subscriptionSettings ?? throw new ArgumentNullException(nameof(subscriptionSettings));
             _options = optionsAccessor?.Value ?? RabbitMqListenerOptions<T>.Json.Default;
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            LoggerFactoryContainer.Instance = _loggerFactory;
             _configureSubscriber = configureSubscriber;
             _handlers = handlers;
         }

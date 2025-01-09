@@ -1,3 +1,5 @@
+using System;
+
 namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
 
 /// <param name="QueueName"> The name of the queue to be used when declaring it. </param>
@@ -75,7 +77,8 @@ internal sealed record QueueConfigurationOptions(
         DeadLetterExchangeName deadLetterExchangeName,
         string deadLetterExchangeType,
         RoutingKey routingKey,
-        TimeToLive ttl = null) => new(
+        TimeToLive ttl = null
+        ) => new(
             queueName,
             exchangeName,
             ttl ?? TimeToLive.Infinite,
