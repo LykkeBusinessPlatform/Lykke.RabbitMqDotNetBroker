@@ -69,7 +69,6 @@ internal sealed record QueueConfigurationOptions(
     /// <param name="deadLetterExchangeName"></param>
     /// <param name="deadLetterExchangeType"></param>
     /// <param name="routingKey"></param>
-    /// <param name="retryDelay"></param>
     /// <param name="ttl"></param>
     /// <returns></returns>
     public static QueueConfigurationOptions ForQuorumQueue(
