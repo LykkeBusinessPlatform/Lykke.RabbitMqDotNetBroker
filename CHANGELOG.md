@@ -1,3 +1,8 @@
+## [[tbd]] (2025-09-01)
+
+### Fixed
+- LT-5980: added retries for the case when binding to unexisting exchange was causing services to hang
+
 ## 16.1.2 (2024-12-10)
 
 ### Fixed
