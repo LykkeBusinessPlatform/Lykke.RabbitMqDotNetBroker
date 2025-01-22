@@ -88,6 +88,12 @@ public sealed class ImmediatePublisher<T>(
         string exchangeName = null,
         string routingKey = null)
     {
+        if (_channel?.IsClosed ?? false)
+        {
+            _channel.Dispose();
+            _initialized = false;
+        }
+
         if (!_initialized)
             Initialize();
 
