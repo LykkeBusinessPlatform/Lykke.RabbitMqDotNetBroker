@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 
-using Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 using Microsoft.Extensions.Time.Testing;

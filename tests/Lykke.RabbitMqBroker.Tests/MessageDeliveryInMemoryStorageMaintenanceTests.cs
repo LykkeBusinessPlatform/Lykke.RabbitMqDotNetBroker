@@ -7,7 +7,6 @@ using Lykke.RabbitMqBroker.Abstractions.Tracking;
 using NUnit.Framework;
 
 using Microsoft.Extensions.Time.Testing;
-using Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 
 namespace Lykke.RabbitMqBroker.Tests;
 

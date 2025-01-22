@@ -25,7 +25,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lykke.RabbitMqBroker\Lykke.RabbitMqBroker.csproj" />
-    <ProjectReference Include="..\Lykke.RabbitMqBroker.Abstractions.Tests\Lykke.RabbitMqBroker.Abstractions.Tests.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
