@@ -27,7 +27,17 @@ await builder
     })
     .ConfigureServices((ctx, services) =>
     {
-        services.AddLogging(lb => lb.ClearProviders().AddConsole().SetMinimumLevel(LogLevel.Debug));
+        services.AddLogging(lb =>
+            lb.ClearProviders()
+                .AddSimpleConsole(opt =>
+                {
+                    opt.IncludeScopes = true;
+                    opt.SingleLine = true;
+                    opt.ColorBehavior = Microsoft.Extensions.Logging.Console.LoggerColorBehavior.Enabled;
+                    opt.UseUtcTimestamp = true;
+                    opt.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
+                })
+                .SetMinimumLevel(LogLevel.Debug));
         var configuration = new RabbitMqConfiguration();
         ctx.Configuration.GetSection("RabbitMq").Bind(configuration);
         services.AddRabbitMq(configuration);
