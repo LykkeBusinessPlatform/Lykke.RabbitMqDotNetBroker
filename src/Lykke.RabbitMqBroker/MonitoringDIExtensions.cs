@@ -33,7 +33,7 @@ public static class MonitoringDIExtensions
         where TMessageDeliveryStorage : class, IMessageDeliveryStorage
         where TIssueNotifier : class, IMonitoringIssueNotifier
     {
-        services.AddSingleton<IListenerRegistrationHandler, ListenerRegistrationHandler>();
+        services.AddSingleton<IListenerRegistrationHandler, ListenerRegistrationMonitoringHandler>();
         services.AddSingleton<IMessageProducer<MonitoringHeartbeat>, MonitoringHeartbeatPublisher>();
         services.AddSingleton<ITrackableMessagePublisher<MonitoringHeartbeat>, TrackableMessagePublisher<MonitoringHeartbeat>>();
 
@@ -78,7 +78,7 @@ public static class MonitoringDIExtensions
         where TMessageDeliveryStorage : class, IMessageDeliveryStorage
         where TIssueNotifier : class, IMonitoringIssueNotifier
     {
-        builder.RegisterType<ListenerRegistrationHandler>()
+        builder.RegisterType<ListenerRegistrationMonitoringHandler>()
             .As<IListenerRegistrationHandler>()
             .SingleInstance();
 

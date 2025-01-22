@@ -4,12 +4,12 @@ using Lykke.RabbitMqBroker.Publisher;
 
 namespace Lykke.RabbitMqBroker.Monitoring;
 
-internal sealed class ListenerRegistrationHandler(
+internal sealed class ListenerRegistrationMonitoringHandler(
     IMessageProducer<MonitoringHeartbeat> monitoringMessagePublisher) : IListenerRegistrationHandler
 {
     private readonly IMessageProducer<MonitoringHeartbeat> _monitoringMessagePublisher = monitoringMessagePublisher;
 
-    public string Name => nameof(ListenerRegistrationHandler);
+    public string Name => nameof(ListenerRegistrationMonitoringHandler);
 
     public async Task Handle(IListenerRegistration registration)
     {
