@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Tests.MonitoringMessageSenderTests;
-using MonitoringListenerRegistrationHandler = Lykke.RabbitMqBroker.Monitoring.ListenerRegistrationHandler;
+using MonitoringListenerRegistrationHandler = Lykke.RabbitMqBroker.Monitoring.ListenerRegistrationMonitoringHandler;
 
 using NUnit.Framework;
 using Lykke.RabbitMqBroker.Subscriber;
