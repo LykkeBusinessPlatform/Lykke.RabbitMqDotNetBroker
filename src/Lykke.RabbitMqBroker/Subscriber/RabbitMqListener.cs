@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Autofac;
@@ -21,8 +22,8 @@ namespace Lykke.RabbitMqBroker.Subscriber
     /// Listener is a concept that wraps subscriber or multiple subscriber instances,
     /// takes care of creating, starting and disposing subscriber instances with
     /// provided options. It injects message handler(-s) and runs them.
-    /// Being registered in DI container as <see cref="IStartable"/>, 
-    /// it is started automatically when the application starts. 
+    /// Being registered in DI container as <see cref="IStartable"/>,
+    /// it is started automatically when the application starts.
     /// Autofac is responsible for disposing the listener when the application stops.
     ///
     /// Requires Autofac to be used at least as service provider factory.
@@ -38,8 +39,9 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly ILoggerFactory _loggerFactory;
         private readonly Action<RabbitMqSubscriber<T>> _configureSubscriber;
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
-        
+
         private List<RabbitMqSubscriber<T>> _subscribers = new ();
+        private CancellationTokenSource _cancellationTokenSource = new();
 
         /// <summary>
         /// Creates a new instance of <see cref="RabbitMqListener{T}"/>
@@ -70,20 +72,29 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public void Start()
         {
+            StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
             if (_subscribers.Any())
                 throw new InvalidOperationException("The listener is already started");
+
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             foreach (var _ in _options.ConsumerCount)
             {
                 var connection = CreateConnection();
                 var subscriber = CreateSubscriber(connection)
-                    .Subscribe(Handle)
-                    .Start();
+                    .Subscribe(Handle);
 
                 _subscribers.Add(subscriber);
+                subscriber.StartAsync(cancellationToken);
             }
+
+            return Task.CompletedTask;
         }
-        
+
         private IAutorecoveringConnection CreateConnection()
         {
             return _options.ShareConnection switch
@@ -134,7 +145,13 @@ namespace Lykke.RabbitMqBroker.Subscriber
         public void Stop()
         {
             if (!_subscribers.Any()) return;
-            
+
+            if (_cancellationTokenSource is { IsCancellationRequested: false })
+            {
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
+            }
+
             for (var i = _subscribers.Count - 1; i >= 0; i--)
             {
                 _subscribers[i].Dispose();

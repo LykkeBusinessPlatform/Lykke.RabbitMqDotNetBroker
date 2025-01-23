@@ -2,6 +2,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 
 using RabbitMQ.Client;
 
@@ -21,11 +22,11 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
         _routingKey = routingKey;
     }
 
-    public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
+    public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory, CancellationToken cancellationToken = default)
     {
         var options = CreateQueueConfigurationOptions(settings);
 
-        var (queueName, _) = StrategyConfigurator.Configure(channelFactory, options).Match(
+        var (queueName, _) = StrategyConfigurator.Configure(channelFactory, options, cancellationToken).Match(
             onFailure: _ => throw new InvalidOperationException($"Failed to configure templated strategy for queue [{options.QueueName}]")
         );
 

@@ -9,6 +9,7 @@ internal record ConfigurationErrorCode(ushort Code)
 {
     public static ConfigurationErrorCode PreconditionsFailed => new(Constants.PreconditionFailed);
     public static ConfigurationErrorCode None => new(0);
+    public static ConfigurationErrorCode Cancelled => new(1000);
 }
 
 [DebuggerDisplay("{Code}: {Message}")]

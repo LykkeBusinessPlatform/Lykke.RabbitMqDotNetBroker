@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 
 using JetBrains.Annotations;
 
@@ -17,7 +18,8 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
         /// </summary>
         /// <param name="settings"></param>
         /// <param name="channelFactory"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns> The name of the queue </returns>
-        QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory);
+        QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory, CancellationToken cancellationToken = default);
     }
 }
