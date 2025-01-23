@@ -63,8 +63,8 @@ jobs:
             --results-directory:../coverage \
             /p:CollectCoverage=true \
             /p:CoverletOutput=../coverage/ \
-            /p:MergeWith=../coverage_abstractions/coverage.json
-            /p:CoverletOutputFormat=cobertura
+            /p:MergeWith=../coverage_abstractions/coverage.json \
+            /p:CoverletOutputFormat="cobertura"
 
       - name: Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
