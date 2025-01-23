@@ -41,7 +41,16 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test Abstractions
-        run: dotnet test ./tests/Lykke.RabbitMqBroker.Abstractions.Tests/Lykke.RabbitMqBroker.Abstractions.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage_abstractions --environment ENV_INFO=GITHUB_ACTIONS /p:CoverletOutput=./coverage_abstractions/coverage.json /p:CoverletOutputFormat=json
+        run: |
+          dotnet test ./tests/Lykke.RabbitMqBroker.Abstractions.Tests/Lykke.RabbitMqBroker.Abstractions.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage_abstractions \
+            --environment ENV_INFO=GITHUB_ACTIONS \
+            /p:CoverletOutput=./coverage_abstractions/coverage.json \
+            /p:CoverletOutputFormat=json
 
       - name: Test Main Project
         run: dotnet test ./tests/Lykke.RabbitMqBroker.Tests/Lykke.RabbitMqBroker.Tests.csproj \
