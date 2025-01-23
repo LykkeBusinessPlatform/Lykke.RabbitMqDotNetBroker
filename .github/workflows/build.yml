@@ -40,7 +40,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Test Abstractions
+      - name: Test Abstractions Project
         run: |
           dotnet test ./tests/Lykke.RabbitMqBroker.Abstractions.Tests/Lykke.RabbitMqBroker.Abstractions.Tests.csproj \
             --configuration Release \
