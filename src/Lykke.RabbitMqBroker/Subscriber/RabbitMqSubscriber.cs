@@ -185,7 +185,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
             if (_cancellationTokenSource is { IsCancellationRequested: false })
             {
                 _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
             }
 
             if (_consumer is not null)
@@ -206,6 +205,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _channel?.BasicCancel(_consumerTag);
             _channel?.Close();
             _channel?.Dispose();
+            _cancellationTokenSource?.Dispose();
         }
 
         public void Dispose()

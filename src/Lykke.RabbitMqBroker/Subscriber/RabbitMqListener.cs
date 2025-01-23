@@ -81,6 +81,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 throw new InvalidOperationException("The listener is already started");
 
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var tasks = new List<Task>();
 
             foreach (var _ in _options.ConsumerCount)
             {
@@ -89,10 +90,10 @@ namespace Lykke.RabbitMqBroker.Subscriber
                     .Subscribe(Handle);
 
                 _subscribers.Add(subscriber);
-                subscriber.StartAsync(cancellationToken);
+                tasks.Add(subscriber.StartAsync(cancellationToken));
             }
 
-            return Task.CompletedTask;
+            return Task.WhenAll(tasks);
         }
 
         private IAutorecoveringConnection CreateConnection()
@@ -149,7 +150,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
             if (_cancellationTokenSource is { IsCancellationRequested: false })
             {
                 _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
             }
 
             for (var i = _subscribers.Count - 1; i >= 0; i--)
@@ -157,6 +157,8 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _subscribers[i].Dispose();
                 _subscribers.RemoveAt(i);
             }
+
+            _cancellationTokenSource?.Dispose();
         }
     }
 }
