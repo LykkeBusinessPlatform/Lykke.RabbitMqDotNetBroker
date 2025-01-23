@@ -53,15 +53,16 @@ jobs:
             /p:CoverletOutputFormat=json
 
       - name: Test Main Project
-        run: dotnet test ./tests/Lykke.RabbitMqBroker.Tests/Lykke.RabbitMqBroker.Tests.csproj \
-          --configuration Release \
-          --no-build \
-          --verbosity normal \
-          --collect:"XPlat Code Coverage" \
-          --results-directory ./coverage \
-          --environment ENV_INFO=GITHUB_ACTIONS \
-          /p:CoverletOutput=./coverage/coverage.json \
-          /p:CoverletOutputFormat=json
+        run: |
+          dotnet test ./tests/Lykke.RabbitMqBroker.Tests/Lykke.RabbitMqBroker.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage \
+            --environment ENV_INFO=GITHUB_ACTIONS \
+            /p:CoverletOutput=./coverage/coverage.json \
+            /p:CoverletOutputFormat=json
 
       - name: Merge Coverage Reports
         run: |
