@@ -53,7 +53,13 @@ public static class MonitoringDIExtensions
                 p.GetRequiredService<IOptions<RabbitMqPublisherOptions<MonitoringHeartbeat>>>(),
                 MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
 
-        services.AddSingleton<IMessageDeliveryAnalysisWorker, MessageDeliveryAnalysisWorker>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<IMessageDeliveryAnalysisWorker, MessageDeliveryAnalysisWorker>(p =>
+            new MessageDeliveryAnalysisWorker(
+                p.GetRequiredService<IMessageDeliveryStorage>(),
+                p.GetRequiredService<IMonitoringIssueNotifier>(),
+                p.GetRequiredService<TimeProvider>(),
+                configuration.MessageDeliveryFairDelayMs == null ? null : TimeSpan.FromMilliseconds(configuration.MessageDeliveryFairDelayMs.Value)));
         services.AddHostedService(p =>
             new MessageDeliveryAnalysisTimer(
                 p.GetRequiredService<IMessageDeliveryAnalysisWorker>(),
@@ -119,9 +125,18 @@ public static class MonitoringDIExtensions
             .SingleInstance()
             .WithParameter(TypedParameter.From(MonitoringHeartbeatPublisherSettingsFactory.Create(connectionString)));
 
+
+        builder.Register(_ => TimeProvider.System)
+            .AsSelf()
+            .SingleInstance()
+            .IfNotRegistered(typeof(TimeProvider));
+
         builder.RegisterType<MessageDeliveryAnalysisWorker>()
             .As<IMessageDeliveryAnalysisWorker>()
-            .SingleInstance();
+            .SingleInstance()
+            .WithParameter(TypedParameter.From(configuration.MessageDeliveryFairDelayMs == null
+                ? (TimeSpan?)null
+                : TimeSpan.FromMilliseconds(configuration.MessageDeliveryFairDelayMs.Value)));
 
         builder.RegisterType<MessageDeliveryAnalysisTimer>()
             .As<IHostedService>()

@@ -59,7 +59,7 @@ public class StatusTests
     [Test]
     public void TrySetDispatched_Does_Nothing_WhenAlreadyFailed()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
         var failedDelivery = new MessageDeliveryWithDefaults()
             .TrySetFailed(failure);
 
@@ -94,7 +94,7 @@ public class StatusTests
     [Test]
     public void TrySetReceived_Does_Nothing_WhenAlreadyFailed()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
         var failedDelivery = new MessageDeliveryWithDefaults()
             .TrySetFailed(failure);
 
@@ -126,7 +126,7 @@ public class StatusTests
     [Test]
     public void TrySetFailed_ChangesStatusToFailed()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
         var failedDelivery = new MessageDeliveryWithDefaults().TrySetFailed(failure);
 
         Assert.Multiple(() =>
@@ -139,7 +139,7 @@ public class StatusTests
     [Test]
     public void TrySetFailed_ChangesStatusToFailed_WhenDispatched()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
         var failedDelivery = new MessageDeliveryWithDefaults()
             .TrySetDispatched(DateTime.UtcNow)
             .TrySetFailed(failure);
@@ -154,7 +154,7 @@ public class StatusTests
     [Test]
     public void TrySetFailed_ChangesStatusToFailed_WhenReceived()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
         var failedDelivery = new MessageDeliveryWithDefaults()
             .TrySetDispatched(DateTime.UtcNow)
             .TrySetReceived(DateTime.UtcNow)
@@ -181,7 +181,7 @@ public class StatusTests
     [Test]
     public void TrySetFailed_Does_Nothing_WhenAlreadyFailed()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
         var originallyFailedDelivery = new MessageDeliveryWithDefaults()
             .TrySetFailed(failure);
 
@@ -196,7 +196,7 @@ public class StatusTests
     {
         var noDelivery = MessageDelivery.None;
 
-        var updatedDelivery = noDelivery.TrySetFailed(MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised));
+        var updatedDelivery = noDelivery.TrySetFailed(MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None));
 
         Assert.That(updatedDelivery, Is.EqualTo(noDelivery));
     }

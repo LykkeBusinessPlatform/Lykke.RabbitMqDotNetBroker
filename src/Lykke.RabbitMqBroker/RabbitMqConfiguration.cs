@@ -28,6 +28,11 @@ namespace Lykke.RabbitMqBroker
         public TimeSpan? MessagesCleanupPeriod { get; set; }
 
         /// <summary>
+        /// Delivery messages period to consider as honorable infrastructure delay.
+        /// </summary>
+        public int? MessageDeliveryFairDelayMs { get; set; }
+
+        /// <summary>
         /// Delivery analysis period.
         /// </summary>
         public TimeSpan? AnalysisPeriod { get; set; }

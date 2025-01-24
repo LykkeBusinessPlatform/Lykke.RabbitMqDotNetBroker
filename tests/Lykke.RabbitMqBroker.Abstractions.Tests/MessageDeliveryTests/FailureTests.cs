@@ -8,12 +8,12 @@ internal sealed class FailureTests
     [Test]
     public void Create_WhenCalled_ShouldCreateNewFailure()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Uncategorised);
+        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
 
         Assert.Multiple(() =>
         {
             Assert.That(failure.IsEmpty, Is.False);
-            Assert.That(failure.Reason, Is.EqualTo(MessageDeliveryFailureReason.Uncategorised));
+            Assert.That(failure.Reason, Is.EqualTo(MessageDeliveryFailureReason.None));
         });
     }
 
@@ -21,12 +21,12 @@ internal sealed class FailureTests
     public void FromException_WhenCalled_ShouldCreateFailureFromException()
     {
         var exception = new Exception("Test exception");
-        var failure = MessageDeliveryFailure.FromException(exception);
+        var failure = MessageDeliveryFailure.FromException(exception, MessageDeliveryFailureReason.None);
 
         Assert.Multiple(() =>
         {
             Assert.That(failure.IsEmpty, Is.False);
-            Assert.That(failure.Reason, Is.EqualTo(MessageDeliveryFailureReason.Uncategorised));
+            Assert.That(failure.Reason, Is.EqualTo(MessageDeliveryFailureReason.None));
             Assert.That(failure.Description, Is.EqualTo(exception.Message));
         });
     }

@@ -5,10 +5,10 @@ namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 /// </summary>
 public enum MessageDeliveryFailureReason
 {
-    Uncategorised = 0,
+    None = 0,
 
     /// <summary>
-    /// Could not publish the message.
+    /// Could not publish the message
     /// </summary>
     DispatchError = 5,
 
@@ -17,5 +17,9 @@ public enum MessageDeliveryFailureReason
     /// </summary>
     BrokerCustodyNotConfirmed = 10,
 
+    /// <summary>
+    /// Message was published but not routed to any queue so it was returned
+    /// if configured to do so.
+    /// </summary>
     Unroutable = 15
 }

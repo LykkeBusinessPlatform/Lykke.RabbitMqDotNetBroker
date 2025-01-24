@@ -20,4 +20,12 @@ public static class MessageDeliveryAnalysis
 
     public static bool NotDelivered(this MessageDelivery messageDelivery) =>
         !Delivered(messageDelivery);
+
+    public static bool FairDelayExpired(this MessageDelivery messageDelivery, TimeSpan fairDelay, TimeProvider timeProvider) =>
+        messageDelivery switch
+        {
+            { ReceivedTimestamp: not null } => messageDelivery.ReceivedTimestamp - messageDelivery.DispatchedTimestamp > fairDelay,
+            { ReceivedTimestamp: null, DispatchedTimestamp: not null } => timeProvider.GetUtcNow() - messageDelivery.DispatchedTimestamp > fairDelay,
+            _ => false
+        };
 }
