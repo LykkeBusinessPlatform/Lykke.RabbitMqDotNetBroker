@@ -5,5 +5,6 @@ namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 /// </summary>
 public interface IMonitoringIssueNotifier
 {
-    Task Notify(MessageDelivery messageDelivery);
+    Task NotifyNotDelivered(MessageDelivery messageDelivery);
+    Task NotifyLateDelivery(MessageDelivery messageDelivery);
 }

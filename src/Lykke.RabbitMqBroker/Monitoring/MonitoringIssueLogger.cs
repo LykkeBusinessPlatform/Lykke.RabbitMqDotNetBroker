@@ -15,9 +15,15 @@ public sealed class MonitoringIssueLogger : IMonitoringIssueNotifier
         _logger = logger;
     }
 
-    public Task Notify(MessageDelivery messageDelivery)
+    public Task NotifyNotDelivered(MessageDelivery messageDelivery)
     {
         _logger.LogCritical("Message delivery monitoring issue: {MessageDelivery}", messageDelivery);
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyLateDelivery(MessageDelivery messageDelivery)
+    {
+        _logger.LogWarning("Monitoring message was delivered but late: {MessageDelivery}", messageDelivery);
         return Task.CompletedTask;
     }
 }
