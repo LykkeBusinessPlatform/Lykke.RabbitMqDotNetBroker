@@ -152,6 +152,32 @@ public class StatusTests
     }
 
     [Test]
+    [TestCase(MessageDeliveryFailureReason.DispatchError)]
+    [TestCase(MessageDeliveryFailureReason.BrokerCustodyNotConfirmed)]
+    public void TrySetFailed_Cleans_DispatchTimestamp_When_NotDispatched(MessageDeliveryFailureReason reason)
+    {
+        var failure = MessageDeliveryFailure.Create(reason);
+        var failedDelivery = new MessageDeliveryWithDefaults()
+            .TrySetDispatched(DateTime.UtcNow)
+            .TrySetFailed(failure);
+
+        Assert.That(failedDelivery.DispatchedTimestamp, Is.Null);
+    }
+
+    [Test]
+    [TestCase(MessageDeliveryFailureReason.None)]
+    [TestCase(MessageDeliveryFailureReason.Unroutable)]
+    public void TrySetFailed_DoesNot_Clean_DispatchTimestamp_When_Dispatched(MessageDeliveryFailureReason reason)
+    {
+        var failure = MessageDeliveryFailure.Create(reason);
+        var failedDelivery = new MessageDeliveryWithDefaults()
+            .TrySetDispatched(DateTime.UtcNow)
+            .TrySetFailed(failure);
+
+        Assert.That(failedDelivery.DispatchedTimestamp, Is.Not.Null);
+    }
+
+    [Test]
     public void TrySetFailed_ChangesStatusToFailed_WhenReceived()
     {
         var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);

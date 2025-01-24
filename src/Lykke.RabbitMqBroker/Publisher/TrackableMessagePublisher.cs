@@ -39,6 +39,10 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
         Action<IBasicProperties> configurator = null)
     {
         var deliveryId = await _storage.Add(route);
+        // Set the dispatched beforehand to avoid
+        // concurrent updates of the same delivery
+        // with receiving side.
+        await _storage.TrySetDispatched(deliveryId);
 
         try
         {
@@ -56,7 +60,6 @@ public class TrackableMessagePublisher<T> : ITrackableMessagePublisher<T>
             return deliveryId;
         }
 
-        await _storage.TrySetDispatched(deliveryId);
         return deliveryId;
     }
 

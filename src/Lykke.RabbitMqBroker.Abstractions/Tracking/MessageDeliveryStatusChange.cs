@@ -4,7 +4,7 @@ public static class MessageDeliveryStatusChange
 {
     /// <summary>
     /// Tries to set the dispatched timestamp of the message delivery.
-    /// If status is not pending, the method does nothing but just 
+    /// If status is not pending, the method does nothing but just
     /// returns the delivery.
     /// </summary>
     /// <param name="delivery"></param>
@@ -19,7 +19,6 @@ public static class MessageDeliveryStatusChange
             _ => delivery
         }
     };
-
 
     /// <summary>
     /// Tries to set the received timestamp of the message delivery.
@@ -43,6 +42,7 @@ public static class MessageDeliveryStatusChange
     /// Tries to set the failure of the message delivery.
     /// If status is already failed, the method does nothing but just
     /// returns the delivery.
+    /// Calling this method might clean the dispatched timestamp.
     /// </summary>
     /// <param name="delivery"></param>
     /// <param name="failure"></param>
@@ -56,6 +56,8 @@ public static class MessageDeliveryStatusChange
             _ => failure switch
             {
                 { IsEmpty: true } => delivery,
+                { Reason: MessageDeliveryFailureReason.DispatchError } => delivery with { Failure = failure, DispatchedTimestamp = null },
+                { Reason: MessageDeliveryFailureReason.BrokerCustodyNotConfirmed } => delivery with { Failure = failure, DispatchedTimestamp = null },
                 _ => delivery with { Failure = failure }
             }
         }
