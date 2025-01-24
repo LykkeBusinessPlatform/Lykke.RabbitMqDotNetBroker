@@ -40,7 +40,7 @@ internal static class StrategyConfigurator
         if (cancellationToken.IsCancellationRequested)
         {
             return ConfigurationResult<QueueName>.Failure(
-                new ConfigurationError(ConfigurationErrorCode.Cancelled, "Operation canceled."));
+                new ConfigurationError(ConfigurationErrorCode.RetriesCancelled, "Operation canceled."));
         }
 
         var result = QueueConfigurator.Configure(channelFactory, options);
@@ -89,7 +89,7 @@ internal static class StrategyConfigurator
                 if (cancellationToken.WaitHandle.WaitOne(timeoutMs))
                 {
                     return ConfigurationResult<QueueName>.Failure(
-                        new ConfigurationError(ConfigurationErrorCode.Cancelled, "Operation canceled during retry."));
+                        new ConfigurationError(ConfigurationErrorCode.RetriesCancelled, "Operation canceled during retry."));
                 }
 
                 return Configure(channelFactory, options, cancellationToken, tryNumber, timeoutMs, tryCount);

@@ -155,10 +155,10 @@ namespace Lykke.RabbitMqBroker.Subscriber
             return this;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken = default)
+        public Task StartAsync(CancellationToken cancellationToken = default)
         {
             if (_consumer is { IsRunning: true })
-                return;
+                return Task.CompletedTask;
 
             CheckStartPreConditionsOrThrow();
 
@@ -175,9 +175,18 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
             _consumer = GetOrCreateConsumer(_channel);
 
-            var queueName = await Task.Run(() => MessageReadStrategy.Configure(_settings, CreateConfiguratorChannel, _cancellationTokenSource.Token), _cancellationTokenSource.Token);
+            var task = Task.Run(() =>
+            {
 
-            _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
+                var queueName = MessageReadStrategy.Configure(
+                    _settings,
+                    CreateConfiguratorChannel,
+                    _cancellationTokenSource.Token);
+
+                _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
+            }, _cancellationTokenSource.Token);
+
+            return task;
         }
 
         public void Stop()

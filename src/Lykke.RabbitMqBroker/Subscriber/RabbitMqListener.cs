@@ -41,7 +41,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly IEnumerable<IMessageHandler<T>> _handlers;
 
         private List<RabbitMqSubscriber<T>> _subscribers = new ();
-        private CancellationTokenSource _cancellationTokenSource = new();
+        private CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
         /// Creates a new instance of <see cref="RabbitMqListener{T}"/>
@@ -79,6 +79,12 @@ namespace Lykke.RabbitMqBroker.Subscriber
         {
             if (_subscribers.Any())
                 throw new InvalidOperationException("The listener is already started");
+
+            if (_cancellationTokenSource != null)
+            {
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
+            }
 
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var tasks = new List<Task>();
