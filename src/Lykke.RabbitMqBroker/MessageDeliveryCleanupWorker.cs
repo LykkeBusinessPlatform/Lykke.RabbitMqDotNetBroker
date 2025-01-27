@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
@@ -28,13 +29,8 @@ internal sealed class MessageDeliveryCleanupWorker : IMessageDeliveryCleanupWork
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
-    public async Task Execute()
-    {
-        var retentionMoment = RetentionMoment.From(_retentionPeriod, _timeProvider);
-
-        await foreach (var delivery in _messageStorage.GetBeforeMoment(retentionMoment))
-        {
-            await _messageStorage.Delete([delivery.Id]);
-        }
-    }
+    public Task Execute() =>
+        _messageStorage
+            .GetBeforeMoment(RetentionMoment.From(_retentionPeriod, _timeProvider))
+            .ForEachAwaitAsync(m => _messageStorage.Delete([m.Id]));
 }
