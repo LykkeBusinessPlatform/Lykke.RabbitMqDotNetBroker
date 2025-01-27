@@ -2,13 +2,13 @@ namespace Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 public static class MessageDeliveryAnalysis
 {
-    public static DateTime GetLastActionTimestamp(this MessageDelivery messageDelivery) =>
+    public static DateTime? GetLastActionTimestamp(this MessageDelivery messageDelivery) =>
         messageDelivery switch
         {
             // once failed, message processing is considered finished
             // so that the failure timestamp is the last modified timestamp
             { Failure.IsEmpty: false } => messageDelivery.Failure.Timestamp,
-            _ => messageDelivery.ReceivedTimestamp ?? messageDelivery.DispatchedTimestamp ?? DateTime.MinValue
+            _ => messageDelivery.ReceivedTimestamp ?? messageDelivery.DispatchedTimestamp ?? null
         };
 
     public static bool Delivered(this MessageDelivery messageDelivery) =>
@@ -24,8 +24,18 @@ public static class MessageDeliveryAnalysis
     public static bool FairDelayExpired(this MessageDelivery messageDelivery, TimeSpan fairDelay, TimeProvider timeProvider) =>
         messageDelivery switch
         {
-            { ReceivedTimestamp: not null } => messageDelivery.ReceivedTimestamp - messageDelivery.DispatchedTimestamp > fairDelay,
-            { ReceivedTimestamp: null, DispatchedTimestamp: not null } => timeProvider.GetUtcNow() - messageDelivery.DispatchedTimestamp > fairDelay,
-            _ => false
+            { DispatchedTimestamp: null } => false,
+            { ReceivedTimestamp: not null } =>
+                PeriodPassed(
+                    messageDelivery.DispatchedTimestamp.Value,
+                    messageDelivery.ReceivedTimestamp.Value,
+                    fairDelay),
+            { ReceivedTimestamp: null } =>
+                PeriodPassed(
+                    messageDelivery.DispatchedTimestamp.Value,
+                    timeProvider.GetUtcNow().DateTime,
+                    fairDelay),
         };
+
+    internal static bool PeriodPassed(DateTime start, DateTime end, TimeSpan period) => end - start > period;
 }

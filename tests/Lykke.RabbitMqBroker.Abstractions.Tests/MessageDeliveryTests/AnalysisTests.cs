@@ -19,14 +19,12 @@ internal sealed class AnalysisTests
     [Test]
     public void GetLastActionTimestamp_WhenBrokerCustodyNotConfirmed_ShouldBeEqualToFailureTimestamp()
     {
+        var now = _timeProvider.GetUtcNow().DateTime;
         var delivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(_timeProvider.GetUtcNow().DateTime);
-
-        _timeProvider.Advance(TimeSpan.FromMinutes(1));
-
-        delivery = delivery.TrySetFailed(MessageDeliveryFailure.Create(
-            MessageDeliveryFailureReason.BrokerCustodyNotConfirmed,
-            dateTime: _timeProvider.GetUtcNow().DateTime));
+            .TrySetDispatched(now)
+            .TrySetFailed(MessageDeliveryFailure.Create(
+                MessageDeliveryFailureReason.BrokerCustodyNotConfirmed,
+                dateTime: now.AddSeconds(1)));
 
         Assert.That(delivery.GetLastActionTimestamp(), Is.EqualTo(delivery.Failure.Timestamp));
     }
@@ -34,12 +32,10 @@ internal sealed class AnalysisTests
     [Test]
     public void GetLastActionTimestamp_WhenBrokerCustodyConfirmed_ShouldBeEqualToReceivedTimestamp()
     {
+        var now = _timeProvider.GetUtcNow().DateTime;
         var delivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(_timeProvider.GetUtcNow().DateTime);
-
-        _timeProvider.Advance(TimeSpan.FromSeconds(5));
-
-        delivery = delivery.TrySetReceived(_timeProvider.GetUtcNow().DateTime);
+            .TrySetDispatched(now)
+            .TrySetReceived(now.AddSeconds(5));
 
         Assert.That(delivery.GetLastActionTimestamp(), Is.EqualTo(delivery.ReceivedTimestamp));
     }
@@ -54,11 +50,11 @@ internal sealed class AnalysisTests
     }
 
     [Test]
-    public void GetLastActionTimestamp_WhenNotDispatched_ShouldBeEqualToMinValue()
+    public void GetLastActionTimestamp_WhenNotDispatched_ShouldBeNull()
     {
         var delivery = new MessageDeliveryWithDefaults();
 
-        Assert.That(delivery.GetLastActionTimestamp(), Is.EqualTo(DateTime.MinValue));
+        Assert.That(delivery.GetLastActionTimestamp(), Is.Null);
     }
 
     [Test]
