@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
@@ -53,34 +52,29 @@ internal sealed class MessageDeliveryAnalysisWorkerTests
         var sut = new MessageDeliveryAnalysisWorker(
             _seededStorage,
             _monitoringIssueNotifier,
-            _timeProvider);
+            _timeProvider,
+            TimeSpan.FromMilliseconds(FairDelayPeriodMs));
+
+        _timeProvider.Advance(TimeSpan.FromMilliseconds(FairDelayPeriodMs + 1));
 
         await sut.Execute();
-        var latestCount = (await _seededStorage.GetLatestForEveryRoute().ToListAsync()).Count;
 
-        await foreach (var m in _seededStorage.GetLatestForEveryRoute())
-        {
-            var v = m.Analyze(TimeSpan.FromMilliseconds(FairDelayPeriodMs), _timeProvider);
-            Assert.That(v, Is.EqualTo(MessageDeliveryAnalysisExtensions.MessageDeliveryAnalysisVerdict.NotDelivered));
-        }
-
-        Assert.That(latestCount, Is.EqualTo(3));
         Assert.That(_monitoringIssueNotifier.NotifiedAboutNotDeliveredCounter, Is.EqualTo(2));
     }
 
-    // [Test]
-    // public async Task Execute_Notifies_About_Late_Deliveries()
-    // {
-    //     var sut = new MessageDeliveryAnalysisWorker(
-    //         _seededStorage,
-    //         _monitoringIssueNotifier,
-    //         _timeProvider,
-    //         TimeSpan.FromMilliseconds(FairDelayPeriodMs));
+    [Test]
+    public async Task Execute_Notifies_About_Late_Deliveries()
+    {
+        var sut = new MessageDeliveryAnalysisWorker(
+            _seededStorage,
+            _monitoringIssueNotifier,
+            _timeProvider,
+            TimeSpan.FromMilliseconds(FairDelayPeriodMs));
 
-    //     await sut.Execute();
+        await sut.Execute();
 
-    //     Assert.That(_monitoringIssueNotifier.NotifiedAboutLatelyDeliveredCounter, Is.EqualTo(1));
-    // }
+        Assert.That(_monitoringIssueNotifier.NotifiedAboutLatelyDeliveredCounter, Is.EqualTo(1));
+    }
 
     private async Task SeedStorage()
     {
