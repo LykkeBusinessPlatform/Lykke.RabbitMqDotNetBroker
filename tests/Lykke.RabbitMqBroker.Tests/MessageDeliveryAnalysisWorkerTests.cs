@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
@@ -55,7 +56,9 @@ internal sealed class MessageDeliveryAnalysisWorkerTests
             _timeProvider);
 
         await sut.Execute();
+        var latestCount = (await _seededStorage.GetLatestForEveryRoute().ToListAsync()).Count;
 
+        Assert.That(latestCount, Is.EqualTo(3));
         Assert.That(_monitoringIssueNotifier.NotifiedAboutNotDeliveredCounter, Is.EqualTo(2));
     }
 
