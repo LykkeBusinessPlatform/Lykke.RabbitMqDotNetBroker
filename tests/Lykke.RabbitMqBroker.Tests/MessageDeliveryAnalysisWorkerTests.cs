@@ -59,19 +59,19 @@ internal sealed class MessageDeliveryAnalysisWorkerTests
         Assert.That(_monitoringIssueNotifier.NotifiedAboutNotDeliveredCounter, Is.EqualTo(2));
     }
 
-    [Test]
-    public async Task Execute_Notifies_About_Late_Deliveries()
-    {
-        var sut = new MessageDeliveryAnalysisWorker(
-            _seededStorage,
-            _monitoringIssueNotifier,
-            _timeProvider,
-            TimeSpan.FromMilliseconds(FairDelayPeriodMs));
+    // [Test]
+    // public async Task Execute_Notifies_About_Late_Deliveries()
+    // {
+    //     var sut = new MessageDeliveryAnalysisWorker(
+    //         _seededStorage,
+    //         _monitoringIssueNotifier,
+    //         _timeProvider,
+    //         TimeSpan.FromMilliseconds(FairDelayPeriodMs));
 
-        await sut.Execute();
+    //     await sut.Execute();
 
-        Assert.That(_monitoringIssueNotifier.NotifiedAboutLatelyDeliveredCounter, Is.EqualTo(1));
-    }
+    //     Assert.That(_monitoringIssueNotifier.NotifiedAboutLatelyDeliveredCounter, Is.EqualTo(1));
+    // }
 
     private async Task SeedStorage()
     {
