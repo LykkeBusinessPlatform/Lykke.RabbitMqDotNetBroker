@@ -58,6 +58,12 @@ internal sealed class MessageDeliveryAnalysisWorkerTests
         await sut.Execute();
         var latestCount = (await _seededStorage.GetLatestForEveryRoute().ToListAsync()).Count;
 
+        await foreach (var m in _seededStorage.GetLatestForEveryRoute())
+        {
+            var v = m.Analyze(TimeSpan.FromMilliseconds(FairDelayPeriodMs), _timeProvider);
+            Assert.That(v, Is.EqualTo(MessageDeliveryAnalysisExtensions.MessageDeliveryAnalysisVerdict.NotDelivered));
+        }
+
         Assert.That(latestCount, Is.EqualTo(3));
         Assert.That(_monitoringIssueNotifier.NotifiedAboutNotDeliveredCounter, Is.EqualTo(2));
     }
