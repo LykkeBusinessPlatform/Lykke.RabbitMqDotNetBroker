@@ -91,8 +91,8 @@ internal sealed class MessageDeliveryAnalysisWorkerTests
                     NonEmptyString.Create("e1"),
                     NonEmptyString.Create("q1"),
                     "r1"))
-            .TrySetDispatched(now.AddSeconds(1))
-            .TrySetFailed(MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Unroutable, dateTime: now.AddSeconds(2))));
+            .TrySetDispatched(now)
+            .TrySetFailed(MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Unroutable, dateTime: now.AddSeconds(1))));
 
         // Delivered too late (1)
         await _seededStorage
@@ -101,8 +101,7 @@ internal sealed class MessageDeliveryAnalysisWorkerTests
                     NonEmptyString.Create("e2"),
                     NonEmptyString.Create("q2"),
                     "r2"))
-            .TrySetDispatched(now
-                .AddSeconds(1))
+            .TrySetDispatched(now)
             .TrySetReceived(now
                 .AddSeconds(1)
                 .AddMilliseconds(FairDelayPeriodMs)
