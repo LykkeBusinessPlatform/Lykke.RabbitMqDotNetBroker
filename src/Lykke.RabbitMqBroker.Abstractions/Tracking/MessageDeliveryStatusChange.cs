@@ -58,6 +58,7 @@ public static class MessageDeliveryStatusChange
                 { IsEmpty: true } => delivery,
                 { Reason: MessageDeliveryFailureReason.DispatchError } => delivery with { Failure = failure, DispatchedTimestamp = null },
                 { Reason: MessageDeliveryFailureReason.BrokerCustodyNotConfirmed } => delivery with { Failure = failure, DispatchedTimestamp = null },
+                { Reason: MessageDeliveryFailureReason.Unroutable } => delivery with { Failure = failure, DispatchedTimestamp = null },
                 _ => delivery with { Failure = failure }
             }
         }

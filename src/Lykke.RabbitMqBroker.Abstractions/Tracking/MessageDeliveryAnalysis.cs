@@ -37,5 +37,5 @@ public static class MessageDeliveryAnalysis
                     fairDelay),
         };
 
-    internal static bool PeriodPassed(DateTime start, DateTime end, TimeSpan period) => end - start > period;
+    private static bool PeriodPassed(DateTime start, DateTime end, TimeSpan period) => end - start > period;
 }
