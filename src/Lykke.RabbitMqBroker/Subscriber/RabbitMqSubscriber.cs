@@ -36,7 +36,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private IModel _channel;
         private EventingBasicConsumer _consumer;
         private string _consumerTag;
-        private Task _startTask;
 
         public IMessageDeserializer<TTopicModel> MessageDeserializer { get; private set; }
         public IMessageReadStrategy MessageReadStrategy { get; private set; }
@@ -176,7 +175,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
             _consumer = GetOrCreateConsumer(_channel);
 
-            _startTask = Task.Run(() =>
+            var task = Task.Run(() =>
             {
                 try
                 {
@@ -201,7 +200,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
             }, _cancellationTokenSource.Token);
 
-            return _startTask;
+            return task;
         }
 
         public void Stop()
@@ -224,9 +223,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _channel?.Close();
             _channel?.Dispose();
             _channel = null;
-            _startTask?.GetAwaiter().GetResult();
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
         }
 
         public void Dispose()
