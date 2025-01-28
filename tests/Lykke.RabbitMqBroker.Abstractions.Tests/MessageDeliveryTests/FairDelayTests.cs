@@ -1,3 +1,6 @@
+using FsCheck;
+using FsCheck.Fluent;
+
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 using Microsoft.Extensions.Time.Testing;
@@ -7,78 +10,105 @@ namespace Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 [TestFixture]
 public class FairDelayTests
 {
-    private static readonly TimeSpan DefaultFairDelay = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan MoreThanDefaultFairDelay = DefaultFairDelay.Add(TimeSpan.FromSeconds(1));
-    private static readonly TimeSpan LessThanDefaultFairDelay = DefaultFairDelay.Subtract(TimeSpan.FromSeconds(1));
-
-    private FakeTimeProvider _timeProvider;
-
-    [SetUp]
-    public void SetUp()
+    [Test]
+    public void When_Pending_Always_Returns_False() // fair delay is not applicable to pending messages
     {
-        _timeProvider = new FakeTimeProvider(DateTime.UtcNow);
+        Prop.ForAll((
+            from pending in Gens.MessageDelivery.Pending
+            from fairDelay in ArbMap.Default.GeneratorFor<TimeSpan>()
+            let timeProvider = new FakeTimeProvider(DateTime.UtcNow)
+            select (pending, fairDelay, timeProvider)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (pending, fairDelay, timeProvider) = inputs;
+                var expired = pending.FairDelayExpired(fairDelay, timeProvider);
+                return !expired;
+            }
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void When_DispatchTimestamp_IsEmpty_Returns_False()
+    public void When_Dispatched_And_TimePassed_Returns_True()
     {
-        var message = new MessageDeliveryWithNoTimestamps();
-
-        var expired = message.FairDelayExpired(DefaultFairDelay, _timeProvider);
-
-        Assert.That(expired, Is.False);
+        Prop.ForAll((
+            from dispatched in Gens.MessageDelivery.Dispatched
+            from fairDelaySeconds in Gen.Choose(1, 60)
+            from timePassedSeconds in Gen.Choose(61, 86400)
+            let initialTime = dispatched.DispatchedTimestamp.Value
+            let fairDelay = TimeSpan.FromSeconds(fairDelaySeconds)
+            let timePassed = TimeSpan.FromSeconds(timePassedSeconds)
+            let timeProvider = new FakeTimeProvider(new DateTimeOffset(initialTime))
+            select (dispatched, fairDelay, timePassed, timeProvider)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (dispatched, fairDelay, timePassed, timeProvider) = inputs;
+                timeProvider.Advance(timePassed);
+                return dispatched.FairDelayExpired(fairDelay, timeProvider);
+            }
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void When_NotReceivedYet_Uses_CurrentTime_Expired()
+    public void When_Dispatched_And_TimeNotPassed_Returns_False()
     {
-        var message = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(_timeProvider.GetUtcNow().DateTime);
-
-        _timeProvider.Advance(MoreThanDefaultFairDelay);
-
-        var expired = message.FairDelayExpired(DefaultFairDelay, _timeProvider);
-
-        Assert.That(expired, Is.True);
+        Prop.ForAll((
+            from dispatched in Gens.MessageDelivery.Dispatched
+            from fairDelaySeconds in Gen.Choose(11, 60)
+            from timePassedSeconds in Gen.Choose(1, 10)
+            let initialTime = dispatched.DispatchedTimestamp.Value
+            let fairDelay = TimeSpan.FromSeconds(fairDelaySeconds)
+            let timePassed = TimeSpan.FromSeconds(timePassedSeconds)
+            let timeProvider = new FakeTimeProvider(new DateTimeOffset(initialTime))
+            select (dispatched, fairDelay, timePassed, timeProvider)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (dispatched, fairDelay, timePassed, timeProvider) = inputs;
+                timeProvider.Advance(timePassed);
+                return !dispatched.FairDelayExpired(fairDelay, timeProvider);
+            }
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void When_NotReceivedYet_Uses_CurrentTime_NotExpired()
+    public void When_Received_And_TimePassed_Returns_True()
     {
-        var message = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(_timeProvider.GetUtcNow().DateTime);
-
-        _timeProvider.Advance(LessThanDefaultFairDelay);
-
-        var expired = message.FairDelayExpired(DefaultFairDelay, _timeProvider);
-
-        Assert.That(expired, Is.False);
-    }
-
-
-    [Test]
-    public void When_Received_Uses_ReceivedTimestamp_Expired()
-    {
-        var now = _timeProvider.GetUtcNow().DateTime;
-        var message = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(now)
-            .TrySetReceived(now.Add(MoreThanDefaultFairDelay));
-
-        var expired = message.FairDelayExpired(DefaultFairDelay, _timeProvider);
-
-        Assert.That(expired, Is.True);
+        Prop.ForAll((
+            from received in Gens.MessageDelivery.Received
+            let initialTime = received.DispatchedTimestamp.Value
+            let timeOnTheWay = received.ReceivedTimestamp.Value - received.DispatchedTimestamp.Value
+            let fairDelay = timeOnTheWay.Subtract(TimeSpan.FromSeconds(1)) // emulate always late delivery
+            let timeProvider = new FakeTimeProvider(new DateTimeOffset(initialTime))
+            select (received, fairDelay, timeOnTheWay, timeProvider)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (received, fairDelay, timeOnTheWay, timeProvider) = inputs;
+                timeProvider.Advance(timeOnTheWay);
+                return received.FairDelayExpired(fairDelay, timeProvider);
+            }
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void When_Received_Uses_ReceivedTimestamp_NotExpired()
+    public void When_Received_And_TimeNotPassed_Returns_False()
     {
-        var now = _timeProvider.GetUtcNow().DateTime;
-        var message = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(now)
-            .TrySetReceived(now.Add(LessThanDefaultFairDelay));
-
-        var expired = message.FairDelayExpired(DefaultFairDelay, _timeProvider);
-
-        Assert.That(expired, Is.False);
+        Prop.ForAll((
+            from received in Gens.MessageDelivery.Received
+            let initialTime = received.DispatchedTimestamp.Value
+            let timeOnTheWay = received.ReceivedTimestamp.Value - received.DispatchedTimestamp.Value
+            let fairDelay = timeOnTheWay.Add(TimeSpan.FromSeconds(1)) // emulate always early delivery
+            let timeProvider = new FakeTimeProvider(new DateTimeOffset(initialTime))
+            select (received, fairDelay, timeOnTheWay, timeProvider)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (received, fairDelay, timeOnTheWay, timeProvider) = inputs;
+                timeProvider.Advance(timeOnTheWay);
+                return !received.FairDelayExpired(fairDelay, timeProvider);
+            }
+        ).QuickCheckThrowOnFailure();
     }
 }

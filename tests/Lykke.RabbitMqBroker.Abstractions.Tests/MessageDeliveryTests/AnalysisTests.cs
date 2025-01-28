@@ -1,99 +1,82 @@
-using Lykke.RabbitMqBroker.Abstractions.Tracking;
+using FsCheck;
+using FsCheck.Fluent;
 
-using Microsoft.Extensions.Time.Testing;
+using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 namespace Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 
 [TestFixture]
-[NonParallelizable]
 internal sealed class AnalysisTests
 {
-    private FakeTimeProvider _timeProvider;
-
-    [SetUp]
-    public void SetUp()
+    [Test]
+    public void GetLastActionTimestamp_WhenFailed_ShouldBeEqualToFailureTimestamp()
     {
-        _timeProvider = new FakeTimeProvider(DateTime.UtcNow);
+        Prop.ForAll(
+            Gens.MessageDelivery.Failed.ToArbitrary(),
+            failed => failed.GetLastActionTimestamp() == failed.Failure.Timestamp
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void GetLastActionTimestamp_WhenBrokerCustodyNotConfirmed_ShouldBeEqualToFailureTimestamp()
+    public void GetLastActionTimestamp_WhenReceived_ShouldBeEqualToReceivedTimestamp()
     {
-        var now = _timeProvider.GetUtcNow().DateTime;
-        var delivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(now)
-            .TrySetFailed(MessageDeliveryFailure.Create(
-                MessageDeliveryFailureReason.BrokerCustodyNotConfirmed,
-                dateTime: now.AddSeconds(1)));
-
-        Assert.That(delivery.GetLastActionTimestamp(), Is.EqualTo(delivery.Failure.Timestamp));
+        Prop.ForAll(
+            Gens.MessageDelivery.Received.ToArbitrary(),
+            received => received.GetLastActionTimestamp() == received.ReceivedTimestamp
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void GetLastActionTimestamp_WhenBrokerCustodyConfirmed_ShouldBeEqualToReceivedTimestamp()
+    public void GetLastActionTimestamp_WhenDispatched_ShouldBeEqualToDispatchedTimestamp()
     {
-        var now = _timeProvider.GetUtcNow().DateTime;
-        var delivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(now)
-            .TrySetReceived(now.AddSeconds(5));
-
-        Assert.That(delivery.GetLastActionTimestamp(), Is.EqualTo(delivery.ReceivedTimestamp));
+        Prop.ForAll(
+            Gens.MessageDelivery.Dispatched.ToArbitrary(),
+            dispatched => dispatched.GetLastActionTimestamp() == dispatched.DispatchedTimestamp
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void GetLastActionTimestamp_WhenDispatchedOnly_ShouldBeEqualToDispatchedTimestamp()
+    public void GetLastActionTimestamp_WhenPending_ShouldBeNull()
     {
-        var delivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(_timeProvider.GetUtcNow().DateTime);
-
-        Assert.That(delivery.GetLastActionTimestamp(), Is.EqualTo(delivery.DispatchedTimestamp));
-    }
-
-    [Test]
-    public void GetLastActionTimestamp_WhenNotDispatched_ShouldBeNull()
-    {
-        var delivery = new MessageDeliveryWithDefaults();
-
-        Assert.That(delivery.GetLastActionTimestamp(), Is.Null);
+        Prop.ForAll(
+            Gens.MessageDelivery.Pending.ToArbitrary(),
+            pending => pending.GetLastActionTimestamp() == null
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void Delivered_WhenFailed_ShouldBeFalse()
     {
-        var delivery = new MessageDeliveryWithDefaults()
-            .TrySetFailed(MessageDeliveryFailure.Create(MessageDeliveryFailureReason.DispatchError));
-
-        Assert.That(delivery.Delivered(), Is.False);
+        Prop.ForAll(
+            Gens.MessageDelivery.Failed.ToArbitrary(),
+            failed => failed.Delivered() == false
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void Delivered_WhenDispatchedOnly_ShouldBeFalse()
+    public void Delivered_WhenDispatched_ShouldBeFalse()
     {
-        var delivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(_timeProvider.GetUtcNow().DateTime);
-
-        Assert.That(delivery.Delivered(), Is.False);
+        Prop.ForAll(
+            Gens.MessageDelivery.Dispatched.ToArbitrary(),
+            dispatched => dispatched.Delivered() == false
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void Delivered_When_NotDispatched_ShouldBeFalse()
+    public void Delivered_When_Pending_ShouldBeFalse()
     {
-        var delivery = new MessageDeliveryWithDefaults();
-
-        Assert.That(delivery.Delivered(), Is.False);
+        Prop.ForAll(
+            Gens.MessageDelivery.Pending.ToArbitrary(),
+            pending => pending.Delivered() == false
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void Delivered_WhenReceived_ShouldBeTrue()
     {
-        var delivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(_timeProvider.GetUtcNow().DateTime)
-            .TrySetReceived(_timeProvider.GetUtcNow().DateTime);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(delivery.Delivered());
-            Assert.That(delivery.NotDelivered(), Is.False);
-        });
+        Prop.ForAll(
+            Gens.MessageDelivery.Received.ToArbitrary(),
+            received => received.Delivered() == true
+        ).QuickCheckThrowOnFailure();
     }
 }

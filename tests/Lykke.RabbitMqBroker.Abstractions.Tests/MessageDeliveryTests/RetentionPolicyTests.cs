@@ -1,3 +1,5 @@
+using FsCheck.Fluent;
+
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 using Microsoft.Extensions.Time.Testing;
@@ -17,9 +19,9 @@ internal sealed class MessageDeliveryRetentionPolicyTests
     }
 
     [Test]
-    public void IsOlderThan_WhenNotDispatched_ShouldBeFalse()
+    public void IsOlderThan_WhenPending_ShouldBeFalse()
     {
-        var delivery = new MessageDeliveryWithDefaults();
+        var delivery = Gens.MessageDelivery.Pending.Sample(1, 1).Single();
 
         MinutesPassedBy(1);
         var result = delivery.IsOlderThan(GetNow);

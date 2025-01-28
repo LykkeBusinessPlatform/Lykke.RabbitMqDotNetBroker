@@ -1,3 +1,6 @@
+using FsCheck;
+using FsCheck.Fluent;
+
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 namespace Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
@@ -5,14 +8,6 @@ namespace Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 [TestFixture]
 public class StatusTests
 {
-    [Test]
-    public void NewMessageDelivery_HasPendingStatus()
-    {
-        var delivery = new MessageDeliveryWithDefaults();
-
-        Assert.That(delivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Pending));
-    }
-
     [Test]
     public void TrySetDispatched_Does_Nothing_To_Empty_Delivery()
     {
@@ -26,91 +21,82 @@ public class StatusTests
     [Test]
     public void TrySetDispatched_ChangesStatusToDispatched_WhenPending()
     {
-        var pendingDelivery = new MessageDeliveryWithDefaults();
+        Prop.ForAll(
+            Gens.MessageDelivery.Pending.ToArbitrary(),
+            pending => pending.TrySetDispatched(DateTime.UtcNow).GetStatus() == MessageDeliveryStatus.Dispatched
+        ).QuickCheckThrowOnFailure();
+    }
 
-        var dispatchedDelivery = pendingDelivery.TrySetDispatched(DateTime.UtcNow);
-
-        Assert.That(dispatchedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Dispatched));
+    [Test]
+    public void DispatchedMessageDelivery_HasDispatchedStatus()
+    {
+        Prop.ForAll(
+            Gens.MessageDelivery.Dispatched.ToArbitrary(),
+            dispatched => dispatched.GetStatus() == MessageDeliveryStatus.Dispatched
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void TrySetDispatched_Does_Nothing_WhenAlreadyDispatched()
     {
-        var dispatchedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(DateTime.UtcNow);
-
-        var dispatchedDelivery2 = dispatchedDelivery.TrySetDispatched(DateTime.UtcNow);
-
-        Assert.That(dispatchedDelivery2, Is.EqualTo(dispatchedDelivery));
+        Prop.ForAll(
+            Gens.MessageDelivery.Dispatched.ToArbitrary(),
+            dispatched => dispatched.TrySetDispatched(DateTime.UtcNow) == dispatched
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void TrySetDispatched_Does_Nothing_WhenAlreadyReceived()
     {
-        var receivedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(DateTime.UtcNow)
-            .TrySetReceived(DateTime.UtcNow);
-
-        var updatedDelivery = receivedDelivery.TrySetDispatched(DateTime.UtcNow);
-
-        Assert.That(updatedDelivery, Is.EqualTo(receivedDelivery));
+        Prop.ForAll(
+            Gens.MessageDelivery.Received.ToArbitrary(),
+            received => received.TrySetDispatched(DateTime.UtcNow) == received
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void TrySetDispatched_Does_Nothing_WhenAlreadyFailed()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
-        var failedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetFailed(failure);
-
-        var updatedDelivery = failedDelivery.TrySetDispatched(DateTime.UtcNow);
-
-        Assert.That(updatedDelivery, Is.EqualTo(failedDelivery));
+        Prop.ForAll(
+            Gens.MessageDelivery.Failed.ToArbitrary(),
+            failed => failed.TrySetDispatched(DateTime.UtcNow) == failed
+        ).QuickCheckThrowOnFailure();
     }
 
-
     [Test]
-    public void TrySetReceived_ChangesStatusToReceived()
+    public void TrySetReceived_ChangesStatusToReceived_When_Dispatched()
     {
-        var receivedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(DateTime.UtcNow)
-            .TrySetReceived(DateTime.UtcNow);
-
-        Assert.That(receivedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Received));
+        Prop.ForAll(
+            Gens.MessageDelivery.Dispatched.ToArbitrary(),
+            dispatched => dispatched.TrySetReceived(DateTime.UtcNow).GetStatus() == MessageDeliveryStatus.Received
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void TrySetReceived_Does_Nothing_WhenAlreadyReceived()
     {
-        var receivedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(DateTime.UtcNow)
-            .TrySetReceived(DateTime.UtcNow);
-
-        var updatedDelivery = receivedDelivery.TrySetReceived(DateTime.UtcNow);
-
-        Assert.That(updatedDelivery, Is.EqualTo(receivedDelivery));
+        Prop.ForAll(
+            Gens.MessageDelivery.Received.ToArbitrary(),
+            received => received.TrySetReceived(DateTime.UtcNow) == received
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void TrySetReceived_Does_Nothing_WhenAlreadyFailed()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
-        var failedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetFailed(failure);
-
-        var updatedDelivery = failedDelivery.TrySetReceived(DateTime.UtcNow);
-
-        Assert.That(updatedDelivery, Is.EqualTo(failedDelivery));
+        Prop.ForAll(
+            Gens.MessageDelivery.Failed.ToArbitrary(),
+            failed => failed.TrySetReceived(DateTime.UtcNow) == failed
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void TrySetReceived_Does_Nothing_WhenNotDispatched()
+    public void TrySetReceived_Does_Nothing_WhenPending()
     {
-        var pendingDelivery = new MessageDeliveryWithDefaults();
-
-        var updatedDelivery = pendingDelivery.TrySetReceived(DateTime.UtcNow);
-
-        Assert.That(updatedDelivery, Is.EqualTo(pendingDelivery));
+        Prop.ForAll(
+            Gens.MessageDelivery.Pending.ToArbitrary(),
+            pending => pending.TrySetReceived(DateTime.UtcNow) == pending
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
@@ -126,95 +112,76 @@ public class StatusTests
     [Test]
     public void TrySetFailed_ChangesStatusToFailed()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
-        var failedDelivery = new MessageDeliveryWithDefaults().TrySetFailed(failure);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
-            Assert.That(failedDelivery.Failure.IsEmpty, Is.False);
-        });
+        Prop.ForAll((
+            from notFailed in Gens.MessageDelivery.NotFailed
+            from failure in Gens.MessageDeliveryFailure
+            select (notFailed, failure)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (notFailed, failure) = inputs;
+                var failed = notFailed.TrySetFailed(failure);
+                return failed.GetStatus() == MessageDeliveryStatus.Failed && !failed.Failure.IsEmpty;
+            }
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
-    public void TrySetFailed_ChangesStatusToFailed_WhenDispatched()
+    public void TrySetFailed_Cleans_DispatchTimestamp()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
-        var failedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(DateTime.UtcNow)
-            .TrySetFailed(failure);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
-            Assert.That(failedDelivery.Failure.IsEmpty, Is.False);
-        });
-    }
-
-    [Test]
-    [TestCase(MessageDeliveryFailureReason.DispatchError)]
-    [TestCase(MessageDeliveryFailureReason.BrokerCustodyNotConfirmed)]
-    public void TrySetFailed_Cleans_DispatchTimestamp_When_NotDispatched(MessageDeliveryFailureReason reason)
-    {
-        var failure = MessageDeliveryFailure.Create(reason);
-        var failedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(DateTime.UtcNow)
-            .TrySetFailed(failure);
-
-        Assert.That(failedDelivery.DispatchedTimestamp, Is.Null);
-    }
-
-    [Test]
-    [TestCase(MessageDeliveryFailureReason.None)]
-    [TestCase(MessageDeliveryFailureReason.Unroutable)]
-    public void TrySetFailed_DoesNot_Clean_DispatchTimestamp_When_Dispatched(MessageDeliveryFailureReason reason)
-    {
-        var failure = MessageDeliveryFailure.Create(reason);
-        var failedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(DateTime.UtcNow)
-            .TrySetFailed(failure);
-
-        Assert.That(failedDelivery.DispatchedTimestamp, Is.Not.Null);
+        Prop.ForAll((
+            from dispatched in Gens.MessageDelivery.Dispatched
+            from failure in Gens.MessageDeliveryFailure
+            select (dispatched, failure)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (dispatched, failure) = inputs;
+                return dispatched.TrySetFailed(failure).DispatchedTimestamp == null;
+            }
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void TrySetFailed_ChangesStatusToFailed_WhenReceived()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
-        var failedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(DateTime.UtcNow)
-            .TrySetReceived(DateTime.UtcNow)
-            .TrySetFailed(failure);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(failedDelivery.GetStatus(), Is.EqualTo(MessageDeliveryStatus.Failed));
-            Assert.That(failedDelivery.Failure.IsEmpty, Is.False);
-        });
+        Prop.ForAll((
+            from received in Gens.MessageDelivery.Received
+            from failure in Gens.MessageDeliveryFailure
+            select (received, failure)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (received, failure) = inputs;
+                var failed = received.TrySetFailed(failure);
+                return failed.GetStatus() == MessageDeliveryStatus.Failed && !failed.Failure.IsEmpty;
+            }
+        );
     }
 
     [Test]
     public void TrySetFailed_Does_Nothing_WhenEmptyFailure()
     {
-        var emptyFailure = MessageDeliveryFailure.Empty;
-        var delivery = new MessageDeliveryWithDefaults();
+        var notFailed = Gens.MessageDelivery.NotFailed.Sample(1, 1).First();
 
-        var updatedDelivery = delivery.TrySetFailed(emptyFailure);
+        var updatedDelivery = notFailed.TrySetFailed(MessageDeliveryFailure.Empty);
 
-        Assert.That(updatedDelivery, Is.EqualTo(delivery));
+        Assert.That(updatedDelivery, Is.EqualTo(notFailed));
     }
 
     [Test]
     public void TrySetFailed_Does_Nothing_WhenAlreadyFailed()
     {
-        var failure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.None);
-        var originallyFailedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetFailed(failure);
-
-        var anotherFailure = MessageDeliveryFailure.Create(MessageDeliveryFailureReason.BrokerCustodyNotConfirmed);
-        var updatedDelivery = originallyFailedDelivery.TrySetFailed(anotherFailure);
-
-        Assert.That(updatedDelivery, Is.EqualTo(originallyFailedDelivery));
+        Prop.ForAll((
+            from failed in Gens.MessageDelivery.Failed
+            from failure in Gens.MessageDeliveryFailure
+            select (failed, failure)
+            ).ToArbitrary(),
+            inputs =>
+            {
+                var (failed, failure) = inputs;
+                return failed.TrySetFailed(failure) == failed;
+            });
     }
 
     [Test]
