@@ -167,7 +167,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _subscribers.RemoveAt(i);
             }
 
-            _startTask.GetAwaiter().GetResult();
+            _startTask?.GetAwaiter().GetResult();
 
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;

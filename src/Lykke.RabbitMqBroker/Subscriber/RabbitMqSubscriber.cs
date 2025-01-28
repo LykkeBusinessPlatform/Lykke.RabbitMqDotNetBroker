@@ -224,7 +224,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             _channel?.Close();
             _channel?.Dispose();
             _channel = null;
-            _startTask.GetAwaiter().GetResult();
+            _startTask?.GetAwaiter().GetResult();
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
         }
