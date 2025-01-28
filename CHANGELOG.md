@@ -1,3 +1,8 @@
+## [[tbd]] ([[date]])
+
+### Added
+- LT-5694: Add StartAsync method to subscriber and listener
+
 ## 16.2.1 (2025-01-09)
 
 ### Changed
