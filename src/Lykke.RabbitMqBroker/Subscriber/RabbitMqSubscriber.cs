@@ -36,6 +36,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private IModel _channel;
         private EventingBasicConsumer _consumer;
         private string _consumerTag;
+        private Task _startTask;
 
         public IMessageDeserializer<TTopicModel> MessageDeserializer { get; private set; }
         public IMessageReadStrategy MessageReadStrategy { get; private set; }
@@ -175,18 +176,32 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
             _consumer = GetOrCreateConsumer(_channel);
 
-            var task = Task.Run(() =>
+            _startTask = Task.Run(() =>
             {
+                try
+                {
+                    var queueName = MessageReadStrategy.Configure(
+                        _settings,
+                        CreateConfiguratorChannel,
+                        _cancellationTokenSource.Token);
 
-                var queueName = MessageReadStrategy.Configure(
-                    _settings,
-                    CreateConfiguratorChannel,
-                    _cancellationTokenSource.Token);
+                    _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    if (!_cancellationTokenSource.IsCancellationRequested)
+                    {
+                        _logger.LogWarning(ex, "Error configuring strategy: {Message}", ex.Message);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error configuring strategy: {Message}", e.Message);
+                }
 
-                _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
             }, _cancellationTokenSource.Token);
 
-            return task;
+            return _startTask;
         }
 
         public void Stop()
@@ -196,25 +211,22 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _cancellationTokenSource.Cancel();
             }
 
+            if (_consumer?.IsRunning ?? false)
+            {
+                _channel.BasicCancel(_consumerTag);
+            }
+
             if (_consumer is not null)
             {
                 _consumer.Received -= OnReceived;
-
-                if (!_consumer.IsRunning)
-                {
-                    return;
-                }
             }
 
-            if (!_channel?.IsOpen ?? false)
-            {
-                return;
-            }
-
-            _channel?.BasicCancel(_consumerTag);
             _channel?.Close();
             _channel?.Dispose();
+            _channel = null;
+            _startTask.GetAwaiter().GetResult();
             _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
         }
 
         public void Dispose()

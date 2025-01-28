@@ -42,6 +42,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         private List<RabbitMqSubscriber<T>> _subscribers = new ();
         private CancellationTokenSource _cancellationTokenSource;
+        private Task _startTask;
 
         /// <summary>
         /// Creates a new instance of <see cref="RabbitMqListener{T}"/>
@@ -96,10 +97,12 @@ namespace Lykke.RabbitMqBroker.Subscriber
                     .Subscribe(Handle);
 
                 _subscribers.Add(subscriber);
-                tasks.Add(subscriber.StartAsync(cancellationToken));
+                tasks.Add(subscriber.StartAsync(_cancellationTokenSource.Token));
             }
 
-            return Task.WhenAll(tasks);
+            _startTask = Task.WhenAll(tasks);
+
+            return _startTask;
         }
 
         private IAutorecoveringConnection CreateConnection()
@@ -164,7 +167,10 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _subscribers.RemoveAt(i);
             }
 
+            _startTask.GetAwaiter().GetResult();
+
             _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
         }
     }
 }
