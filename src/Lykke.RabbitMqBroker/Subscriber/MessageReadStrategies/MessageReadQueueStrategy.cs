@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 
 using RabbitMQ.Client;
 
@@ -9,7 +10,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
 {
     public class MessageReadQueueStrategy : IMessageReadStrategy
     {
-        public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
+        public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory, CancellationToken cancellationToken = default)
         {
             return QueueName.Create(settings.QueueName);
         }

@@ -9,6 +9,8 @@ internal record ConfigurationErrorCode(ushort Code)
 {
     public static ConfigurationErrorCode PreconditionsFailed => new(Constants.PreconditionFailed);
     public static ConfigurationErrorCode None => new(0);
+    //TODO: think of moving retries logic out of StrategyConfigurator
+    public static ConfigurationErrorCode RetriesCancelled => new(1000);
 }
 
 [DebuggerDisplay("{Code}: {Message}")]

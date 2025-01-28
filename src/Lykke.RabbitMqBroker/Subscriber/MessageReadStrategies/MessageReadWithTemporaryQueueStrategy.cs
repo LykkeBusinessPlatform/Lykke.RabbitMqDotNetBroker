@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using RabbitMQ.Client;
 
@@ -17,7 +18,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
             _routingKey = routingKey ?? string.Empty;
         }
 
-        public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
+        public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory, CancellationToken cancellationToken = default)
         {
             using var channel = channelFactory();
 
@@ -37,7 +38,6 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
 
             settings.QueueName = channel.QueueDeclare(queueName.ToString(), durable: settings.IsDurable, exclusive: false, autoDelete: autodelete, arguments: args).QueueName;
 
-
             channel.QueueBind(
                 queue: settings.QueueName,
                 exchange: settings.ExchangeName,
@@ -45,7 +45,5 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
 
             return QueueName.Create(settings.QueueName);
         }
-
     }
-
 }

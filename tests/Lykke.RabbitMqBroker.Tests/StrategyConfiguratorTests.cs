@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies;
@@ -54,7 +55,7 @@ internal sealed class StrategyConfiguratorTests
 
         Assert.That(result.IsSuccess);
     }
-    
+
     [Test]
     public void Configure_WhenQueuePreconditionFailedForQuorumAndOldOneIsClassic_RetriesAndFails()
     {
@@ -98,7 +99,7 @@ internal sealed class StrategyConfiguratorTests
                 TimeToLive.Infinite,
                 QueueType: QueueType.Quorum,
                 RoutingKey: RoutingKey.Empty),
-            1, 1, tryCount);
+                CancellationToken.None, 1, 1, tryCount);
 
         mock.Verify(x => x.QueueBind(
             It.IsAny<string>(),
@@ -107,7 +108,7 @@ internal sealed class StrategyConfiguratorTests
             It.IsAny<IDictionary<string, Object>>()), Times.Exactly(tryCount));
         Assert.That(result.IsFailure);
     }
-    
+
     [Test]
     public void Configure_WhenQueuePreconditionFailedForQuorumAndOldOneIsQuorum_Fails()
     {
@@ -215,7 +216,7 @@ internal sealed class StrategyConfiguratorTests
         Assert.That(result.IsSuccess);
         Assert.That(result.Response, Is.EqualTo(queueName));
     }
-    
+
     [Test]
     public void Configure_OnFailure_DoesRetries()
     {

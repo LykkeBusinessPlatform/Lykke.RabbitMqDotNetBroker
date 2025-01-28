@@ -29,7 +29,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private readonly List<Action<IDictionary<string, object>>> _readHeadersActions = new();
         private readonly IAutorecoveringConnection _connection;
 
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource _cancellationTokenSource = new();
         private bool _disposed;
         private ushort? _prefetchCount;
 
@@ -151,15 +151,18 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public RabbitMqSubscriber<TTopicModel> Start()
         {
+            StartAsync().GetAwaiter().GetResult();
+            return this;
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken = default)
+        {
             if (_consumer is { IsRunning: true })
-                return this;
+                return Task.CompletedTask;
 
             CheckStartPreConditionsOrThrow();
 
-            if (_cancellationTokenSource == null || _cancellationTokenSource.IsCancellationRequested)
-            {
-                _cancellationTokenSource = new CancellationTokenSource();
-            }
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             MessageReadStrategy ??= GetDefaultStrategy();
 
@@ -172,25 +175,54 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
             _consumer = GetOrCreateConsumer(_channel);
 
-            var queueName = MessageReadStrategy.Configure(_settings, CreateConfiguratorChannel);
+            var task = Task.Run(() =>
+            {
+                try
+                {
+                    var queueName = MessageReadStrategy.Configure(
+                        _settings,
+                        CreateConfiguratorChannel,
+                        _cancellationTokenSource.Token);
 
-            _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
+                    _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    if (!_cancellationTokenSource.IsCancellationRequested)
+                    {
+                        _logger.LogWarning(ex, "Error configuring strategy: {Message}", ex.Message);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error configuring strategy: {Message}", e.Message);
+                }
 
-            return this;
+            }, _cancellationTokenSource.Token);
+
+            return task;
         }
 
         public void Stop()
         {
-            _cancellationTokenSource?.Cancel();
+            if (_cancellationTokenSource is { IsCancellationRequested: false })
+            {
+                _cancellationTokenSource.Cancel();
+            }
 
             if (_consumer?.IsRunning ?? false)
             {
                 _channel.BasicCancel(_consumerTag);
+            }
+
+            if (_consumer is not null)
+            {
                 _consumer.Received -= OnReceived;
             }
 
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
+            _channel?.Close();
+            _channel?.Dispose();
+            _channel = null;
         }
 
         public void Dispose()
@@ -199,10 +231,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 return;
 
             Stop();
-
-            _channel?.Close();
-            _channel?.Dispose();
-            _channel = null;
 
             _disposed = true;
         }
