@@ -12,4 +12,9 @@ internal class HostAssemblyDisplayName : AssemblyDisplayName
     {
         return $"{Title} {Version}";
     }
+
+    public static implicit operator string(HostAssemblyDisplayName displayName)
+    {
+        return displayName.ToString();
+    }
 }

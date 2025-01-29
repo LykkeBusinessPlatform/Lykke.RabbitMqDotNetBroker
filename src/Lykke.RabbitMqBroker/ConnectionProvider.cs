@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Concurrent;
+
 using Microsoft.Extensions.Logging;
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -14,7 +16,9 @@ namespace Lykke.RabbitMqBroker
     /// When a shared connection is requested, it is created once and reused for
     /// all subsequent requests with the same connection string.
     /// When an exclusive connection is requested, a new connection is created each time.
-    /// Takes care of attaching and detaching event handlers to connections to log connection events.
+    /// Takes care of attaching and detaching event handlers to connections to log connection events
+    /// as well as manages lifetime of connections.
+    /// Connections obtained from this provider should not be disposed manually.
     /// </summary>
     public sealed class ConnectionProvider : IConnectionProvider
     {
@@ -43,7 +47,7 @@ namespace Lykke.RabbitMqBroker
             _exclusiveConnections.Add(connection);
             return connection;
         }
-        
+
         public void Dispose()
         {
             foreach (var connection in _exclusiveConnections)
@@ -51,21 +55,21 @@ namespace Lykke.RabbitMqBroker
                 DetachConnectionEventHandlers(connection);
                 connection.Dispose();
             }
-            
+
             foreach (var connection in _sharedConnections.Values)
             {
                 DetachConnectionEventHandlers(connection);
                 connection.Dispose();
             }
         }
-        
+
         private IAutorecoveringConnection CreateConnection(string connectionString, string displayName)
         {
             var connection = _connectionFactory.Create(connectionString, displayName);
             AttachConnectionEventHandlers(connection);
             return connection;
         }
-        
+
         private void AttachConnectionEventHandlers(IAutorecoveringConnection connection)
         {
             connection.RecoverySucceeded += OnRecoverySucceeded;
@@ -75,7 +79,7 @@ namespace Lykke.RabbitMqBroker
             connection.CallbackException += OnCallbackException;
             connection.ConnectionRecoveryError += OnConnectionRecoveryError;
         }
-        
+
         private void DetachConnectionEventHandlers(IAutorecoveringConnection connection)
         {
             connection.RecoverySucceeded -= OnRecoverySucceeded;
@@ -85,39 +89,45 @@ namespace Lykke.RabbitMqBroker
             connection.CallbackException -= OnCallbackException;
             connection.ConnectionRecoveryError -= OnConnectionRecoveryError;
         }
-        
+
         private void OnRecoverySucceeded(object sender, EventArgs e)
         {
             _logger?.LogInformation("RabbitMq connection recovered");
         }
-        
+
         private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
             _logger?.LogWarning("RabbitMq connection blocked: {Reason}", e.Reason);
         }
-        
+
         private void OnConnectionShutdown(object sender, ShutdownEventArgs e)
         {
             _logger?.LogWarning(
-                "RabbitMq connection shutdown. Initiator: {Initiator}, reply code: {ReplyCode}, reply text: {ReplyText}, method id: {MethodId}",
+                "RabbitMq connection shutdown. Initiator: [{Initiator}], reply code: [{ReplyCode}], reply text: [{ReplyText}], method id: [{MethodId}]",
                 e.Initiator, e.ReplyCode, e.ReplyText, e.MethodId);
-            
+
+            var clientProvidedName = sender is IConnection connection ? connection.ClientProvidedName : string.Empty;
+            if (!string.IsNullOrEmpty(clientProvidedName))
+            {
+                _logger?.LogWarning("RabbitMq connection client provided name: {ClientProvidedName}", clientProvidedName);
+            }
+
             if (e.Cause != null)
             {
                 _logger?.LogWarning("RabbitMq connection shutdown cause object: {Cause}", e.Cause.GetType().FullName);
             }
         }
-        
+
         private void OnConnectionUnblocked(object sender, EventArgs e)
         {
             _logger?.LogInformation("RabbitMq connection unblocked");
         }
-        
+
         private void OnCallbackException(object sender, CallbackExceptionEventArgs e)
         {
             _logger?.LogError(e.Exception, "RabbitMq connection callback exception");
         }
-        
+
         private void OnConnectionRecoveryError(object sender, ConnectionRecoveryErrorEventArgs e)
         {
             _logger?.LogError(e.Exception, "RabbitMq connection recovery error");

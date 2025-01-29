@@ -45,4 +45,10 @@ public class LockExtensionsTests
 
         Assert.That(_semaphore.CurrentCount, Is.EqualTo(1));
     }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _semaphore.Dispose();
+    }
 }
