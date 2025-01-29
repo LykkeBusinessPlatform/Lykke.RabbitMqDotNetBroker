@@ -2,7 +2,6 @@ using FsCheck;
 using FsCheck.Fluent;
 
 using Lykke.RabbitMqBroker.Abstractions.Analysis;
-
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 using static Lykke.RabbitMqBroker.Abstractions.Analysis.MessageDeliveryAnalysis.MessageDeliveryAnalysisVerdict;
@@ -83,6 +82,51 @@ internal sealed class AnalysisTests
         Prop.ForAll(
             Gens.Received.ToArbitrary(),
             received => received.Delivered() == true
+        ).QuickCheckThrowOnFailure();
+    }
+
+    [Test]
+    public void DeliveredOnTime_NotDelivered_Always_Returns_False()
+    {
+        Prop.ForAll((
+            from dispatched in Gens.Dispatched
+            from fairDelayInSeconds in Gen.Choose(1, 60)
+            let fairDelay = TimeSpan.FromSeconds(fairDelayInSeconds)
+            select dispatched.DeliveredOnTime(fairDelay)
+        ).ToArbitrary(),
+        deliveredOnTime => !deliveredOnTime
+        ).QuickCheckThrowOnFailure();
+    }
+
+    [Test]
+    public void DeliveredOnTime_Received_Before_FairDelay_Expires_Returns_True()
+    {
+        Prop.ForAll((
+            from dispatched in Gens.Dispatched
+            from timeOnTheWayInSeconds in Gen.Choose(1, 10)
+            from fairDelayInSeconds in Gen.Choose(11, 60)
+            let fairDelay = TimeSpan.FromSeconds(fairDelayInSeconds)
+            let timeOnTheWay = TimeSpan.FromSeconds(timeOnTheWayInSeconds)
+            let receivedTimestamp = dispatched.DispatchedTimestamp.Value + timeOnTheWay
+            select dispatched.TrySetReceived(receivedTimestamp).DeliveredOnTime(fairDelay)
+        ).ToArbitrary(),
+        deliveredOnTime => deliveredOnTime
+        ).QuickCheckThrowOnFailure();
+    }
+
+    [Test]
+    public void DeliveredOnTime_Received_After_FairDelay_Expires_Returns_False()
+    {
+        Prop.ForAll((
+            from dispatched in Gens.Dispatched
+            from timeOnTheWayInSeconds in Gen.Choose(30, 60)
+            from fairDelayInSeconds in Gen.Choose(1, 29)
+            let fairDelay = TimeSpan.FromSeconds(fairDelayInSeconds)
+            let timeOnTheWay = TimeSpan.FromSeconds(timeOnTheWayInSeconds)
+            let receivedTimestamp = dispatched.DispatchedTimestamp.Value + timeOnTheWay
+            select dispatched.TrySetReceived(receivedTimestamp).DeliveredOnTime(fairDelay)
+        ).ToArbitrary(),
+        deliveredOnTime => !deliveredOnTime
         ).QuickCheckThrowOnFailure();
     }
 
