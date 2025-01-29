@@ -14,6 +14,7 @@ public static class MessageDeliveryAnalysis
     public static bool Delivered(this MessageDelivery messageDelivery) =>
         messageDelivery switch
         {
+            { Failure.IsEmpty: false } => false,
             { ReceivedTimestamp: not null } => true,
             _ => false
         };
@@ -21,20 +22,24 @@ public static class MessageDeliveryAnalysis
     public static bool NotDelivered(this MessageDelivery messageDelivery) =>
         !Delivered(messageDelivery);
 
-    public static bool Expired(this MessageDelivery messageDelivery, TimeSpan fairDelay, DateTime currentTime) =>
+    public static bool DeliveredOnTime(this MessageDelivery messageDelivery, TimeSpan fairDelay) =>
         messageDelivery switch
         {
-            { DispatchedTimestamp: null } => false,
-            { ReceivedTimestamp: not null } =>
-                PeriodPassed(
-                    messageDelivery.DispatchedTimestamp.Value,
-                    messageDelivery.ReceivedTimestamp.Value,
-                    fairDelay),
-            { ReceivedTimestamp: null } =>
-                PeriodPassed(
-                    messageDelivery.DispatchedTimestamp.Value,
-                    currentTime,
-                    fairDelay),
+            _ when messageDelivery.NotDelivered() => false,
+            _ => !PeriodPassed(
+                messageDelivery.DispatchedTimestamp.Value,
+                messageDelivery.ReceivedTimestamp.Value,
+                fairDelay)
+        };
+
+    public static bool YetToBeDelivered(this MessageDelivery messageDelivery, TimeSpan fairDelay, DateTime currentTime) =>
+        messageDelivery switch
+        {
+            { Failure.IsEmpty: false } => false,
+            _ => !PeriodPassed(
+                messageDelivery.DispatchedTimestamp.Value,
+                currentTime,
+                fairDelay)
         };
 
     private static bool PeriodPassed(DateTime start, DateTime end, TimeSpan period) => end - start > period;

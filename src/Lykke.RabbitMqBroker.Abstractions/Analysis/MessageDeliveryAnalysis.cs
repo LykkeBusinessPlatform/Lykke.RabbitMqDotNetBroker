@@ -15,11 +15,12 @@ public static class MessageDeliveryAnalysis
     public static MessageDeliveryAnalysisVerdict Analyze(
         this MessageDelivery message,
         TimeSpan fairDelay,
-        DateTime currentTime) => (message.Expired(fairDelay, currentTime), message.Delivered()) switch
+        DateTime currentTime) => message switch
         {
-            (true, true) => MessageDeliveryAnalysisVerdict.LatelyDelivered,
-            (false, true) => MessageDeliveryAnalysisVerdict.DeliveredOnTime,
-            (true, false) => MessageDeliveryAnalysisVerdict.NotDelivered,
-            (false, false) => MessageDeliveryAnalysisVerdict.NotDeliveredYet
+            _ when message.NotDelivered() => message.YetToBeDelivered(fairDelay, currentTime)
+                ? MessageDeliveryAnalysisVerdict.NotDeliveredYet
+                : MessageDeliveryAnalysisVerdict.NotDelivered,
+            _ when message.DeliveredOnTime(fairDelay) => MessageDeliveryAnalysisVerdict.DeliveredOnTime,
+            _ => MessageDeliveryAnalysisVerdict.LatelyDelivered
         };
 }

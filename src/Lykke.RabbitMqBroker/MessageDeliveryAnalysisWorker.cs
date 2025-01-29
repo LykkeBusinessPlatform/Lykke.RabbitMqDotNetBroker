@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Lykke.RabbitMqBroker.Abstractions.Analysis;
+
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 using static Lykke.RabbitMqBroker.Abstractions.Analysis.MessageDeliveryAnalysis;
@@ -21,13 +23,11 @@ internal sealed class MessageDeliveryAnalysisWorker(
 
     public Task Execute() => storage
         .GetLatestForEveryRoute()
-        .ForEachAwaitAsync(
-            m => m.Analyze(_fairDelayPeriod, timeProvider.GetUtcNow().DateTime) switch
+        .ForEachAwaitAsync(m => m.Analyze(_fairDelayPeriod, timeProvider.GetUtcNow().DateTime) switch
             {
-                // this is the place to raise alerts if we decide at some point
-                // use alerts approach instead of just notifying
                 MessageDeliveryAnalysisVerdict.NotDelivered => notifier.NotifyNotDelivered(m),
                 MessageDeliveryAnalysisVerdict.LatelyDelivered => notifier.NotifyLateDelivery(m),
                 _ => Task.CompletedTask
-            });
+            }
+        );
 }
