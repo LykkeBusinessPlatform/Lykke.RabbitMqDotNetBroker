@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
+using Lykke.RabbitMqBroker.Abstractions.Analysis;
 
 namespace Lykke.RabbitMqBroker;
 
