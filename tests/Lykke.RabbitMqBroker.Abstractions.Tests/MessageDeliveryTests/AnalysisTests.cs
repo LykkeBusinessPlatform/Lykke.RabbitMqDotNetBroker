@@ -121,7 +121,7 @@ internal sealed class AnalysisTests
     }
 
     [Test]
-    public void Analyze_Expired_NotDelivered_Returns_Verdict_NotDelivered()
+    public void Analyze_FairDelayExpired_NotDelivered_Returns_Verdict_NotDelivered()
     {
         Prop.ForAll((
             from dispatched in Gens.Dispatched
@@ -138,7 +138,7 @@ internal sealed class AnalysisTests
     }
 
     [Test]
-    public void Analyze_Expired_Delivered_Returns_Verdict_LatelyDelivered()
+    public void Analyze_FairDelayExpired_Delivered_Returns_Verdict_LatelyDelivered()
     {
         Prop.ForAll((
             from received in Gens.Received
