@@ -2,9 +2,8 @@ using FsCheck;
 using FsCheck.Fluent;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
-using Gens = Lykke.RabbitMqBroker.TestDataGenerators.MessageDeliveryGens;
 
-using Microsoft.Extensions.Time.Testing;
+using Gens = Lykke.RabbitMqBroker.TestDataGenerators.MessageDeliveryGens;
 
 namespace Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 
@@ -17,15 +16,9 @@ public class FairDelayTests
         Prop.ForAll((
             from pending in Gens.Pending
             from fairDelay in ArbMap.Default.GeneratorFor<TimeSpan>()
-            let timeProvider = new FakeTimeProvider(DateTime.UtcNow)
-            select (pending, fairDelay, timeProvider)
+            select pending.Expired(fairDelay, DateTime.UtcNow)
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (pending, fairDelay, timeProvider) = inputs;
-                var expired = pending.Expired(fairDelay, timeProvider);
-                return !expired;
-            }
+            expired => !expired
         ).QuickCheckThrowOnFailure();
     }
 
@@ -39,15 +32,10 @@ public class FairDelayTests
             let initialTime = dispatched.DispatchedTimestamp.Value
             let fairDelay = TimeSpan.FromSeconds(fairDelaySeconds)
             let timePassed = TimeSpan.FromSeconds(timePassedSeconds)
-            let timeProvider = new FakeTimeProvider(new DateTimeOffset(initialTime))
-            select (dispatched, fairDelay, timePassed, timeProvider)
+            let currentTime = initialTime + timePassed
+            select dispatched.Expired(fairDelay, currentTime)
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (dispatched, fairDelay, timePassed, timeProvider) = inputs;
-                timeProvider.Advance(timePassed);
-                return dispatched.Expired(fairDelay, timeProvider);
-            }
+            expired => expired
         ).QuickCheckThrowOnFailure();
     }
 
@@ -61,15 +49,10 @@ public class FairDelayTests
             let initialTime = dispatched.DispatchedTimestamp.Value
             let fairDelay = TimeSpan.FromSeconds(fairDelaySeconds)
             let timePassed = TimeSpan.FromSeconds(timePassedSeconds)
-            let timeProvider = new FakeTimeProvider(new DateTimeOffset(initialTime))
-            select (dispatched, fairDelay, timePassed, timeProvider)
+            let currentTime = initialTime + timePassed
+            select dispatched.Expired(fairDelay, currentTime)
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (dispatched, fairDelay, timePassed, timeProvider) = inputs;
-                timeProvider.Advance(timePassed);
-                return !dispatched.Expired(fairDelay, timeProvider);
-            }
+            expired => !expired
         ).QuickCheckThrowOnFailure();
     }
 
@@ -81,15 +64,10 @@ public class FairDelayTests
             let initialTime = received.DispatchedTimestamp.Value
             let timeOnTheWay = received.ReceivedTimestamp.Value - received.DispatchedTimestamp.Value
             let fairDelay = timeOnTheWay.Subtract(TimeSpan.FromSeconds(1)) // emulate always late delivery
-            let timeProvider = new FakeTimeProvider(new DateTimeOffset(initialTime))
-            select (received, fairDelay, timeOnTheWay, timeProvider)
+            let currentTime = initialTime + timeOnTheWay
+            select received.Expired(fairDelay, currentTime)
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (received, fairDelay, timeOnTheWay, timeProvider) = inputs;
-                timeProvider.Advance(timeOnTheWay);
-                return received.Expired(fairDelay, timeProvider);
-            }
+            expired => expired
         ).QuickCheckThrowOnFailure();
     }
 
@@ -101,15 +79,10 @@ public class FairDelayTests
             let initialTime = received.DispatchedTimestamp.Value
             let timeOnTheWay = received.ReceivedTimestamp.Value - received.DispatchedTimestamp.Value
             let fairDelay = timeOnTheWay.Add(TimeSpan.FromSeconds(1)) // emulate always early delivery
-            let timeProvider = new FakeTimeProvider(new DateTimeOffset(initialTime))
-            select (received, fairDelay, timeOnTheWay, timeProvider)
+            let currentTime = initialTime + timeOnTheWay
+            select received.Expired(fairDelay, currentTime)
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (received, fairDelay, timeOnTheWay, timeProvider) = inputs;
-                timeProvider.Advance(timeOnTheWay);
-                return !received.Expired(fairDelay, timeProvider);
-            }
+            expired => !expired
         ).QuickCheckThrowOnFailure();
     }
 }

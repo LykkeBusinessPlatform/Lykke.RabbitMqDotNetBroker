@@ -1,3 +1,4 @@
+using FsCheck;
 using FsCheck.Fluent;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
@@ -23,71 +24,66 @@ internal sealed class MessageDeliveryRetentionPolicyTests
     [Test]
     public void IsOlderThan_WhenPending_ShouldBeFalse()
     {
-        var delivery = Gens.Pending.Sample(1, 1).Single();
-
-        MinutesPassedBy(1);
-        var result = delivery.IsOlderThan(GetNow);
-
-        Assert.That(result, Is.False);
+        Prop.ForAll((
+            from pending in Gens.Pending
+            from moment in Gen.Constant(_timeProvider.GetUtcNow().DateTime)
+            let currentTime = moment.AddMinutes(1)
+            select pending.IsOlderThan(currentTime)
+            ).ToArbitrary(),
+            isOlderThan => !isOlderThan
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void IsOlderThan_WhenDispatched_ShouldBeTrue()
     {
-        var dispatchedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(GetNow());
-
-        MinutesPassedBy(1);
-        var result = dispatchedDelivery.IsOlderThan(GetNow);
-
-        Assert.That(result);
+        Prop.ForAll((
+            from moment in Gen.Constant(_timeProvider.GetUtcNow().DateTime)
+            from dispatched in Gens.DispatchedAt(moment)
+            let currentTime = moment.AddMinutes(1)
+            select dispatched.IsOlderThan(currentTime)
+            ).ToArbitrary(),
+            isOlderThan => isOlderThan
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void IsOlderThan_WhenFailed_ShouldBeTrue()
     {
-        var failedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetFailed(
-                MessageDeliveryFailure.Create(
-                    MessageDeliveryFailureReason.DispatchError,
-                    dateTime: GetNow()));
-
-        MinutesPassedBy(1);
-        var result = failedDelivery.IsOlderThan(GetNow);
-
-        Assert.That(result);
+        Prop.ForAll((
+            from failed in Gens.Failed
+            let moment = failed.Failure.Timestamp
+            let currentTime = moment.AddMinutes(1)
+            select failed.IsOlderThan(currentTime)
+            ).ToArbitrary(),
+            isOlderThan => isOlderThan
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void IsOlderThan_WhenMomentIsBeforeReceived_ShouldBeTrue()
     {
-        var dispatchedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(GetNow());
-
-        MinutesPassedBy(1);
-        var moment = GetNow();
-
-        MinutesPassedBy(1);
-        var receivedDelivery = dispatchedDelivery
-            .TrySetReceived(GetNow());
-
-        var result = receivedDelivery.IsOlderThan(moment);
-
-        Assert.That(result);
+        Prop.ForAll((
+            from moment in Gen.Constant(_timeProvider.GetUtcNow().DateTime)
+            from dispatched in Gens.DispatchedAt(moment)
+            let someTimeAfterDispatch = moment.AddMinutes(1)
+            let yetMoreTimeAfterDispatch = someTimeAfterDispatch.AddMinutes(1)
+            let received = dispatched.TrySetReceived(yetMoreTimeAfterDispatch)
+            select received.IsOlderThan(someTimeAfterDispatch)
+            ).ToArbitrary(),
+            isOlderThan => isOlderThan
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
     public void IsOlderThan_WhenMomentExactlyDispatched_ShouldBeFalse()
     {
-        var dispatchedDelivery = new MessageDeliveryWithDefaults()
-            .TrySetDispatched(GetNow());
-
-        var result = dispatchedDelivery.IsOlderThan(GetNow);
-
-        Assert.That(result, Is.False);
+        Prop.ForAll((
+            from moment in Gen.Constant(_timeProvider.GetUtcNow().DateTime)
+            from dispatched in Gens.DispatchedAt(moment)
+            select dispatched.IsOlderThan(moment)
+            ).ToArbitrary(),
+            isOlderThan => !isOlderThan
+        ).QuickCheckThrowOnFailure();
     }
-
-    private void MinutesPassedBy(int minutes) => _timeProvider.Advance(TimeSpan.FromMinutes(minutes));
-
-    private DateTime GetNow() => _timeProvider.GetUtcNow().DateTime;
 }

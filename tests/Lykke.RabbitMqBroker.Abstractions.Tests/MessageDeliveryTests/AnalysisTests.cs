@@ -6,9 +6,8 @@ using Lykke.RabbitMqBroker.Abstractions.Analysis;
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 using static Lykke.RabbitMqBroker.Abstractions.Analysis.MessageDeliveryAnalysis.MessageDeliveryAnalysisVerdict;
-using Gens = Lykke.RabbitMqBroker.TestDataGenerators.MessageDeliveryGens;
 
-using Microsoft.Extensions.Time.Testing;
+using Gens = Lykke.RabbitMqBroker.TestDataGenerators.MessageDeliveryGens;
 
 namespace Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 
@@ -97,16 +96,11 @@ internal sealed class AnalysisTests
             let initialTime = dispatched.DispatchedTimestamp.Value
             let fairDelay = TimeSpan.FromSeconds(fairDelaySeconds)
             let timePassed = TimeSpan.FromSeconds(timePassedSeconds)
-            let timeProvider = new FakeTimeProvider(initialTime)
-            select (dispatched, fairDelay, timePassed, timeProvider)
+            let currentTime = initialTime + timePassed
+            select dispatched.Analyze(fairDelay, currentTime)
         ).ToArbitrary(),
-        inputs =>
-        {
-            var (dispatched, fairDelay, timePassed, timeProvider) = inputs;
-            timeProvider.Advance(timePassed);
-            return dispatched.Analyze(fairDelay, timeProvider) == NotDeliveredYet;
-
-        }).QuickCheckThrowOnFailure();
+        verdict => verdict == NotDeliveredYet
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
@@ -117,17 +111,13 @@ internal sealed class AnalysisTests
             let dispatchedTime = received.DispatchedTimestamp.Value
             let receivedTime = received.ReceivedTimestamp.Value
             let initialTime = dispatchedTime
-            let timePassed = receivedTime - dispatchedTime
+            let currentTime = receivedTime
+            let timePassed = currentTime - initialTime
             let fairDelay = timePassed + TimeSpan.FromSeconds(1)
-            let timeProvider = new FakeTimeProvider(initialTime)
-            select (received, fairDelay, timePassed, timeProvider)
+            select received.Analyze(fairDelay, currentTime)
         ).ToArbitrary(),
-        inputs =>
-        {
-            var (received, fairDelay, timePassed, timeProvider) = inputs;
-            timeProvider.Advance(timePassed);
-            return received.Analyze(fairDelay, timeProvider) == DeliveredOnTime;
-        }).QuickCheckThrowOnFailure();
+        verdict => verdict == DeliveredOnTime
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
@@ -140,15 +130,11 @@ internal sealed class AnalysisTests
             let initialTime = dispatched.DispatchedTimestamp.Value
             let fairDelay = TimeSpan.FromSeconds(fairDelaySeconds)
             let timePassed = TimeSpan.FromSeconds(timePassedSeconds)
-            let timeProvider = new FakeTimeProvider(initialTime)
-            select (dispatched, fairDelay, timePassed, timeProvider)
+            let currentTime = initialTime + timePassed
+            select dispatched.Analyze(fairDelay, currentTime)
         ).ToArbitrary(),
-        inputs =>
-        {
-            var (dispatched, fairDelay, timePassed, timeProvider) = inputs;
-            timeProvider.Advance(timePassed);
-            return dispatched.Analyze(fairDelay, timeProvider) == NotDelivered;
-        }).QuickCheckThrowOnFailure();
+        verdict => verdict == NotDelivered
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
@@ -161,14 +147,10 @@ internal sealed class AnalysisTests
             let initialTime = dispatchedTime
             let timePassed = receivedTime - dispatchedTime
             let fairDelay = timePassed - TimeSpan.FromSeconds(1)
-            let timeProvider = new FakeTimeProvider(initialTime)
-            select (received, fairDelay, timePassed, timeProvider)
+            let currentTime = receivedTime
+            select received.Analyze(fairDelay, currentTime)
         ).ToArbitrary(),
-        inputs =>
-        {
-            var (received, fairDelay, timePassed, timeProvider) = inputs;
-            timeProvider.Advance(timePassed);
-            return received.Analyze(fairDelay, timeProvider) == LatelyDelivered;
-        }).QuickCheckThrowOnFailure();
+        verdict => verdict == LatelyDelivered
+        ).QuickCheckThrowOnFailure();
     }
 }

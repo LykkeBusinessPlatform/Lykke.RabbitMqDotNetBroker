@@ -117,14 +117,9 @@ public class StatusTests
         Prop.ForAll((
             from notFailed in Gens.NotFailed
             from failure in Gens.MessageDeliveryFailure
-            select (notFailed, failure)
+            select notFailed.TrySetFailed(failure)
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (notFailed, failure) = inputs;
-                var failed = notFailed.TrySetFailed(failure);
-                return failed.GetStatus() == MessageDeliveryStatus.Failed && !failed.Failure.IsEmpty;
-            }
+            failed => failed.GetStatus() == MessageDeliveryStatus.Failed && !failed.Failure.IsEmpty
         ).QuickCheckThrowOnFailure();
     }
 
@@ -134,13 +129,9 @@ public class StatusTests
         Prop.ForAll((
             from dispatched in Gens.Dispatched
             from failure in Gens.MessageDeliveryFailure
-            select (dispatched, failure)
+            select dispatched.TrySetFailed(failure).DispatchedTimestamp
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (dispatched, failure) = inputs;
-                return dispatched.TrySetFailed(failure).DispatchedTimestamp == null;
-            }
+            dispatchedTimestamp => dispatchedTimestamp == null
         ).QuickCheckThrowOnFailure();
     }
 
@@ -150,25 +141,21 @@ public class StatusTests
         Prop.ForAll((
             from received in Gens.Received
             from failure in Gens.MessageDeliveryFailure
-            select (received, failure)
+            select received.TrySetFailed(failure)
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (received, failure) = inputs;
-                var failed = received.TrySetFailed(failure);
-                return failed.GetStatus() == MessageDeliveryStatus.Failed && !failed.Failure.IsEmpty;
-            }
+            failed => failed.GetStatus() == MessageDeliveryStatus.Failed && !failed.Failure.IsEmpty
         );
     }
 
     [Test]
     public void TrySetFailed_Does_Nothing_WhenEmptyFailure()
     {
-        var notFailed = Gens.NotFailed.Sample(1, 1).First();
-
-        var updatedDelivery = notFailed.TrySetFailed(MessageDeliveryFailure.Empty);
-
-        Assert.That(updatedDelivery, Is.EqualTo(notFailed));
+        Prop.ForAll((
+            from notFailed in Gens.NotFailed
+            select notFailed.TrySetFailed(MessageDeliveryFailure.Empty) == notFailed
+            ).ToArbitrary(),
+            notChanged => notChanged
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
@@ -177,13 +164,10 @@ public class StatusTests
         Prop.ForAll((
             from failed in Gens.Failed
             from failure in Gens.MessageDeliveryFailure
-            select (failed, failure)
+            select failed.TrySetFailed(failure) == failed
             ).ToArbitrary(),
-            inputs =>
-            {
-                var (failed, failure) = inputs;
-                return failed.TrySetFailed(failure) == failed;
-            });
+            notChanged => notChanged
+        ).QuickCheckThrowOnFailure();
     }
 
     [Test]
