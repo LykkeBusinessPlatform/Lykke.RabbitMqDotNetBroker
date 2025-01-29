@@ -2,6 +2,7 @@ using FsCheck;
 using FsCheck.Fluent;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
+using Gens = Lykke.RabbitMqBroker.TestDataGenerators.MessageDeliveryGens;
 
 using Microsoft.Extensions.Time.Testing;
 
@@ -14,7 +15,7 @@ public class FairDelayTests
     public void When_Pending_Always_Returns_False() // fair delay is not applicable to pending messages
     {
         Prop.ForAll((
-            from pending in Gens.MessageDelivery.Pending
+            from pending in Gens.Pending
             from fairDelay in ArbMap.Default.GeneratorFor<TimeSpan>()
             let timeProvider = new FakeTimeProvider(DateTime.UtcNow)
             select (pending, fairDelay, timeProvider)
@@ -22,7 +23,7 @@ public class FairDelayTests
             inputs =>
             {
                 var (pending, fairDelay, timeProvider) = inputs;
-                var expired = pending.FairDelayExpired(fairDelay, timeProvider);
+                var expired = pending.Expired(fairDelay, timeProvider);
                 return !expired;
             }
         ).QuickCheckThrowOnFailure();
@@ -32,7 +33,7 @@ public class FairDelayTests
     public void When_Dispatched_And_TimePassed_Returns_True()
     {
         Prop.ForAll((
-            from dispatched in Gens.MessageDelivery.Dispatched
+            from dispatched in Gens.Dispatched
             from fairDelaySeconds in Gen.Choose(1, 60)
             from timePassedSeconds in Gen.Choose(61, 86400)
             let initialTime = dispatched.DispatchedTimestamp.Value
@@ -45,7 +46,7 @@ public class FairDelayTests
             {
                 var (dispatched, fairDelay, timePassed, timeProvider) = inputs;
                 timeProvider.Advance(timePassed);
-                return dispatched.FairDelayExpired(fairDelay, timeProvider);
+                return dispatched.Expired(fairDelay, timeProvider);
             }
         ).QuickCheckThrowOnFailure();
     }
@@ -54,9 +55,9 @@ public class FairDelayTests
     public void When_Dispatched_And_TimeNotPassed_Returns_False()
     {
         Prop.ForAll((
-            from dispatched in Gens.MessageDelivery.Dispatched
-            from fairDelaySeconds in Gen.Choose(11, 60)
-            from timePassedSeconds in Gen.Choose(1, 10)
+            from dispatched in Gens.Dispatched
+            from fairDelaySeconds in Gen.Choose(1, 60)
+            from timePassedSeconds in Gen.Choose(0, fairDelaySeconds - 1)
             let initialTime = dispatched.DispatchedTimestamp.Value
             let fairDelay = TimeSpan.FromSeconds(fairDelaySeconds)
             let timePassed = TimeSpan.FromSeconds(timePassedSeconds)
@@ -67,7 +68,7 @@ public class FairDelayTests
             {
                 var (dispatched, fairDelay, timePassed, timeProvider) = inputs;
                 timeProvider.Advance(timePassed);
-                return !dispatched.FairDelayExpired(fairDelay, timeProvider);
+                return !dispatched.Expired(fairDelay, timeProvider);
             }
         ).QuickCheckThrowOnFailure();
     }
@@ -76,7 +77,7 @@ public class FairDelayTests
     public void When_Received_And_TimePassed_Returns_True()
     {
         Prop.ForAll((
-            from received in Gens.MessageDelivery.Received
+            from received in Gens.Received
             let initialTime = received.DispatchedTimestamp.Value
             let timeOnTheWay = received.ReceivedTimestamp.Value - received.DispatchedTimestamp.Value
             let fairDelay = timeOnTheWay.Subtract(TimeSpan.FromSeconds(1)) // emulate always late delivery
@@ -87,7 +88,7 @@ public class FairDelayTests
             {
                 var (received, fairDelay, timeOnTheWay, timeProvider) = inputs;
                 timeProvider.Advance(timeOnTheWay);
-                return received.FairDelayExpired(fairDelay, timeProvider);
+                return received.Expired(fairDelay, timeProvider);
             }
         ).QuickCheckThrowOnFailure();
     }
@@ -96,7 +97,7 @@ public class FairDelayTests
     public void When_Received_And_TimeNotPassed_Returns_False()
     {
         Prop.ForAll((
-            from received in Gens.MessageDelivery.Received
+            from received in Gens.Received
             let initialTime = received.DispatchedTimestamp.Value
             let timeOnTheWay = received.ReceivedTimestamp.Value - received.DispatchedTimestamp.Value
             let fairDelay = timeOnTheWay.Add(TimeSpan.FromSeconds(1)) // emulate always early delivery
@@ -107,7 +108,7 @@ public class FairDelayTests
             {
                 var (received, fairDelay, timeOnTheWay, timeProvider) = inputs;
                 timeProvider.Advance(timeOnTheWay);
-                return !received.FairDelayExpired(fairDelay, timeProvider);
+                return !received.Expired(fairDelay, timeProvider);
             }
         ).QuickCheckThrowOnFailure();
     }

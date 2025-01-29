@@ -3,9 +3,13 @@ using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
+using Gens = Lykke.RabbitMqBroker.TestDataGenerators.MessageDeliveryGens;
+
 using Microsoft.Extensions.Time.Testing;
 
 using NUnit.Framework;
+using FsCheck.Fluent;
+using System.Linq;
 
 namespace Lykke.RabbitMqBroker.Tests;
 
@@ -81,27 +85,21 @@ internal sealed class MessageDeliveryAnalysisWorkerTests
         var now = _timeProvider.GetUtcNow().DateTime;
 
         // Not delivered messages (2)
-        await _seededStorage
-            .AddOrUpdate(new MessageDeliveryWithDefaults()
-            .TrySetDispatched(now));
+        await _seededStorage.AddOrUpdate(Gens.DispatchedAt(now)
+            .Sample(1, 1)
+            .First());
 
-        await _seededStorage
-            .AddOrUpdate(MessageDelivery.Create(
-                MessageRoute.Create(
-                    NonEmptyString.Create("e1"),
-                    NonEmptyString.Create("q1"),
-                    "r1"))
-            .TrySetDispatched(now)
-            .TrySetFailed(MessageDeliveryFailure.Create(MessageDeliveryFailureReason.Unroutable, dateTime: now.AddSeconds(1))));
+        await _seededStorage.AddOrUpdate(Gens.DispatchedAt(now)
+            .Sample(1, 1)
+            .First()
+            .TrySetFailed(Gens.MessageDeliveryFailureAt(now.AddSeconds(1))
+                .Sample(1, 1)
+                .First()));
 
         // Delivered too late (1)
-        await _seededStorage
-            .AddOrUpdate(MessageDelivery.Create(
-                MessageRoute.Create(
-                    NonEmptyString.Create("e2"),
-                    NonEmptyString.Create("q2"),
-                    "r2"))
-            .TrySetDispatched(now)
+        await _seededStorage.AddOrUpdate(Gens.DispatchedAt(now)
+            .Sample(1, 1)
+            .First()
             .TrySetReceived(now
                 .AddSeconds(1)
                 .AddMilliseconds(FairDelayPeriodMs)

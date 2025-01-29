@@ -21,7 +21,7 @@ public static class MessageDeliveryAnalysis
     public static bool NotDelivered(this MessageDelivery messageDelivery) =>
         !Delivered(messageDelivery);
 
-    public static bool FairDelayExpired(this MessageDelivery messageDelivery, TimeSpan fairDelay, TimeProvider timeProvider) =>
+    public static bool Expired(this MessageDelivery messageDelivery, TimeSpan fairDelay, TimeProvider timeProvider) =>
         messageDelivery switch
         {
             { DispatchedTimestamp: null } => false,

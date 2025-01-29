@@ -1,12 +1,10 @@
-using System;
-
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
-namespace Lykke.RabbitMqBroker;
+namespace Lykke.RabbitMqBroker.Abstractions.Analysis;
 
-internal static class MessageDeliveryAnalysisExtensions
+public static class MessageDeliveryAnalysis
 {
-    internal enum MessageDeliveryAnalysisVerdict
+    public enum MessageDeliveryAnalysisVerdict
     {
         NotDeliveredYet,
         NotDelivered,
@@ -14,10 +12,10 @@ internal static class MessageDeliveryAnalysisExtensions
         DeliveredOnTime
     }
 
-    internal static MessageDeliveryAnalysisVerdict Analyze(
+    public static MessageDeliveryAnalysisVerdict Analyze(
         this MessageDelivery message,
         TimeSpan fairDelay,
-        TimeProvider timeProvider) => (message.FairDelayExpired(fairDelay, timeProvider), message.Delivered()) switch
+        TimeProvider timeProvider) => (message.Expired(fairDelay, timeProvider), message.Delivered()) switch
         {
             (true, true) => MessageDeliveryAnalysisVerdict.LatelyDelivered,
             (false, true) => MessageDeliveryAnalysisVerdict.DeliveredOnTime,

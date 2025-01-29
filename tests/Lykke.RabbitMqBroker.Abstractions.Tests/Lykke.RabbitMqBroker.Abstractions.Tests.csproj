@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lykke.RabbitMqBroker.Abstractions\Lykke.RabbitMqBroker.Abstractions.csproj" />
+    <ProjectReference Include="..\Lykke.RabbitMqBroker.TestDataGenerators\Lykke.RabbitMqBroker.TestDataGenerators.csproj" />
   </ItemGroup>
 
 </Project>

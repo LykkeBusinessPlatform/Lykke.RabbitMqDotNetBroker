@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
-using static Lykke.RabbitMqBroker.MessageDeliveryAnalysisExtensions.MessageDeliveryAnalysisVerdict;
+using static Lykke.RabbitMqBroker.Abstractions.Analysis.MessageDeliveryAnalysis;
 
 namespace Lykke.RabbitMqBroker;
 
@@ -26,8 +26,8 @@ internal sealed class MessageDeliveryAnalysisWorker(
             {
                 // this is the place to raise alerts if we decide at some point
                 // use alerts approach instead of just notifying
-                NotDelivered => notifier.NotifyNotDelivered(m),
-                LatelyDelivered => notifier.NotifyLateDelivery(m),
+                MessageDeliveryAnalysisVerdict.NotDelivered => notifier.NotifyNotDelivered(m),
+                MessageDeliveryAnalysisVerdict.LatelyDelivered => notifier.NotifyLateDelivery(m),
                 _ => Task.CompletedTask
             });
 }

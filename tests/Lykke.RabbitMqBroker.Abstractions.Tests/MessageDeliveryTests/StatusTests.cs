@@ -3,6 +3,8 @@ using FsCheck.Fluent;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
+using Gens = Lykke.RabbitMqBroker.TestDataGenerators.MessageDeliveryGens;
+
 namespace Lykke.RabbitMqBroker.Abstractions.Tests.MessageDeliveryTests;
 
 [TestFixture]
@@ -22,7 +24,7 @@ public class StatusTests
     public void TrySetDispatched_ChangesStatusToDispatched_WhenPending()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Pending.ToArbitrary(),
+            Gens.Pending.ToArbitrary(),
             pending => pending.TrySetDispatched(DateTime.UtcNow).GetStatus() == MessageDeliveryStatus.Dispatched
         ).QuickCheckThrowOnFailure();
     }
@@ -31,7 +33,7 @@ public class StatusTests
     public void DispatchedMessageDelivery_HasDispatchedStatus()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Dispatched.ToArbitrary(),
+            Gens.Dispatched.ToArbitrary(),
             dispatched => dispatched.GetStatus() == MessageDeliveryStatus.Dispatched
         ).QuickCheckThrowOnFailure();
     }
@@ -40,7 +42,7 @@ public class StatusTests
     public void TrySetDispatched_Does_Nothing_WhenAlreadyDispatched()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Dispatched.ToArbitrary(),
+            Gens.Dispatched.ToArbitrary(),
             dispatched => dispatched.TrySetDispatched(DateTime.UtcNow) == dispatched
         ).QuickCheckThrowOnFailure();
     }
@@ -49,7 +51,7 @@ public class StatusTests
     public void TrySetDispatched_Does_Nothing_WhenAlreadyReceived()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Received.ToArbitrary(),
+            Gens.Received.ToArbitrary(),
             received => received.TrySetDispatched(DateTime.UtcNow) == received
         ).QuickCheckThrowOnFailure();
     }
@@ -58,7 +60,7 @@ public class StatusTests
     public void TrySetDispatched_Does_Nothing_WhenAlreadyFailed()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Failed.ToArbitrary(),
+            Gens.Failed.ToArbitrary(),
             failed => failed.TrySetDispatched(DateTime.UtcNow) == failed
         ).QuickCheckThrowOnFailure();
     }
@@ -67,7 +69,7 @@ public class StatusTests
     public void TrySetReceived_ChangesStatusToReceived_When_Dispatched()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Dispatched.ToArbitrary(),
+            Gens.Dispatched.ToArbitrary(),
             dispatched => dispatched.TrySetReceived(DateTime.UtcNow).GetStatus() == MessageDeliveryStatus.Received
         ).QuickCheckThrowOnFailure();
     }
@@ -76,7 +78,7 @@ public class StatusTests
     public void TrySetReceived_Does_Nothing_WhenAlreadyReceived()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Received.ToArbitrary(),
+            Gens.Received.ToArbitrary(),
             received => received.TrySetReceived(DateTime.UtcNow) == received
         ).QuickCheckThrowOnFailure();
     }
@@ -85,7 +87,7 @@ public class StatusTests
     public void TrySetReceived_Does_Nothing_WhenAlreadyFailed()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Failed.ToArbitrary(),
+            Gens.Failed.ToArbitrary(),
             failed => failed.TrySetReceived(DateTime.UtcNow) == failed
         ).QuickCheckThrowOnFailure();
     }
@@ -94,7 +96,7 @@ public class StatusTests
     public void TrySetReceived_Does_Nothing_WhenPending()
     {
         Prop.ForAll(
-            Gens.MessageDelivery.Pending.ToArbitrary(),
+            Gens.Pending.ToArbitrary(),
             pending => pending.TrySetReceived(DateTime.UtcNow) == pending
         ).QuickCheckThrowOnFailure();
     }
@@ -113,7 +115,7 @@ public class StatusTests
     public void TrySetFailed_ChangesStatusToFailed()
     {
         Prop.ForAll((
-            from notFailed in Gens.MessageDelivery.NotFailed
+            from notFailed in Gens.NotFailed
             from failure in Gens.MessageDeliveryFailure
             select (notFailed, failure)
             ).ToArbitrary(),
@@ -130,7 +132,7 @@ public class StatusTests
     public void TrySetFailed_Cleans_DispatchTimestamp()
     {
         Prop.ForAll((
-            from dispatched in Gens.MessageDelivery.Dispatched
+            from dispatched in Gens.Dispatched
             from failure in Gens.MessageDeliveryFailure
             select (dispatched, failure)
             ).ToArbitrary(),
@@ -146,7 +148,7 @@ public class StatusTests
     public void TrySetFailed_ChangesStatusToFailed_WhenReceived()
     {
         Prop.ForAll((
-            from received in Gens.MessageDelivery.Received
+            from received in Gens.Received
             from failure in Gens.MessageDeliveryFailure
             select (received, failure)
             ).ToArbitrary(),
@@ -162,7 +164,7 @@ public class StatusTests
     [Test]
     public void TrySetFailed_Does_Nothing_WhenEmptyFailure()
     {
-        var notFailed = Gens.MessageDelivery.NotFailed.Sample(1, 1).First();
+        var notFailed = Gens.NotFailed.Sample(1, 1).First();
 
         var updatedDelivery = notFailed.TrySetFailed(MessageDeliveryFailure.Empty);
 
@@ -173,7 +175,7 @@ public class StatusTests
     public void TrySetFailed_Does_Nothing_WhenAlreadyFailed()
     {
         Prop.ForAll((
-            from failed in Gens.MessageDelivery.Failed
+            from failed in Gens.Failed
             from failure in Gens.MessageDeliveryFailure
             select (failed, failure)
             ).ToArbitrary(),
