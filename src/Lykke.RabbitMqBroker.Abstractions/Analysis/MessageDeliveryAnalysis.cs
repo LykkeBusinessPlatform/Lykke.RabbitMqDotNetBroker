@@ -15,7 +15,7 @@ public static class MessageDeliveryAnalysis
     public static MessageDeliveryAnalysisVerdict Analyze(
         this MessageDelivery message,
         TimeSpan fairDelay,
-        TimeProvider timeProvider) => (message.Expired(fairDelay, timeProvider), message.Delivered()) switch
+        DateTime currentTime) => (message.Expired(fairDelay, currentTime), message.Delivered()) switch
         {
             (true, true) => MessageDeliveryAnalysisVerdict.LatelyDelivered,
             (false, true) => MessageDeliveryAnalysisVerdict.DeliveredOnTime,

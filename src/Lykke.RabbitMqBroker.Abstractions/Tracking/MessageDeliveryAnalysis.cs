@@ -21,7 +21,7 @@ public static class MessageDeliveryAnalysis
     public static bool NotDelivered(this MessageDelivery messageDelivery) =>
         !Delivered(messageDelivery);
 
-    public static bool Expired(this MessageDelivery messageDelivery, TimeSpan fairDelay, TimeProvider timeProvider) =>
+    public static bool Expired(this MessageDelivery messageDelivery, TimeSpan fairDelay, DateTime currentTime) =>
         messageDelivery switch
         {
             { DispatchedTimestamp: null } => false,
@@ -33,7 +33,7 @@ public static class MessageDeliveryAnalysis
             { ReceivedTimestamp: null } =>
                 PeriodPassed(
                     messageDelivery.DispatchedTimestamp.Value,
-                    timeProvider.GetUtcNow().DateTime,
+                    currentTime,
                     fairDelay),
         };
 
