@@ -43,7 +43,7 @@ await builder
         services.AddRabbitMq(configuration);
 
         var connectionString = ctx.Configuration.GetConnectionString("RabbitMq");
-        services.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage, MonitoringIssueLogger>(configuration.Monitoring, connectionString);
+        services.AddRabbitMqMonitoring<MessageDeliveryInMemoryStorage, MonitoringMessageLogger>(configuration.Monitoring, connectionString);
         services.AddRabbitMqMonitoringRetentionPolicy<MessageDeliveryInMemoryStorage>(configuration.Monitoring);
         services.AddSingleton<RandomPrefetchCountGenerator>();
 

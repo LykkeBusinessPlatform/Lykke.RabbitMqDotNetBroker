@@ -69,7 +69,7 @@ internal sealed class MessageDeliveryMaintenanceTests
             .TrySetDispatched(_timeProvider.GetUtcNow().DateTime);
         await _storage.AddOrUpdate(deliveryAfterMoment);
 
-        var result = _maintenance.GetBeforeMoment(moment);
+        var result = _maintenance.GetOlderThan(moment);
 
         Assert.That(result.ToEnumerable(), Is.EquivalentTo(new[] { deliveryBeforeMoment }));
     }

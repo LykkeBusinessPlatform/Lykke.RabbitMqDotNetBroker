@@ -17,7 +17,7 @@ namespace Lykke.RabbitMqBroker.Tests;
 [NonParallelizable]
 internal sealed class MessageDeliveryAnalysisWorkerTests
 {
-    class FakeMonitoringIssueNotifier : IMonitoringIssueNotifier
+    class FakeMonitoringIssueNotifier : IMonitoringMessageNotifier
     {
         public int NotifiedAboutNotDeliveredCounter { get; private set; }
         public int NotifiedAboutLatelyDeliveredCounter { get; private set; }

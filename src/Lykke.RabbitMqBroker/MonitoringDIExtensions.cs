@@ -25,13 +25,19 @@ public static class MonitoringDIExtensions
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <param name="connectionString"></param>
+    /// <param name="autoStart">
+    /// Whether to start worker automatically.
+    /// If not, you should start it manually by resolving <see cref="MessageDeliveryAnalysisTimer"/>
+    /// and calling <see cref="IHostedService.StartAsync"/>.
+    /// </param>
     /// <returns></returns>
     public static IServiceCollection AddRabbitMqMonitoring<TMessageDeliveryStorage, TIssueNotifier>(
         this IServiceCollection services,
         RabbitMqMonitoringConfiguration configuration,
-        string connectionString)
+        string connectionString,
+        bool autoStart = true)
         where TMessageDeliveryStorage : class, IMessageDeliveryStorage
-        where TIssueNotifier : class, IMonitoringIssueNotifier
+        where TIssueNotifier : class, IMonitoringMessageNotifier
     {
         services.AddSingleton<IListenerRegistrationHandler, ListenerRegistrationMonitoringHandler>();
         services.AddSingleton<IMessageProducer<MonitoringHeartbeat>, MonitoringHeartbeatPublisher>();
@@ -40,7 +46,7 @@ public static class MonitoringDIExtensions
         services.TryAddSingleton<TMessageDeliveryStorage>();
         services.TryAddSingleton<IMessageDeliveryStorage>(p => p.GetRequiredService<TMessageDeliveryStorage>());
 
-        services.TryAddSingleton<IMonitoringIssueNotifier, TIssueNotifier>();
+        services.TryAddSingleton<IMonitoringMessageNotifier, TIssueNotifier>();
 
         services.AddSingleton<IMonitoringHeartbeatReceiver, MonitoringHeartbeatReceiver>();
         services.Configure<RabbitMqPublisherOptions<MonitoringHeartbeat>>(opt =>
@@ -57,13 +63,24 @@ public static class MonitoringDIExtensions
         services.AddSingleton<IMessageDeliveryAnalysisWorker, MessageDeliveryAnalysisWorker>(p =>
             new MessageDeliveryAnalysisWorker(
                 p.GetRequiredService<IMessageDeliveryStorage>(),
-                p.GetRequiredService<IMonitoringIssueNotifier>(),
+                p.GetRequiredService<IMonitoringMessageNotifier>(),
                 p.GetRequiredService<TimeProvider>(),
                 configuration.MessageDeliveryFairDelayMs == null ? null : TimeSpan.FromMilliseconds(configuration.MessageDeliveryFairDelayMs.Value)));
-        services.AddHostedService(p =>
-            new MessageDeliveryAnalysisTimer(
-                p.GetRequiredService<IMessageDeliveryAnalysisWorker>(),
-                configuration.AnalysisPeriod));
+
+        if (autoStart)
+        {
+            services.AddHostedService(p =>
+                new MessageDeliveryAnalysisTimer(
+                    p.GetRequiredService<IMessageDeliveryAnalysisWorker>(),
+                    configuration.AnalysisPeriod));
+        }
+        else
+        {
+            services.TryAddSingleton(p =>
+                new MessageDeliveryAnalysisTimer(
+                    p.GetRequiredService<IMessageDeliveryAnalysisWorker>(),
+                    configuration.AnalysisPeriod));
+        }
 
         return services;
     }
@@ -76,13 +93,19 @@ public static class MonitoringDIExtensions
     /// <param name="builder"></param>
     /// <param name="configuration"></param>
     /// <param name="connectionString"></param>
+    /// <param name="autoStart">
+    /// Whether to start worker automatically.
+    /// If not, you should start it manually by resolving <see cref="MessageDeliveryAnalysisTimer"/>
+    /// and calling <see cref="IHostedService.StartAsync"/>.
+    /// </param>
     /// <returns></returns>
     public static void AddRabbitMqMonitoring<TMessageDeliveryStorage, TIssueNotifier>(
         this ContainerBuilder builder,
         RabbitMqMonitoringConfiguration configuration,
-        string connectionString)
+        string connectionString,
+        bool autoStart = true)
         where TMessageDeliveryStorage : class, IMessageDeliveryStorage
-        where TIssueNotifier : class, IMonitoringIssueNotifier
+        where TIssueNotifier : class, IMonitoringMessageNotifier
     {
         builder.RegisterType<ListenerRegistrationMonitoringHandler>()
             .As<IListenerRegistrationHandler>()
@@ -102,9 +125,9 @@ public static class MonitoringDIExtensions
             .SingleInstance();
 
         builder.RegisterType<TIssueNotifier>()
-            .As<IMonitoringIssueNotifier>()
+            .As<IMonitoringMessageNotifier>()
             .SingleInstance()
-            .IfNotRegistered(typeof(IMonitoringIssueNotifier));
+            .IfNotRegistered(typeof(IMonitoringMessageNotifier));
 
         builder.RegisterType<MonitoringHeartbeatReceiver>()
             .As<IMonitoringHeartbeatReceiver>()
@@ -138,10 +161,21 @@ public static class MonitoringDIExtensions
                 ? (TimeSpan?)null
                 : TimeSpan.FromMilliseconds(configuration.MessageDeliveryFairDelayMs.Value)));
 
-        builder.RegisterType<MessageDeliveryAnalysisTimer>()
-            .As<IHostedService>()
-            .SingleInstance()
-            .WithParameter(TypedParameter.From(configuration.AnalysisPeriod));
+        if (autoStart)
+        {
+            builder.RegisterType<MessageDeliveryAnalysisTimer>()
+                .As<IHostedService>()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(configuration.AnalysisPeriod));
+        }
+        else
+        {
+            builder.Register(c => new MessageDeliveryAnalysisTimer(
+                    c.Resolve<IMessageDeliveryAnalysisWorker>(),
+                    configuration.AnalysisPeriod))
+                .AsSelf()
+                .SingleInstance();
+        }
     }
 
     /// <summary>
@@ -149,10 +183,16 @@ public static class MonitoringDIExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configuration"></param>
+    /// <param name="autoStart">
+    /// Whether to start worker automatically.
+    /// If not, you should start it manually by resolving <see cref="MessageDeliveryCleanupTimer"/>
+    /// and calling <see cref="IHostedService.StartAsync"/>.
+    /// </param>
     /// <returns></returns>
     public static IServiceCollection AddRabbitMqMonitoringRetentionPolicy<TMessageDeliveryMaintenance>(
         this IServiceCollection services,
-        RabbitMqMonitoringConfiguration configuration)
+        RabbitMqMonitoringConfiguration configuration,
+        bool autoStart = true)
         where TMessageDeliveryMaintenance : class, IMessageDeliveryMaintenance
     {
         if (services.Any(s => s.ServiceType == typeof(TMessageDeliveryMaintenance)))
@@ -170,10 +210,21 @@ public static class MonitoringDIExtensions
                 p.GetRequiredService<IMessageDeliveryMaintenance>(),
                 p.GetRequiredService<TimeProvider>(),
                 configuration.MessageRetentionPeriod));
-        services.AddHostedService(p =>
-            new MessageDeliveryCleanupTimer(
-                p.GetRequiredService<IMessageDeliveryCleanupWorker>(),
-                configuration.MessagesCleanupPeriod));
+
+        if (autoStart)
+        {
+            services.AddHostedService(p =>
+                new MessageDeliveryCleanupTimer(
+                    p.GetRequiredService<IMessageDeliveryCleanupWorker>(),
+                    configuration.MessagesCleanupPeriod));
+        }
+        else
+        {
+            services.TryAddSingleton(p =>
+                new MessageDeliveryCleanupTimer(
+                    p.GetRequiredService<IMessageDeliveryCleanupWorker>(),
+                    configuration.MessagesCleanupPeriod));
+        }
 
         return services;
     }

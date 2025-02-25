@@ -23,10 +23,10 @@ internal sealed class ListenersRegistryTimer : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        using var timer = new PeriodicTimer(_interval);
+        while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             await _worker.Execute();
-            await Task.Delay((int)_interval.TotalMilliseconds, stoppingToken);
         }
     }
 }

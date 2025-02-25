@@ -12,7 +12,7 @@ namespace Lykke.RabbitMqBroker;
 
 internal sealed class MessageDeliveryAnalysisWorker(
     IMessageDeliveryStorage storage,
-    IMonitoringIssueNotifier notifier,
+    IMonitoringMessageNotifier notifier,
     TimeProvider timeProvider,
     TimeSpan? fairDelayPeriod = null)
     : IMessageDeliveryAnalysisWorker

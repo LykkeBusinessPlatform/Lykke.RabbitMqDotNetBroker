@@ -23,16 +23,33 @@ namespace Lykke.RabbitMqBroker
         /// <param name="handleIntervalMs">
         /// Period of time in milliseconds to handle every listener registration.
         /// </param>
+        /// <param name="autoStart">
+        /// Whether to start worker automatically.
+        /// If not, you should start it manually by resolving <see cref="ListenersRegistryTimer"/>
+        /// and calling <see cref="IHostedService.StartAsync"/>.
+        /// </param>
         public static void AddListenersRegistry(
             this IServiceCollection services,
-            int handleIntervalMs = DefaultHandleIntervalMs)
+            int handleIntervalMs = DefaultHandleIntervalMs,
+            bool autoStart = true)
         {
             services.TryAddSingleton<IListenersRegistry, ListenersRegistry>();
             services.TryAddSingleton<IListenersRegistryWorker, ListenersRegistrySequentialWorker>();
-            services.AddHostedService(p =>
-                new ListenersRegistryTimer(
-                    p.GetRequiredService<IListenersRegistryWorker>(),
-                    TimeSpan.FromMilliseconds(handleIntervalMs)));
+
+            if (autoStart)
+            {
+                services.AddHostedService(p =>
+                    new ListenersRegistryTimer(
+                        p.GetRequiredService<IListenersRegistryWorker>(),
+                        TimeSpan.FromMilliseconds(handleIntervalMs)));
+            }
+            else
+            {
+                services.TryAddSingleton(p =>
+                    new ListenersRegistryTimer(
+                        p.GetRequiredService<IListenersRegistryWorker>(),
+                        TimeSpan.FromMilliseconds(handleIntervalMs)));
+            }
         }
 
         /// <summary>
@@ -46,9 +63,15 @@ namespace Lykke.RabbitMqBroker
         /// <param name="handleIntervalMs">
         /// Period of time in milliseconds to handle every listener registration.
         /// </param>
+        /// <param name="autoStart">
+        /// Whether to start worker automatically.
+        /// If not, you should start it manually by resolving <see cref="ListenersRegistryTimer"/>
+        /// and calling <see cref="IHostedService.StartAsync"/>.
+        /// </param>
         public static void AddListenersRegistry(
             this ContainerBuilder builder,
-            int handleIntervalMs = DefaultHandleIntervalMs)
+            int handleIntervalMs = DefaultHandleIntervalMs,
+            bool autoStart = true)
         {
             builder.RegisterType<ListenersRegistry>()
                 .As<IListenersRegistry>()
@@ -58,10 +81,22 @@ namespace Lykke.RabbitMqBroker
                 .As<IListenersRegistryWorker>()
                 .SingleInstance()
                 .IfNotRegistered(typeof(IListenersRegistryWorker));
-            builder.RegisterType<ListenersRegistryTimer>()
-                .As<IHostedService>()
-                .WithParameter(TypedParameter.From(TimeSpan.FromMilliseconds(handleIntervalMs)))
-                .SingleInstance();
+
+            if (autoStart)
+            {
+                builder.RegisterType<ListenersRegistryTimer>()
+                    .As<IHostedService>()
+                    .WithParameter(TypedParameter.From(TimeSpan.FromMilliseconds(handleIntervalMs)))
+                    .SingleInstance();
+            }
+            else
+            {
+                builder.Register(c => new ListenersRegistryTimer(
+                        c.Resolve<IListenersRegistryWorker>(),
+                        TimeSpan.FromMilliseconds(handleIntervalMs)))
+                    .AsSelf()
+                    .SingleInstance();
+            }
         }
     }
 }

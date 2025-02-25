@@ -35,7 +35,7 @@ public sealed class MessageDeliveryInMemoryStorage : IMessageDeliveryStorage, IM
             : Task.FromResult(MessageDelivery.None);
 
 
-    public IAsyncEnumerable<MessageDelivery> GetBeforeMoment(DateTime moment) =>
+    public IAsyncEnumerable<MessageDelivery> GetOlderThan(DateTime moment) =>
         _storage
             .Values
             .Where(d => d.IsOlderThan(moment))

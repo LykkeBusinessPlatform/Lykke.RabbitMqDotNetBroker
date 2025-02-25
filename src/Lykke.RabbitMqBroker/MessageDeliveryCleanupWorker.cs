@@ -31,6 +31,6 @@ internal sealed class MessageDeliveryCleanupWorker : IMessageDeliveryCleanupWork
 
     public Task Execute() =>
         _messageStorage
-            .GetBeforeMoment(RetentionMoment.From(_retentionPeriod, _timeProvider))
+            .GetOlderThan(RetentionMoment.From(_retentionPeriod, _timeProvider))
             .ForEachAwaitAsync(m => _messageStorage.Delete([m.Id]));
 }
