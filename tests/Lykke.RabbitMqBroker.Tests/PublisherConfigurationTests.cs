@@ -2,11 +2,15 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System;
+
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Publisher.Serializers;
 using Lykke.RabbitMqBroker.Publisher.Strategies;
+
 using Microsoft.Extensions.Logging.Abstractions;
+
 using NSubstitute;
+
 using NUnit.Framework;
 
 namespace Lykke.RabbitMqBroker.Tests
@@ -40,8 +44,6 @@ namespace Lykke.RabbitMqBroker.Tests
         public void QueuePersistenceShouldBeConfiguredExplicitly()
         {
             Assert.Throws<InvalidOperationException>(() => _publisher.Start());
-
-            _publisher.Stop();
         }
 
         [Test]
@@ -50,8 +52,6 @@ namespace Lykke.RabbitMqBroker.Tests
             _publisher.SetQueueRepository(Substitute.For<IPublishingQueueRepository>());
 
             Assert.DoesNotThrow(() => _publisher.Start());
-
-            _publisher.Stop();
         }
 
         [Test]
@@ -60,8 +60,13 @@ namespace Lykke.RabbitMqBroker.Tests
             _publisher.DisableInMemoryQueuePersistence();
 
             Assert.DoesNotThrow(() => _publisher.Start());
+        }
 
+        [TearDown]
+        public void TearDown()
+        {
             _publisher.Stop();
+            _publisher.Dispose();
         }
     }
 }

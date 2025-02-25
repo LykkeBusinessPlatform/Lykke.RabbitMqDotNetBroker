@@ -11,8 +11,12 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
         public List<FakeChannel> Channels { get; } = [];
         public int LocalPort { get; }
         public int RemotePort { get; }
+
+        public bool Disposed { get; private set; } = false;
+
         public void Dispose()
         {
+            Disposed = true;
         }
 
         public void UpdateSecret(string newSecret, string reason)
@@ -93,5 +97,7 @@ namespace Lykke.RabbitMqBroker.Tests.Fakes
         public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
         public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
+
+        public FakeChannel LatestChannel { get; private set; }
     }
 }

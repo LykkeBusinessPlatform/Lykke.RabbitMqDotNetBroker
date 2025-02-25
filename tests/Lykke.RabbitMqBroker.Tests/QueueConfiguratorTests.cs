@@ -23,9 +23,12 @@ public class QueueConfiguratorTests
 
         var result = QueueConfigurator.Configure(() => new PrimitivesConfiguratorFakeChannel(), options);
 
-        Assert.That(options.QueueName, Is.EqualTo(result.Response));
-        Assert.That(PrimitivesConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExistingExchangeName));
-        Assert.That(PrimitivesConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.ToString()));
+        Assert.Multiple(() =>
+        {
+            Assert.That(options.QueueName, Is.EqualTo(result.Response));
+            Assert.That(PrimitivesConfiguratorFakeChannel.DeclaredExchanges, Does.Not.Contain(options.ExistingExchangeName.ToString()));
+            Assert.That(PrimitivesConfiguratorFakeChannel.DeclaredQueues, Does.Contain(options.QueueName.ToString()));
+        });
     }
 
     [Test]
@@ -42,7 +45,7 @@ public class QueueConfiguratorTests
         var result = QueueConfigurator.Configure(() => new PrimitivesConfiguratorFakeChannel(), options);
 
         PrimitivesConfiguratorFakeChannel.DeclaredQueuesArguments.TryGetValue(result.Response.ToString(), out var args);
-        Assert.That("dlx", Is.EqualTo(args?[Headers.XDeadLetterExchange]));
+        Assert.That(args?[Headers.XDeadLetterExchange], Is.EqualTo("dlx"));
     }
 
     [Test]
