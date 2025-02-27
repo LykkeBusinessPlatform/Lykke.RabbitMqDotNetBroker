@@ -1,4 +1,4 @@
-## [[tbd]] ([[date]])
+## 17.0.0 (2025-02-27)
 
 ### Added
 - LT-6016: Add monitoring feature for listeners
