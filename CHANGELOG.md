@@ -1,3 +1,8 @@
+## [[tbd]] ([[date]])
+
+### Changed
+- ci: Fix publish process to publish only main project as a single package
+
 ## 17.0.0 (2025-02-27)
 
 ### Added
