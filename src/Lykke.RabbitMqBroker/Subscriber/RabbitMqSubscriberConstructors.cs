@@ -217,6 +217,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
                 var logger = loggerFactory.CreateLogger<RabbitMqSubscriber<TTopicModel>>();
                 var middlewareLogger = loggerFactory.CreateLogger<ExceptionSwallowMiddleware<TTopicModel>>();
+                LoggerFactoryContainer.Instance = loggerFactory;
 
                 var subscriber = CreateRawSubscriber<TStrategy>(settings, connection, logger, middlewareLogger);
 
@@ -234,6 +235,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             {
                 var logger = loggerFactory.CreateLogger<RabbitMqSubscriber<TTopicModel>>();
                 var middlewareLogger = loggerFactory.CreateLogger<ExceptionSwallowMiddleware<TTopicModel>>();
+                LoggerFactoryContainer.Instance = loggerFactory;
 
                 var subscriber = CreateRawSubscriber<TStrategy>(settings, connection, logger, middlewareLogger);
 
