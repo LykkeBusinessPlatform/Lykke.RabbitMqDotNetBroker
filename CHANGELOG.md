@@ -1,3 +1,8 @@
+## [[tbd]] ([[date]])
+
+### Changed
+- ci: Include Abstractions project as private asset
+
 ## 17.0.3 (2025-02-27)
 
 ### Changed
