@@ -1,3 +1,8 @@
+## [[tbd]] ([[date]])
+
+### Changed
+- ci: Include Abstractions project in the main package
+
 ## 17.0.1 (2025-02-27)
 
 ### Changed
