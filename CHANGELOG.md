@@ -1,3 +1,8 @@
+## [[tbd]] ([[date]])
+
+### Changed
+- ci: Abstractions project is not a standalone package
+
 ## 17.0.2 (2025-02-27)
 
 ### Changed

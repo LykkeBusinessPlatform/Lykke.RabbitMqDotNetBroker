@@ -15,7 +15,6 @@
     <PackageTags>Lykke</PackageTags>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-    <IncludeReferencedProjects>true</IncludeReferencedProjects>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netstandard2.0\Lykke.RabbitMqBroker.xml</DocumentationFile>
