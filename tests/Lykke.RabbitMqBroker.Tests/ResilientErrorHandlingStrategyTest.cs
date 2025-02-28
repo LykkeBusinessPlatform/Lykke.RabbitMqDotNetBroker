@@ -4,11 +4,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.Middleware;
 using Lykke.RabbitMqBroker.Subscriber.Middleware.ErrorHandling;
+
 using Microsoft.Extensions.Logging.Abstractions;
+
 using NSubstitute;
+
 using NUnit.Framework;
 
 namespace Lykke.RabbitMqBroker.Tests
@@ -37,7 +41,7 @@ namespace Lykke.RabbitMqBroker.Tests
             middlewarequeue.AddMiddleware(_middleware);
             middlewarequeue.AddMiddleware(new ActualHandlerMiddleware<string>(_ => Task.CompletedTask));
 
-            middlewarequeue.RunMiddlewaresAsync(null, null, null, acceptor, CancellationToken.None).GetAwaiter().GetResult();
+            middlewarequeue.RunMiddlewaresAsync(null, null, acceptor, CancellationToken.None).GetAwaiter().GetResult();
 
             acceptor.Received(1).Accept();
         }

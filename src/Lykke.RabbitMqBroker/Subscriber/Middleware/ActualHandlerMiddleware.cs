@@ -6,24 +6,24 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
 {
     internal class ActualHandlerMiddleware<T> : IEventMiddleware<T>
     {
-        private readonly Func<T, Task> _eventHandler;
-        private readonly Func<T, CancellationToken, Task> _cancellableEventHandler;
+        private readonly Func<ReadOnlyMemory<byte>, Task> _eventHandler;
+        private readonly Func<ReadOnlyMemory<byte>, CancellationToken, Task> _cancellableEventHandler;
 
-        internal ActualHandlerMiddleware(Func<T, Task> eventHandler)
+        internal ActualHandlerMiddleware(Func<ReadOnlyMemory<byte>, Task> eventHandler)
         {
-            _eventHandler = eventHandler ?? throw new ArgumentNullException();
+            _eventHandler = eventHandler ?? throw new ArgumentNullException(nameof(eventHandler));
         }
 
-        internal ActualHandlerMiddleware(Func<T, CancellationToken, Task> cancellableEventHandler)
+        internal ActualHandlerMiddleware(Func<ReadOnlyMemory<byte>, CancellationToken, Task> cancellableEventHandler)
         {
-            _cancellableEventHandler = cancellableEventHandler ?? throw new ArgumentNullException();
+            _cancellableEventHandler = cancellableEventHandler ?? throw new ArgumentNullException(nameof(cancellableEventHandler));
         }
 
         public async Task ProcessAsync(IEventContext<T> context)
         {
             await (_cancellableEventHandler != null
-                ? _cancellableEventHandler(context.Event, context.CancellationToken)
-                : _eventHandler(context.Event));
+                ? _cancellableEventHandler(context.Body, context.CancellationToken)
+                : _eventHandler(context.Body));
             context.MessageAcceptor.Accept();
         }
     }

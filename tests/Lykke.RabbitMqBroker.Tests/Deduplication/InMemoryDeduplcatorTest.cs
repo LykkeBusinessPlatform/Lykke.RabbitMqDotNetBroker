@@ -2,13 +2,14 @@
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
 using System.Threading;
+
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.RabbitMqBroker.Subscriber.Middleware;
 using Lykke.RabbitMqBroker.Subscriber.Middleware.Deduplication;
+
 using NSubstitute;
+
 using NUnit.Framework;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Framing;
 
 namespace Lykke.RabbitMqBroker.Tests.Deduplication
 {
@@ -30,7 +31,7 @@ namespace Lykke.RabbitMqBroker.Tests.Deduplication
         [Test]
         public void EnsureNotDuplicateAsync()
         {
-            var value = new byte[] {1, 2, 3 };
+            var value = new byte[] { 1, 2, 3 };
             var acceptor = Substitute.For<IMessageAcceptor>();
             var lastMiddleware = Substitute.For<IEventMiddleware<string>>();
             var middlewarequeue = new MiddlewareQueue<string>(_settings);
@@ -40,14 +41,12 @@ namespace Lykke.RabbitMqBroker.Tests.Deduplication
             middlewarequeue.RunMiddlewaresAsync(
                     value,
                     null,
-                    null,
                     acceptor,
                     CancellationToken.None)
                 .GetAwaiter().GetResult();
 
             middlewarequeue.RunMiddlewaresAsync(
                     value,
-                    null,
                     null,
                     acceptor,
                     CancellationToken.None)

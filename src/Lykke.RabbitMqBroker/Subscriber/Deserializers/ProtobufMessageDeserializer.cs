@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Lykke Corp.
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
 using JetBrains.Annotations;
 
 namespace Lykke.RabbitMqBroker.Subscriber.Deserializers
@@ -20,5 +22,12 @@ namespace Lykke.RabbitMqBroker.Subscriber.Deserializers
             using var stream = new MemoryStream(data);
             return ProtoBuf.Serializer.Deserialize<TMessage>(stream);
         }
+
+        public TMessage Deserialize(ReadOnlyMemory<byte> data)
+        {
+            using var stream = new MemoryStream(data.ToArray());
+            return ProtoBuf.Serializer.Deserialize<TMessage>(stream);
+        }
+
     }
 }

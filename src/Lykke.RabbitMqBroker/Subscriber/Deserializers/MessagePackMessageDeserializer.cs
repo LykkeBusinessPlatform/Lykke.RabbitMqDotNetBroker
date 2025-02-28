@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // Licensed under the MIT License. See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +49,9 @@ public class MessagePackMessageDeserializer<TMessage> : IMessageDeserializer<TMe
     }
 
     public TMessage Deserialize(byte[] data) => MessagePackSerializer.Deserialize<TMessage>(data, _options);
+
+    public TMessage Deserialize(ReadOnlyMemory<byte> data) => MessagePackSerializer.Deserialize<TMessage>(data, _options);
+
 
     public async Task<TMessage> DeserializeAsync(
         byte[] data,

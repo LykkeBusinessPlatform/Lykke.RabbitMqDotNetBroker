@@ -39,8 +39,8 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public IMessageDeserializer<TTopicModel> MessageDeserializer { get; private set; }
         public IMessageReadStrategy MessageReadStrategy { get; private set; }
-        public Func<TTopicModel, Task> EventHandler { get; private set; }
-        public Func<TTopicModel, CancellationToken, Task> CancellableEventHandler { get; private set; }
+        public Func<ReadOnlyMemory<byte>, Task> EventHandler { get; private set; }
+        public Func<ReadOnlyMemory<byte>, CancellationToken, Task> CancellableEventHandler { get; private set; }
 
         public RabbitMqSubscriber(
             [NotNull] ILogger<RabbitMqSubscriber<TTopicModel>> logger,
@@ -64,14 +64,22 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public RabbitMqSubscriber<TTopicModel> Subscribe(Func<TTopicModel, Task> callback)
         {
-            EventHandler = callback;
+            EventHandler = body =>
+            {
+                var model = MessageDeserializer.Deserialize(body);
+                return callback(model);
+            };
             CancellableEventHandler = null;
             return this;
         }
 
         public RabbitMqSubscriber<TTopicModel> Subscribe(Func<TTopicModel, CancellationToken, Task> callback)
         {
-            CancellableEventHandler = callback;
+            CancellableEventHandler = (body, token) =>
+            {
+                var model = MessageDeserializer.Deserialize(body);
+                return callback(model, token);
+            };
             EventHandler = null;
             return this;
         }
@@ -140,19 +148,16 @@ namespace Lykke.RabbitMqBroker.Subscriber
         private void OnReceived(object sender, BasicDeliverEventArgs args)
         {
             // make a copy of the body, as it can be released at any time
-            var bodyCopy = new byte[args.Body.Length];
-            Buffer.BlockCopy(args.Body.ToArray(), 0, bodyCopy, 0, args.Body.Length);
+            var bodyCopy = args.Body.ToArray();
 
             var acceptor = new MessageAcceptor(_channel, args.DeliveryTag);
             _readHeadersActions.ForEach(x => x(args.BasicProperties?.Headers));
 
             try
             {
-                var model = MessageDeserializer.Deserialize(bodyCopy);
                 _middlewareQueue.RunMiddlewaresAsync(
                         bodyCopy,
                         args.BasicProperties,
-                        model,
                         acceptor,
                         _cancellationTokenSource.Token)
                     .GetAwaiter().GetResult();
