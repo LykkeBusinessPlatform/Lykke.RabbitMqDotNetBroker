@@ -1,3 +1,8 @@
+## [[tbd]] ([[date]])
+
+### Changed
+- ci: Publish Abstractions project as a separate nuget package
+
 ## 17.0.4 (2025-02-27)
 
 ### Changed

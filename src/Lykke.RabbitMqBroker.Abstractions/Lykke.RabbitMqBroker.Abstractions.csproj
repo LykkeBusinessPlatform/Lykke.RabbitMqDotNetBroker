@@ -2,11 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Lykke.RabbitMqBroker.Abstractions</AssemblyName>
+    <PackageId>LykkeBiz.RabbitMqBroker.Abstractions</PackageId>
     <Version>17.0.4</Version>
+    <Authors>Lykke</Authors>
+    <Company>LykkeBusiness</Company>
+    <Product>Lykke.RabbitMqBroker</Product>
+    <PackageProjectUrl>https://github.com/LykkeBusinessPlatform/Lykke.RabbitMqDotNetBroker</PackageProjectUrl>
+    <PackageIconUrl>https://avatars3.githubusercontent.com/u/14153330?v=3&amp;amp;s=200</PackageIconUrl>
+    <RepositoryUrl>https://github.com/LykkeBusinessPlatform/Lykke.RabbitMqDotNetBroker.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Lykke</PackageTags>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>

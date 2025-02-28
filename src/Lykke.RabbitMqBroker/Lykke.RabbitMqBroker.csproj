@@ -40,6 +40,6 @@
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Lykke.RabbitMqBroker.Abstractions\Lykke.RabbitMqBroker.Abstractions.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Lykke.RabbitMqBroker.Abstractions\Lykke.RabbitMqBroker.Abstractions.csproj" />
   </ItemGroup>
 </Project>
