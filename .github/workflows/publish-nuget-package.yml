@@ -164,6 +164,7 @@ jobs:
         if: ${{ inputs.create_release }}
         uses: LykkeBusiness/.github/actions/extract-notes-changelog@extract-notes-changelog-v1
         with:
+          auto_name_release: true
           release_name: ${{ inputs.release_name }}
           version: ${{ env.TAG_NUMBERS }}
           folder: ${{ inputs.changelog_path }}
