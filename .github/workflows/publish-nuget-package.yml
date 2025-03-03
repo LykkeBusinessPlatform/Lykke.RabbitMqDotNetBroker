@@ -1,0 +1,183 @@
+name: Publish NuGet Package
+# This workflow is agreed on and requirements are documented
+# in https://codedoc.atlassian.net/wiki/spaces/LEGO/pages/3532357633/Requirements+to+update+the+release+process#:check_mark:-Requirement-1.-Any-publication-of-a-NuGet-package-to-the-public-nuget-feed-must-be-accompanied-by-the-creation-of-a-tag-in-git.
+
+# Environment variables set by actions:
+# - TAG_NUMBERS: Parsed version number from inputs.version (set by parse-version action)
+# - RELEASE_NOTES_FILE: Path to the temporary file containing release notes (set by extract-notes-changelog action)
+# - RELEASE_NAME: Name of the release (set by extract-notes-changelog action)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: 'Version number (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      create_release:
+        type: boolean
+        description: 'Create a GitHub release'
+        required: true
+        default: true
+      update_changelog:
+        type: boolean
+        description: 'Update CHANGELOG.md'
+        required: true
+        default: true
+      changelog_path:
+        type: string
+        description: 'Relative path to the CHANGELOG.md file'
+        required: true
+        default: '.'
+      path:
+        type: string
+        description: 'Relative path to the folder with solution file or project file.'
+        required: true
+        default: './src'
+      release_name:
+        type: string
+        description: 'Release name. If empty, will be extracted from CHANGELOG.md or default value [Release ${VERSION}] will be used'
+        required: false
+      excluded_vulnerable_packages:
+        type: string
+        description: 'Comma-separated list of packages to exclude from vulnerability check'
+        required: false
+        default: ''
+      excluded_deprecated_packages:
+        type: string
+        description: 'Comma-separated list of packages to exclude from deprecated check'
+        required: false
+        default: ''
+      tag_name:
+        type: string
+        description: 'Name of the tag, default to version'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      PRIVATE_NUGET_SOURCE: 'https://nuget.lykke-business.ch/api/v3/index.json'
+      PUBLIC_NUGET_SOURCE: 'https://api.nuget.org/v3/index.json'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      
+      - name: Checkout deployment tools
+        uses : actions/checkout@v4
+        with:
+          repository: LykkeBusiness/Lykke.Snow.Deployment
+          token: ${{ secrets.GH_TOKEN }}
+          path: lykke.snow.deployment
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+
+      - name: add nuget source
+        run: dotnet nuget add source ${{ env.PRIVATE_NUGET_SOURCE }} -n snow
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ inputs.path }}
+
+      - name: NuGet Vulnerability Check
+        uses: LykkeBusiness/.github/.github/actions/nuget-vulnerability-check@master
+        with:
+          excluded-packages: ${{ inputs.excluded_vulnerable_packages }}
+          path: ${{ inputs.path }}
+
+      - name: NuGet Deprecated Packages Check
+        uses: LykkeBusiness/.github/.github/actions/deprecated-packages-check@master
+        with:
+          excluded-packages: ${{ inputs.excluded_deprecated_packages }}
+          path: ${{ inputs.path }}
+
+      - name: Parse version number
+        uses: LykkeBusiness/.github/actions/parse-version@parse-version-v1
+        with:
+          version: ${{ inputs.version }}
+
+      - name: Inject new version into changelog file
+        if: ${{ inputs.update_changelog == 'true' }}
+        uses: LykkeBusiness/.github/actions/inject-version-changelog@inject-version-changelog-v2
+        with:
+          version: ${{ env.TAG_NUMBERS }}
+          folder: ${{ inputs.changelog_path }}
+
+      - name: Update .csproj files with new version
+        uses: LykkeBusiness/.github/actions/update-version-csproj@update-version-csproj-v1
+        with:
+          version: ${{ env.TAG_NUMBERS }}
+          folder: ${{ inputs.changelog_path }}
+
+      - name: Build
+        run: dotnet build ${{ inputs.path }} --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ${{ inputs.path }} --no-build --no-restore --configuration Release --verbosity normal
+
+      - name: Pack
+        run: dotnet pack --no-build --configuration Release -o out
+
+      - name: Tag version
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git config set advice.addEmbeddedRepo false
+          git add -A
+          git reset -- lykke.snow.deployment
+          filesChanged=$(git status | grep 'modified:' | wc -l)
+          
+          if (( $filesChanged > 0 )); then 
+            TAG_NAME=${{ inputs.tag_name || inputs.version }}
+            echo "Creating tag $TAG_NAME"
+            git commit -m "Version ${{ env.TAG_NUMBERS }}"
+            git tag -fa $TAG_NAME -m "${{ inputs.version }}"
+            git push origin --tags
+            git push origin ${{ github.ref }}
+          else
+            echo "No changes to the version, skip tag creation"
+          fi
+
+      - name: Push to private feed
+        run: |
+          if ! dotnet nuget push out/*.nupkg --api-key ${{ secrets.NUGET_TOKEN_PRIVATE }} --source ${{ env.PRIVATE_NUGET_SOURCE }} --skip-duplicate; then
+            echo "Failed to push packages to private feed"
+            exit 1
+          fi  
+
+      - name: Push to nuget.org
+        run: |
+          if ! dotnet nuget push out/*.nupkg --api-key ${{ secrets.NUGET_TOKEN }} --source ${{ env.PUBLIC_NUGET_SOURCE }} --skip-duplicate; then
+            echo "Failed to push packages to nuget.org"
+            exit 1
+          fi
+
+      - name: Extract release notes from changelog file
+        if: ${{ inputs.create_release == 'true' }}
+        uses: LykkeBusiness/.github/actions/extract-notes-changelog@extract-notes-changelog-v1
+        with:
+          release_name: ${{ inputs.release_name }}
+          version: ${{ env.TAG_NUMBERS }}
+          folder: ${{ inputs.changelog_path }}
+
+      # Creates a GitHub release with the release name and release notes from CHANGELOG.md
+      - name: Create GitHub Release
+        if: ${{ inputs.create_release == 'true' }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tag_name: ${{ inputs.version }}
+          release_name: ${{ env.RELEASE_NAME }}
+          body_path: ${{ env.RELEASE_NOTES_FILE }}
+          draft: false
+          prerelease: false
+
+      - name: Clean up temporary files
+        run: rm -f ${{ env.RELEASE_NOTES_FILE }}
