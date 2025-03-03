@@ -105,7 +105,7 @@ jobs:
           version: ${{ inputs.version }}
 
       - name: Inject new version into changelog file
-        if: ${{ inputs.update_changelog == 'true' }}
+        if: ${{ inputs.update_changelog }}
         uses: LykkeBusiness/.github/actions/inject-version-changelog@inject-version-changelog-v2
         with:
           version: ${{ env.TAG_NUMBERS }}
@@ -161,7 +161,7 @@ jobs:
           fi
 
       - name: Extract release notes from changelog file
-        if: ${{ inputs.create_release == 'true' }}
+        if: ${{ inputs.create_release }}
         uses: LykkeBusiness/.github/actions/extract-notes-changelog@extract-notes-changelog-v1
         with:
           release_name: ${{ inputs.release_name }}
@@ -170,7 +170,7 @@ jobs:
 
       # Creates a GitHub release with the release name and release notes from CHANGELOG.md
       - name: Create GitHub Release
-        if: ${{ inputs.create_release == 'true' }}
+        if: ${{ inputs.create_release }}
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
