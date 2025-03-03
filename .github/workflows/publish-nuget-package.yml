@@ -100,19 +100,19 @@ jobs:
           path: ${{ inputs.path }}
 
       - name: Parse version number
-        uses: LykkeBusiness/.github/actions/parse-version@parse-version-v1
+        uses: LykkeBusiness/.github/actions/parse-version@master
         with:
           version: ${{ inputs.version }}
 
       - name: Inject new version into changelog file
         if: ${{ inputs.update_changelog }}
-        uses: LykkeBusiness/.github/actions/inject-version-changelog@inject-version-changelog-v2
+        uses: LykkeBusiness/.github/actions/inject-version-changelog@master
         with:
           version: ${{ env.TAG_NUMBERS }}
           folder: ${{ inputs.changelog_path }}
 
       - name: Update .csproj files with new version
-        uses: LykkeBusiness/.github/actions/update-version-csproj@update-version-csproj-v1
+        uses: LykkeBusiness/.github/actions/update-version-csproj@master
         with:
           version: ${{ env.TAG_NUMBERS }}
           folder: ${{ inputs.changelog_path }}
@@ -162,7 +162,7 @@ jobs:
 
       - name: Extract release notes from changelog file
         if: ${{ inputs.create_release }}
-        uses: LykkeBusiness/.github/actions/extract-notes-changelog@extract-notes-changelog-v1
+        uses: LykkeBusiness/.github/actions/extract-notes-changelog@master
         with:
           auto_name_release: true
           release_name: ${{ inputs.release_name }}
@@ -172,7 +172,7 @@ jobs:
       # Creates a GitHub release with the release name and release notes from CHANGELOG.md
       - name: Create GitHub Release
         if: ${{ inputs.create_release }}
-        uses: actions/create-release@v1
+        uses: actions/create-release@master
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:

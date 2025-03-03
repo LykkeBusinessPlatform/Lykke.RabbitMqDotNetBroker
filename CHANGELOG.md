@@ -1,4 +1,9 @@
-## 17.1.4 ([[date]])
+## [[tbd]] ([[date]])
+
+### Fixed
+- ci: Fix CHANGELOG.md date update in a new workflow
+
+## 17.1.4 (2025-03-03)
 
 ### Added
 - ci: Add new workflow for publishing nuget packages
