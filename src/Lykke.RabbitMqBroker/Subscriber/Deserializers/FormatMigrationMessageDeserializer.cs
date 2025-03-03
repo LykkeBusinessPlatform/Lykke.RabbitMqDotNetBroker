@@ -52,12 +52,31 @@ namespace Lykke.RabbitMqBroker.Subscriber.Deserializers
             {
                 // Switches to another deserializer and tries to deserialize
 
-                _primaryDeserializer = ReferenceEquals(_primaryDeserializer, _newFromatDeserializer) 
-                    ? _legacyFormatDeserializer 
+                _primaryDeserializer = ReferenceEquals(_primaryDeserializer, _newFromatDeserializer)
+                    ? _legacyFormatDeserializer
                     : _newFromatDeserializer;
 
                 return _primaryDeserializer.Deserialize(data);
             }
         }
+
+        public TMessage Deserialize(ReadOnlyMemory<byte> data)
+        {
+            try
+            {
+                return _primaryDeserializer.Deserialize(data);
+            }
+            catch
+            {
+                // Switches to another deserializer and tries to deserialize
+
+                _primaryDeserializer = ReferenceEquals(_primaryDeserializer, _newFromatDeserializer)
+                    ? _legacyFormatDeserializer
+                    : _newFromatDeserializer;
+
+                return _primaryDeserializer.Deserialize(data);
+            }
+        }
+
     }
 }

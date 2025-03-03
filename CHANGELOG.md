@@ -1,3 +1,19 @@
+## [[tbd]] ([[date]])
+
+### Changed
+- LT-6016: Add monitoring feature for listeners
+
+Stop deserializing the message before it enters the middleware pipeline. This change removes an unnecessary operation and extra parameter, and it avoids forcing the system to know the deserialization format in advance—something that should instead be handled by the actual message handler.
+
+Regarding the monitoring aspect, the issue is that monitoring messages are always JSON-serialized, even though subscribers may expect messages in various formats and might not be able to deserialize a JSON-formatted monitoring message, especially since such deserialization isn’t needed because of short-circuiting monitoring messages on earlier stages - with dedicated MonitoringMiddleware.
+
+Along with core feature update also updated public API for IMessageDeserializer to support body parameter as ReadOnlyMemory<byte> which is safer than just byte[].
+
+**BREAKING CHANGE**: The `RabbitMqSubscriber` class now has `EventHandler` and `CancellableEventHandler` with different contract: 
+* `Func<ReadOnlyMemory<byte>, Task>` instead of `Func<byte[], Task>`
+* `Func<ReadOnlyMemory<byte>, CancellationToken, Task>` instead of `Func<byte[], CancellationToken, Task>`
+
+
 ## 17.0.5 (2025-02-28)
 
 ### Changed

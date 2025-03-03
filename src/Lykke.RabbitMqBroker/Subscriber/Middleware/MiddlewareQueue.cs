@@ -39,14 +39,12 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
         public Task RunMiddlewaresAsync(
             ReadOnlyMemory<byte> body,
             [CanBeNull] IBasicProperties properties,
-            T evt,
             IMessageAcceptor ma,
             CancellationToken cancellationToken)
         {
             var context = new EventContext<T>(
                 body,
                 properties,
-                evt,
                 ma,
                 _settings,
                 0,

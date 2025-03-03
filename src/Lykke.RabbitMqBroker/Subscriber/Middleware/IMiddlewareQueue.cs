@@ -26,7 +26,6 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
         Task RunMiddlewaresAsync(
             ReadOnlyMemory<byte> body,
             [CanBeNull] IBasicProperties properties,
-            T evt,
             IMessageAcceptor ma,
             CancellationToken cancellationToken);
 

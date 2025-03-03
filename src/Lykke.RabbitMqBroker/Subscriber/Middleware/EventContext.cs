@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using JetBrains.Annotations;
+
 using RabbitMQ.Client;
 
 namespace Lykke.RabbitMqBroker.Subscriber.Middleware
@@ -13,7 +15,6 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
 
         public ReadOnlyMemory<byte> Body { get; }
         [CanBeNull] public IBasicProperties BasicProperties { get; }
-        public T Event { get; }
         public IMessageAcceptor MessageAcceptor { get; }
         public RabbitMqSubscriptionSettings Settings { get; }
         public CancellationToken CancellationToken { get; }
@@ -21,14 +22,12 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
         internal EventContext(
             ReadOnlyMemory<byte> body,
             [CanBeNull] IBasicProperties properties,
-            T evt,
             IMessageAcceptor ma,
             RabbitMqSubscriptionSettings settings,
             int middlewareQueueIndex,
             IMiddlewareQueue<T> middlewareQueue,
             CancellationToken cancellationToken)
         {
-            Event = evt;
             MessageAcceptor = ma;
             Settings = settings;
             CancellationToken = cancellationToken;
@@ -44,7 +43,6 @@ namespace Lykke.RabbitMqBroker.Subscriber.Middleware
             var contextForNext = new EventContext<T>(
                 Body,
                 BasicProperties,
-                Event,
                 MessageAcceptor,
                 Settings,
                 _middlewareQueueIndex + 1,
