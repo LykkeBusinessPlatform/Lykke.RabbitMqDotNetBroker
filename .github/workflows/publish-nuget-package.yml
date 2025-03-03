@@ -32,7 +32,7 @@ on:
         default: '.'
       path:
         type: string
-        description: 'Relative path to the folder with solution file or project file.'
+        description: 'Relative path to the root folder with sources (project files).'
         required: true
         default: './src'
       release_name:
