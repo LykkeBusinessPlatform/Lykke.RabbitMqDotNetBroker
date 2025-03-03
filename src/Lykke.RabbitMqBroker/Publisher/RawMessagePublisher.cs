@@ -14,7 +14,6 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
 
 using RabbitMQ.Client;
 
@@ -160,7 +159,7 @@ namespace Lykke.RabbitMqBroker.Publisher
 
             _logger.LogInformation($"{Name}: trying to connect to {factory.Endpoint} ({_exchangeQueueName})");
 
-            var cn = $"[Pub] {PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion} to {_settings.ExchangeName ?? ""}";
+            var cn = $"[Pub] {new HostAssemblyDisplayName()} to {_settings.ExchangeName ?? ""}";
             using (var connection = factory.CreateConnection(cn))
             using (var channel = connection.CreateModel())
             {
