@@ -32,9 +32,9 @@ on:
         default: '.'
       path:
         type: string
-        description: 'Relative path to the root folder with sources (project files).'
+        description: 'Relative path to the root folder with sources (solution file).'
         required: true
-        default: './src'
+        default: '.'
       release_name:
         type: string
         description: 'Release name. If empty, will be extracted from CHANGELOG.md or default value [Release ${VERSION}] will be used'
