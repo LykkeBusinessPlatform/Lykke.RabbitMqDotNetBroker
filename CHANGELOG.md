@@ -1,4 +1,4 @@
-## [[tbd]] ([[date]])
+## 17.1.3 ([[date]])
 
 ### Added
 - ci: Add new workflow for publishing nuget packages

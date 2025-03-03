@@ -3,7 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Lykke.RabbitMqBroker</AssemblyName>
     <PackageId>LykkeBiz.RabbitMqBroker</PackageId>
-    <Version>17.1.2</Version>
+    <Version>17.1.3</Version>
     <Authors>Lykke</Authors>
     <Company>LykkeBusiness</Company>
     <Product>Lykke.RabbitMqBroker</Product>
