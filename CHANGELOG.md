@@ -1,6 +1,11 @@
+## [[tbd]] ([[date]])
+
+### Added
+- ci: Add new workflow for publishing nuget packages
+
 ## 17.1.0 (2025-03-03)
 
-### Changed
+### Added
 - LT-6016: Add monitoring feature for listeners
 
 Stop deserializing the message before it enters the middleware pipeline. This change removes an unnecessary operation and extra parameter, and it avoids forcing the system to know the deserialization format in advance—something that should instead be handled by the actual message handler.
