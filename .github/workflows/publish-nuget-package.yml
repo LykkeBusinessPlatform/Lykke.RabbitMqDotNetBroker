@@ -83,7 +83,7 @@ jobs:
         run: dotnet nuget add source ${{ env.PRIVATE_NUGET_SOURCE }} -n snow
 
       - name: Restore dependencies
-        run: dotnet restore ${{ inputs.path }}
+        run: dotnet restore
 
       - name: NuGet Vulnerability Check
         uses: LykkeBusiness/.github/.github/actions/nuget-vulnerability-check@master
@@ -116,10 +116,10 @@ jobs:
           folder: ${{ inputs.changelog_path }}
 
       - name: Build
-        run: dotnet build ${{ inputs.path }} --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test ${{ inputs.path }} --no-build --no-restore --configuration Release --verbosity normal
+        run: dotnet test --no-build --no-restore --configuration Release --verbosity normal
 
       - name: Pack
         run: dotnet pack --no-build --configuration Release -o out
