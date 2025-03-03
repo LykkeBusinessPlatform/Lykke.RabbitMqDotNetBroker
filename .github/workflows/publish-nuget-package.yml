@@ -87,14 +87,6 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Debug - List Directory Contents
-        run: |
-          echo "Current working directory: $(pwd)"
-          echo "Directory contents:"
-          ls -la
-          echo "Repository structure:"
-          find . -type f -name "*.sln" -o -name "*.csproj" | sort
-
       - name: NuGet Vulnerability Check
         uses: LykkeBusiness/.github/.github/actions/nuget-vulnerability-check@master
         with:
