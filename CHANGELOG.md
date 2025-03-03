@@ -1,4 +1,4 @@
-## [[tbd]] ([[date]])
+## 17.1.5 (2025-03-03)
 
 ### Fixed
 - ci: Fix CHANGELOG.md date update in a new workflow
