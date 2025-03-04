@@ -1,4 +1,3 @@
-using Lykke.RabbitMqBroker.Abstractions.Tracking;
 using Lykke.RabbitMqBroker.Monitoring;
 
 using NUnit.Framework;
@@ -8,14 +7,14 @@ using RabbitMQ.Client;
 namespace Lykke.RabbitMqBroker.Tests.MonitoringMessageHeadersTests;
 
 [TestFixture]
-internal sealed class SetDeliveryIdTests
+internal sealed class SetHostHeaderTests
 {
     [Test]
     public void When_Properties_Is_Null_Then_Does_Nothing()
     {
         var properties = default(IBasicProperties);
 
-        properties.SetDeliveryIdHeader(MessageDeliveryId.Create());
+        properties.SetHostHeader("host");
 
         Assert.Pass();
     }
@@ -23,13 +22,13 @@ internal sealed class SetDeliveryIdTests
     [Test]
     public void Sets_Header()
     {
-        var deliveryId = MessageDeliveryId.Create();
+        const string host = "host";
         var properties = new FakeProperties();
 
-        properties.SetDeliveryIdHeader(deliveryId);
+        properties.SetHostHeader(host);
 
         Assert.That(properties.Headers, Is.Not.Null);
-        Assert.That(properties.Headers, Does.ContainKey(MonitoringMessageHeaders.DeliveryIdHeader));
-        Assert.That(properties.Headers[MonitoringMessageHeaders.DeliveryIdHeader], Is.EqualTo(deliveryId.ToString()));
+        Assert.That(properties.Headers, Does.ContainKey(MonitoringMessageHeaders.HostHeader));
+        Assert.That(properties.Headers[MonitoringMessageHeaders.HostHeader], Is.EqualTo(host));
     }
 }

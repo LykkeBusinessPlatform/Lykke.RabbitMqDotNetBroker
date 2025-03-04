@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
+using Lykke.RabbitMqBroker.Subscriber;
 
 using RabbitMQ.Client;
 
@@ -9,7 +10,9 @@ namespace Lykke.RabbitMqBroker.Monitoring;
 
 public static class MonitoringMessageHeaders
 {
-    internal const string DeliveryIdHeader = "DeliveryId";
+    internal const string DeliveryIdHeader = "codedoc-monitoring-delivery-id";
+    internal const string DestinationQueueHeader = "codedoc-monitoring-destination-queue";
+    internal const string HostHeader = "codedoc-monitoring-host";
 
     public static MessageDeliveryId GetDeliveryId(this IBasicProperties props)
     {
@@ -33,7 +36,18 @@ public static class MonitoringMessageHeaders
         return MessageDeliveryId.Empty;
     }
 
-    public static void SetDeliveryId(this IBasicProperties props, MessageDeliveryId deliveryId)
+    public static void SetHostHeader(this IBasicProperties props, string hostname)
+    {
+        if (props == null)
+        {
+            return;
+        }
+
+        props.Headers ??= new Dictionary<string, object>();
+        props.Headers[HostHeader] = hostname;
+    }
+
+    public static void SetDeliveryIdHeader(this IBasicProperties props, MessageDeliveryId deliveryId)
     {
         if (props == null)
         {
@@ -42,5 +56,16 @@ public static class MonitoringMessageHeaders
 
         props.Headers ??= new Dictionary<string, object>();
         props.Headers[DeliveryIdHeader] = deliveryId.ToString();
+    }
+
+    public static void SetDestinationQueueHeader(this IBasicProperties props, QueueName queueName)
+    {
+        if (props == null)
+        {
+            return;
+        }
+
+        props.Headers ??= new Dictionary<string, object>();
+        props.Headers[DestinationQueueHeader] = queueName.ToString();
     }
 }
