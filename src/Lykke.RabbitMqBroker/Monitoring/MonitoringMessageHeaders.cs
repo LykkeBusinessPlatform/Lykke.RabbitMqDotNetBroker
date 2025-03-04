@@ -36,6 +36,28 @@ public static class MonitoringMessageHeaders
         return MessageDeliveryId.Empty;
     }
 
+    public static QueueName GetDestinationQueue(this IBasicProperties props)
+    {
+        if (props == null)
+        {
+            return null;
+        }
+
+        if (props.Headers.TryGetValue(DestinationQueueHeader, out var value))
+        {
+            return value switch
+            {
+                // when message is received from the broker, it is deserialized as byte[]
+                byte[] bytes => QueueName.Create(Encoding.UTF8.GetString(bytes)),
+                // when testing, the broker is emulated and the message is deserialized as string
+                string str => QueueName.Create(str),
+                _ => null
+            };
+        }
+
+        return null;
+    }
+
     public static void SetHostHeader(this IBasicProperties props, string hostname)
     {
         if (props == null)
