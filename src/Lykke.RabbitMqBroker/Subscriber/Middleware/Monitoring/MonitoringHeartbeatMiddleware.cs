@@ -41,5 +41,5 @@ internal sealed class MonitoringHeartbeatMiddleware<T> : IEventMiddleware<T>
         await context.InvokeNextAsync();
     }
 
-    private IEnumerable<QueueName> GetMonitoredQueues() => _listenersRegistry.Select(l => l.ListenerRoute.QueueName);
+    private IEnumerable<QueueName> GetMonitoredQueues() => _listenersRegistry?.Select(l => l.ListenerRoute.QueueName) ?? [];
 }
