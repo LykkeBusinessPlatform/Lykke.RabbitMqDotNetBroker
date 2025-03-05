@@ -1,3 +1,10 @@
+## [[tbd]] ([[date]])
+
+### Fixed
+- LT-6016: Print out monitoring introduction with configuration details upon startup
+- LT-6016: Clear monitoring issue log with detailed information
+- LT-6016: Skip monitoring messages which are not destined for the current host
+
 ## 17.1.5 (2025-03-03)
 
 ### Fixed

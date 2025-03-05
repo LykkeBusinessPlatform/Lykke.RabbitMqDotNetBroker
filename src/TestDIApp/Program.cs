@@ -32,7 +32,7 @@ await builder
                 .AddSimpleConsole(opt =>
                 {
                     opt.IncludeScopes = true;
-                    opt.SingleLine = true;
+                    opt.SingleLine = false;
                     opt.ColorBehavior = Microsoft.Extensions.Logging.Console.LoggerColorBehavior.Enabled;
                     opt.UseUtcTimestamp = true;
                     opt.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
