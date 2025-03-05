@@ -28,7 +28,7 @@ public sealed class MonitoringMessageLogger : IMonitoringMessageNotifier
     public Task NotifyLateDelivery(MessageDelivery messageDelivery)
     {
         _logger.LogError(
-            new MonitoringHearbeatLateDeliveryException(
+            new MonitoringHeartbeatLateDeliveryException(
                 messageDelivery.DispatchedTimestamp,
                 messageDelivery.ReceivedTimestamp,
                 messageDelivery.Route), "");

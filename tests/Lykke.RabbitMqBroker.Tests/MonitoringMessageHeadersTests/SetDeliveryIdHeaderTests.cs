@@ -8,7 +8,7 @@ using RabbitMQ.Client;
 namespace Lykke.RabbitMqBroker.Tests.MonitoringMessageHeadersTests;
 
 [TestFixture]
-internal sealed class SetDeliveryIdTests
+internal sealed class SetDeliveryIdHeaderTests
 {
     [Test]
     public void When_Properties_Is_Null_Then_Does_Nothing()
