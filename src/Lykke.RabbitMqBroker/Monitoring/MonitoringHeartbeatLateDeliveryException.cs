@@ -4,15 +4,11 @@ using Lykke.RabbitMqBroker.Abstractions.Tracking;
 
 namespace Lykke.RabbitMqBroker.Monitoring;
 
-public class MonitoringHeartbeatLateDeliveryException : Exception
+public class MonitoringHeartbeatLateDeliveryException(
+    DateTime? dispatchedTimestamp,
+    DateTime? receivedTimestamp,
+    MessageRoute route) : Exception(BuildMessage(dispatchedTimestamp, receivedTimestamp, route))
 {
-    public MonitoringHeartbeatLateDeliveryException(
-        DateTime? dispatchedTimestamp,
-        DateTime? receivedTimestamp,
-        MessageRoute route)
-        : base(BuildMessage(dispatchedTimestamp, receivedTimestamp, route))
-    {
-    }
 
     private static string BuildMessage(
         DateTime? dispatchedTimestamp,
