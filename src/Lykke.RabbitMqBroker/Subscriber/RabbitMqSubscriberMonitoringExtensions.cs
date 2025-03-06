@@ -22,7 +22,8 @@ internal static class RabbitMqSubscriberMonitoringExtensions
         this RabbitMqSubscriber<TModel> subscriber, IComponentContext context)
     {
         var heartbeatReceiver = context.ResolveOptional<IMonitoringHeartbeatReceiver>();
-        subscriber.UseMiddlewareAt(0, new MonitoringHeartbeatMiddleware<TModel>(heartbeatReceiver));
+        var listenersRegistry = context.ResolveOptional<IListenersRegistry>();
+        subscriber.UseMiddlewareAt(0, new MonitoringHeartbeatMiddleware<TModel>(heartbeatReceiver, listenersRegistry));
         return subscriber;
     }
 
@@ -37,7 +38,8 @@ internal static class RabbitMqSubscriberMonitoringExtensions
         this RabbitMqSubscriber<TModel> subscriber, IServiceProvider serviceProvider)
     {
         var heartbeatReceiver = serviceProvider.GetService<IMonitoringHeartbeatReceiver>();
-        subscriber.UseMiddlewareAt(0, new MonitoringHeartbeatMiddleware<TModel>(heartbeatReceiver));
+        var listenersRegistry = serviceProvider.GetService<IListenersRegistry>();
+        subscriber.UseMiddlewareAt(0, new MonitoringHeartbeatMiddleware<TModel>(heartbeatReceiver, listenersRegistry));
         return subscriber;
     }
 }
