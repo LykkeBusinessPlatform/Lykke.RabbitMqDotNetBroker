@@ -1,4 +1,4 @@
-## [[tbd]] ([[date]])
+## 17.1.6 (2025-03-11)
 
 ### Fixed
 - LT-6016: Print out monitoring introduction with configuration details upon startup
