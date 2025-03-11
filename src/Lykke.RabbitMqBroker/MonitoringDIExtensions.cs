@@ -11,6 +11,7 @@ using Lykke.RabbitMqBroker.Publisher;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Lykke.RabbitMqBroker;
@@ -73,6 +74,12 @@ public static class MonitoringDIExtensions
                 new MessageDeliveryAnalysisTimer(
                     p.GetRequiredService<IMessageDeliveryAnalysisWorker>(),
                     configuration.AnalysisPeriod));
+            services.AddHostedService(p =>
+                new MonitoringIntroDisplay(
+                    p.GetRequiredService<ILogger<MonitoringIntroDisplay>>(),
+                    configuration,
+                    p.GetRequiredService<IListenersRegistry>())
+                );
         }
         else
         {
@@ -80,6 +87,12 @@ public static class MonitoringDIExtensions
                 new MessageDeliveryAnalysisTimer(
                     p.GetRequiredService<IMessageDeliveryAnalysisWorker>(),
                     configuration.AnalysisPeriod));
+            services.TryAddSingleton(p =>
+                new MonitoringIntroDisplay(
+                    p.GetRequiredService<ILogger<MonitoringIntroDisplay>>(),
+                    configuration,
+                    p.GetRequiredService<IListenersRegistry>())
+                );
         }
 
         return services;
@@ -167,12 +180,24 @@ public static class MonitoringDIExtensions
                 .As<IHostedService>()
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(configuration.AnalysisPeriod));
+
+            builder.RegisterType<MonitoringIntroDisplay>()
+                .As<IHostedService>()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(configuration));
         }
         else
         {
             builder.Register(c => new MessageDeliveryAnalysisTimer(
                     c.Resolve<IMessageDeliveryAnalysisWorker>(),
                     configuration.AnalysisPeriod))
+                .AsSelf()
+                .SingleInstance();
+
+            builder.Register(c => new MonitoringIntroDisplay(
+                    c.Resolve<ILogger<MonitoringIntroDisplay>>(),
+                    configuration,
+                    c.Resolve<IListenersRegistry>()))
                 .AsSelf()
                 .SingleInstance();
         }

@@ -17,13 +17,21 @@ public sealed class MonitoringMessageLogger : IMonitoringMessageNotifier
 
     public Task NotifyNotDelivered(MessageDelivery messageDelivery)
     {
-        _logger.LogCritical("Message delivery monitoring issue: {MessageDelivery}", messageDelivery);
+        _logger.LogCritical(
+            new MonitoringHeartbeatUndeliveredException(
+                messageDelivery.DispatchedTimestamp,
+                messageDelivery.Failure,
+                messageDelivery.Route), "");
         return Task.CompletedTask;
     }
 
     public Task NotifyLateDelivery(MessageDelivery messageDelivery)
     {
-        _logger.LogWarning("Monitoring message was delivered but late: {MessageDelivery}", messageDelivery);
+        _logger.LogError(
+            new MonitoringHeartbeatLateDeliveryException(
+                messageDelivery.DispatchedTimestamp.Value,
+                messageDelivery.ReceivedTimestamp.Value,
+                messageDelivery.Route), "");
         return Task.CompletedTask;
     }
 }

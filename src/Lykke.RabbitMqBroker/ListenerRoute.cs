@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 using Lykke.RabbitMqBroker.Abstractions.Tracking;
 using Lykke.RabbitMqBroker.Subscriber;
 
