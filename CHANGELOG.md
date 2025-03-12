@@ -1,3 +1,10 @@
+## [[tbd]] ([[date]])
+
+### Fixed
+- LT-6016: Fix monitoring messages handling in middleware pipeline. 
+
+There was a bug that monitoring message was propagated to the next middleware in the pipeline. 
+
 ## 17.1.6 (2025-03-11)
 
 ### Fixed
