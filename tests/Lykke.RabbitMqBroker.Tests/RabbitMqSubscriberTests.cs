@@ -99,7 +99,7 @@ namespace Lykke.RabbitMqBroker.Tests
         }
 
         [Test]
-        public async Task Test_Start_ShouldConfigureChannelPrefetch_WhenPrefetchCountIsSet()
+        public void Test_Start_ShouldConfigureChannelPrefetch_WhenPrefetchCountIsSet()
         {
             ushort prefetchCount = 10;
 
@@ -110,7 +110,7 @@ namespace Lykke.RabbitMqBroker.Tests
                 .SetPrefetchCount(prefetchCount)
                 .Subscribe(_eventHandler);
 
-            await _subscriber.StartAsync();
+            _subscriber.Start();
 
             var consumerChannel = _connection.Channels.SingleOrDefault(x => x?.PrefetchCount == prefetchCount);
             Assert.That(consumerChannel, Is.Not.Null);

@@ -41,6 +41,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
         public IMessageReadStrategy MessageReadStrategy { get; private set; }
         public Func<ReadOnlyMemory<byte>, Task> EventHandler { get; private set; }
         public Func<ReadOnlyMemory<byte>, CancellationToken, Task> CancellableEventHandler { get; private set; }
+        public bool IsOpen => _channel?.IsOpen ?? false;
 
         public RabbitMqSubscriber(
             [NotNull] ILogger<RabbitMqSubscriber<TTopicModel>> logger,
@@ -176,18 +177,10 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
         public RabbitMqSubscriber<TTopicModel> Start()
         {
-            StartAsync().GetAwaiter().GetResult();
-            return this;
-        }
-
-        public Task StartAsync(CancellationToken cancellationToken = default)
-        {
             if (_consumer is { IsRunning: true })
-                return Task.CompletedTask;
+                return this;
 
             CheckStartPreConditionsOrThrow();
-
-            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             MessageReadStrategy ??= GetDefaultStrategy();
 
@@ -200,32 +193,11 @@ namespace Lykke.RabbitMqBroker.Subscriber
 
             _consumer = GetOrCreateConsumer(_channel);
 
-            var task = Task.Run(() =>
-            {
-                try
-                {
-                    var queueName = MessageReadStrategy.Configure(
-                        _settings,
-                        CreateConfiguratorChannel,
-                        _cancellationTokenSource.Token);
+            var queueName = MessageReadStrategy.Configure(_settings, CreateConfiguratorChannel);
 
-                    _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
-                }
-                catch (InvalidOperationException ex)
-                {
-                    if (!_cancellationTokenSource.IsCancellationRequested)
-                    {
-                        _logger.LogWarning(ex, "Error configuring strategy: {Message}", ex.Message);
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Error configuring strategy: {Message}", e.Message);
-                }
+            _consumerTag = _channel.BasicConsume(queueName.ToString(), false, _consumer);
 
-            }, _cancellationTokenSource.Token);
-
-            return task;
+            return this;
         }
 
         public void Stop()

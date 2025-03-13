@@ -30,7 +30,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [PublicAPI]
-    public sealed class RabbitMqListener<T> : IStartable, IDisposable
+    public sealed class RabbitMqListener<T> : IRabbitMqListener, IStartable, IDisposable
         where T : class
     {
         private readonly IConnectionProvider _connectionProvider;
@@ -67,38 +67,23 @@ namespace Lykke.RabbitMqBroker.Subscriber
             LoggerFactoryContainer.Instance = _loggerFactory;
             _configureSubscriber = configureSubscriber;
             _handlers = handlers;
+            MessageTypeName = typeof(T).Name;
         }
 
         public void Start()
         {
-            StartAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
             if (_subscribers.Any())
                 throw new InvalidOperationException("The listener is already started");
-
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
-            }
-
-            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var tasks = new List<Task>();
 
             foreach (var _ in _options.ConsumerCount)
             {
                 var connection = CreateConnection();
                 var subscriber = CreateSubscriber(connection)
-                    .Subscribe(Handle);
+                    .Subscribe(Handle)
+                    .Start();
 
                 _subscribers.Add(subscriber);
-                tasks.Add(subscriber.StartAsync(_cancellationTokenSource.Token));
             }
-
-            return Task.WhenAll(tasks);
         }
 
         private IAutorecoveringConnection CreateConnection()
@@ -163,5 +148,12 @@ namespace Lykke.RabbitMqBroker.Subscriber
                 _subscribers.RemoveAt(i);
             }
         }
+
+        public bool IsOpen()
+        {
+            return _subscribers.Count > 0 && _subscribers.All(x => x.IsOpen);
+        }
+
+        public string MessageTypeName { get; }
     }
 }

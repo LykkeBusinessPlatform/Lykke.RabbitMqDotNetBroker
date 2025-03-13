@@ -18,8 +18,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
         /// </summary>
         /// <param name="settings"></param>
         /// <param name="channelFactory"></param>
-        /// <param name="cancellationToken"></param>
         /// <returns> The name of the queue </returns>
-        QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory, CancellationToken cancellationToken = default);
+        QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory);
     }
 }
