@@ -1,8 +1,10 @@
-﻿namespace Lykke.RabbitMqBroker.Subscriber;
+﻿using System;
+
+namespace Lykke.RabbitMqBroker.Subscriber;
 
 public interface IRabbitMqListener
 {
     public bool IsConnected();
 
-    public string MessageTypeName { get; }
+    public Type ContractType { get; }
 }

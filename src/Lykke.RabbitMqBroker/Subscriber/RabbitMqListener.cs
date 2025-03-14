@@ -67,7 +67,7 @@ namespace Lykke.RabbitMqBroker.Subscriber
             LoggerFactoryContainer.Instance = _loggerFactory;
             _configureSubscriber = configureSubscriber;
             _handlers = handlers;
-            MessageTypeName = typeof(T).Name;
+            ContractType = typeof(T);
         }
 
         public void Start()
@@ -154,6 +154,6 @@ namespace Lykke.RabbitMqBroker.Subscriber
             return _subscribers.Count > 0 && _subscribers.Any(x => x.IsOpen);
         }
 
-        public string MessageTypeName { get; }
+        public Type ContractType { get; }
     }
 }
