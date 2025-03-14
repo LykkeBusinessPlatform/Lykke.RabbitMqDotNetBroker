@@ -1,3 +1,9 @@
+## [[tbd]] ([[date]])
+
+### Changed
+- LT-6099: remove retries from StrategyConfigurator, add IRabbitMqListener interface
+
+
 ## 17.1.6 (2025-03-11)
 
 ### Fixed
