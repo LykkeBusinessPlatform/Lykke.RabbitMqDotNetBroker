@@ -22,11 +22,11 @@ public abstract class TemplatedMessageReadStrategy : IMessageReadStrategy
         _routingKey = routingKey;
     }
 
-    public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory, CancellationToken cancellationToken = default)
+    public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
     {
         var options = CreateQueueConfigurationOptions(settings);
 
-        var (queueName, _) = StrategyConfigurator.Configure(channelFactory, options, cancellationToken).Match(
+        var (queueName, _) = StrategyConfigurator.Configure(channelFactory, options).Match(
             onFailure: _ => throw new InvalidOperationException($"Failed to configure templated strategy for queue [{options.QueueName}]")
         );
 

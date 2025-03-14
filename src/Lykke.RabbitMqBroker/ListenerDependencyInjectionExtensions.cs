@@ -30,17 +30,17 @@ namespace Lykke.RabbitMqBroker
         /// should be started manually by resolving it from the container
         /// as <see cref="IStartable"/>. If AutoStart not used, then
         /// resolve it as <see cref="RabbitMqListener{TModel}"/>
-        /// 
+        ///
         /// Implements <see cref="IDisposable"/> interface so that container can
         /// take care of disposing the listener when the application stops.
-        /// 
+        ///
         /// Can be registered once for each message type. If required, handling
         /// can be extended by registering more handlers implementing
         /// <see cref="IMessageHandler{TModel}"/> interface either manually or using
         /// <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.AddMessageHandler{THandler}(THandler)"/>
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
+        /// <param name="subscriptionSettings">RabbitMQ host connection settings</param>
         /// <param name="configureSubscriber">Low-level subscriber configuration callback
         /// It is called after the subscriber is created and configured by the library.
         /// Consider it as last chance to configure the subscriber before it starts listening.</param>
@@ -79,6 +79,8 @@ namespace Lykke.RabbitMqBroker
                     p.GetRequiredService<ILoggerFactory>());
             });
 
+            services.AddSingleton<IRabbitMqListener>(p => p.GetService<RabbitMqListener<TModel>>());
+
             return new RabbitMqListenerRegistrationBuilder<TModel>(services);
         }
 
@@ -96,18 +98,18 @@ namespace Lykke.RabbitMqBroker
         /// should be started manually by resolving it from the container
         /// as <see cref="IStartable"/>. If AutoStart not used, then
         /// resolve it as <see cref="RabbitMqListener{TModel}"/>
-        /// 
+        ///
         /// Implements <see cref="IDisposable"/> interface so that container can
         /// take care of disposing the listener when the application stops.
-        /// 
+        ///
         /// Can be registered once for each message type. If required, handling
         /// can be extended by registering more handlers implementing
         /// <see cref="IMessageHandler{TModel}"/> interface either manually or using
         /// <see cref="IRabbitMqListenerRegistrationBuilder{TModel}.AddMessageHandler{THandler}(THandler)"/>
         /// </summary>
         /// <param name="builder"></param>
-        /// <param name="subscriptionSettings">RabbitMQ host connection settings</param> 
-        /// <param name="configureSubscriber">Low-level subscriber configuration callback. 
+        /// <param name="subscriptionSettings">RabbitMQ host connection settings</param>
+        /// <param name="configureSubscriber">Low-level subscriber configuration callback.
         /// It is called after the subscriber is created and configured by the library.
         /// Consider it as last chance to configure the subscriber before it starts listening.</param>
         /// <typeparam name="TModel"></typeparam>
@@ -152,6 +154,7 @@ namespace Lykke.RabbitMqBroker
                         ctx.Resolve<ILoggerFactory>());
                 })
                 .AsSelf()
+                .As<IRabbitMqListener>()
                 .SingleInstance();
 
             return new RabbitMqListenerAutofacContainerRegistrationBuilder<TModel>(builder);

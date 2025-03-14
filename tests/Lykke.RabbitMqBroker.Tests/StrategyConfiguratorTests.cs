@@ -90,7 +90,7 @@ internal sealed class StrategyConfiguratorTests
                         ""))
             );
 
-        int tryCount = 5;
+        int tryCount = 1;
         var result = StrategyConfigurator.Configure(
             () => mock.Object,
             new QueueConfigurationOptions(
@@ -98,8 +98,7 @@ internal sealed class StrategyConfiguratorTests
                 ExchangeName.Create("x"),
                 TimeToLive.Infinite,
                 QueueType: QueueType.Quorum,
-                RoutingKey: RoutingKey.Empty),
-                CancellationToken.None, 1, 1, tryCount);
+                RoutingKey: RoutingKey.Empty));
 
         mock.Verify(x => x.QueueBind(
             It.IsAny<string>(),

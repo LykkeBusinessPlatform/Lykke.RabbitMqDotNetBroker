@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 using RabbitMQ.Client;
 
@@ -18,7 +17,7 @@ namespace Lykke.RabbitMqBroker.Subscriber.MessageReadStrategies
             _routingKey = routingKey ?? string.Empty;
         }
 
-        public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory, CancellationToken cancellationToken = default)
+        public QueueName Configure(RabbitMqSubscriptionSettings settings, Func<IModel> channelFactory)
         {
             using var channel = channelFactory();
 
