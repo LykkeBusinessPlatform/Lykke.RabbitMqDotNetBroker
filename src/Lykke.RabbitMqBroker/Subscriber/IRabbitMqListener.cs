@@ -2,7 +2,7 @@
 
 public interface IRabbitMqListener
 {
-    public bool IsOpen();
+    public bool IsConnected();
 
     public string MessageTypeName { get; }
 }

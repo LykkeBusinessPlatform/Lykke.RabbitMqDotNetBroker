@@ -149,9 +149,9 @@ namespace Lykke.RabbitMqBroker.Subscriber
             }
         }
 
-        public bool IsOpen()
+        public bool IsConnected()
         {
-            return _subscribers.Count > 0 && _subscribers.All(x => x.IsOpen);
+            return _subscribers.Count > 0 && _subscribers.Any(x => x.IsOpen);
         }
 
         public string MessageTypeName { get; }

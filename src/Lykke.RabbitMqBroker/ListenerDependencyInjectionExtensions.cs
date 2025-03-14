@@ -154,6 +154,7 @@ namespace Lykke.RabbitMqBroker
                         ctx.Resolve<ILoggerFactory>());
                 })
                 .AsSelf()
+                .As<IRabbitMqListener>()
                 .SingleInstance();
 
             return new RabbitMqListenerAutofacContainerRegistrationBuilder<TModel>(builder);
