@@ -26,19 +26,19 @@ internal sealed class MonitoringHeartbeatMiddleware<T> : IEventMiddleware<T>
         _listenersRegistry = listenersRegistry;
     }
 
-    public async Task ProcessAsync(IEventContext<T> context)
+    public Task ProcessAsync(IEventContext<T> context) =>
+        context.IsMonitoringMessage()
+            ? HandleMonitoringMessage(context)
+            : context.InvokeNextAsync();
+
+    private async Task HandleMonitoringMessage(IEventContext<T> context)
     {
-        if (context.IsMonitoringMessage() && context.MonitoringMessageDestinationOneOf(GetMonitoredQueues()))
+        if (_monitoringHeartbeatReceiver is not null && context.MonitoringMessageDestinationOneOf(GetMonitoredQueues()))
         {
-            if (_monitoringHeartbeatReceiver is not null)
-            {
-                await _monitoringHeartbeatReceiver.Handle(context.Body, context.BasicProperties.GetDeliveryId());
-            }
-            context.MessageAcceptor.Accept();
-            return;
+            await _monitoringHeartbeatReceiver.Handle(context.Body, context.BasicProperties.GetDeliveryId());
         }
 
-        await context.InvokeNextAsync();
+        context.MessageAcceptor.Accept();
     }
 
     private IEnumerable<QueueName> GetMonitoredQueues() => _listenersRegistry?.Select(l => l.ListenerRoute.QueueName) ?? [];
